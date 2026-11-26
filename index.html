@@ -1,0 +1,3685 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>截面实验室 · 正方体</title>
+<style>
+  :root{
+    --ink:#392d55;
+    --ink-2:#6d608c;
+    --ink-3:#a296b8;
+    --pink:#ff6ea8;
+    --pink-deep:#f04f91;
+    --pink-soft:#ffd8e8;
+    --blue:#57c8f2;
+    --blue-soft:#d6f3ff;
+    --mint:#65dfc0;
+    --mint-soft:#d5fff3;
+    --lemon:#ffd86b;
+    --purple:#8d6bf2;
+    --card:rgba(255,255,255,.74);
+    --line:rgba(72,53,108,.10);
+    --shadow:0 18px 44px rgba(123,82,164,.13);
+  }
+  *{box-sizing:border-box;}
+  html,body{height:100%;}
+  body{
+    margin:0;
+    overflow:hidden;
+    color:var(--ink);
+    font-family:"Yuanti SC","Hiragino Maru Gothic ProN","PingFang SC","Microsoft YaHei",sans-serif;
+    background:#fff5fa;
+    -webkit-font-smoothing:antialiased;
+  }
+  button{font-family:inherit;}
+  .app{
+    position:relative;
+    height:100%;
+    display:flex;
+    flex-direction:column;
+    padding:0 24px 20px;
+    isolation:isolate;
+  }
+
+  /* ---------- dreamy background ---------- */
+  .bg{
+    position:fixed; inset:0; z-index:-3; overflow:hidden;
+    background:
+      radial-gradient(120% 90% at 8% 0%, #fffaf1 0%, rgba(255,250,241,0) 55%),
+      radial-gradient(90% 80% at 88% 12%, #ffe3f1 0%, rgba(255,227,241,0) 62%),
+      radial-gradient(110% 100% at 70% 100%, #def7ff 0%, rgba(222,247,255,0) 60%),
+      linear-gradient(145deg,#fff8ed 0%,#ffeaf5 42%,#e8f7ff 100%);
+  }
+  .bg::after{
+    content:"";
+    position:absolute; inset:0;
+    background-image:radial-gradient(rgba(255,122,173,.55) 1.15px, transparent 1.25px);
+    background-size:19px 19px;
+    opacity:.24;
+    -webkit-mask-image:radial-gradient(115% 85% at 50% 38%,#000 0%,rgba(0,0,0,.15) 72%,transparent 100%);
+            mask-image:radial-gradient(115% 85% at 50% 38%,#000 0%,rgba(0,0,0,.15) 72%,transparent 100%);
+  }
+  .blob{position:fixed;border-radius:50%;filter:blur(58px);z-index:-2;opacity:.55;pointer-events:none;}
+  .blob.b1{width:420px;height:420px;left:-160px;top:10%;background:#ffd0e6;}
+  .blob.b2{width:380px;height:380px;right:-140px;bottom:-120px;background:#bcecff;}
+  .blob.b3{width:260px;height:260px;right:20%;top:-150px;background:#ffe7ad;opacity:.4;}
+  .deco{position:absolute;pointer-events:none;z-index:-1;filter:drop-shadow(0 5px 8px rgba(174,112,169,.18));}
+  .deco.star{
+    width:20px;height:20px;background:var(--pink);
+    clip-path:polygon(50% 0%,61% 38%,100% 50%,61% 62%,50% 100%,39% 62%,0% 50%,39% 38%);
+    animation:twinkle 3.6s ease-in-out infinite;
+  }
+  .deco.star.s2{background:var(--blue);width:13px;height:13px;animation-delay:-1.4s;}
+  .deco.star.s3{background:var(--lemon);width:16px;height:16px;animation-delay:-2.3s;}
+  .deco.ring{width:46px;height:46px;border:3px solid rgba(255,110,168,.45);border-radius:50%;}
+  .deco.ring.r2{width:22px;height:22px;border-color:rgba(87,200,242,.55);}
+  .deco.d1{left:3.8%;top:20%;}
+  .deco.d2{left:7%;top:13%;}
+  .deco.d3{right:2.8%;top:24%;}
+  .deco.d4{right:5.2%;top:16%;}
+  .deco.d5{left:1.8%;bottom:16%;}
+  .deco.d6{right:1.5%;bottom:26%;}
+
+  @keyframes twinkle{
+    0%,100%{transform:scale(.72) rotate(0deg);opacity:.55;}
+    50%{transform:scale(1.08) rotate(22deg);opacity:1;}
+  }
+
+  /* ---------- header ---------- */
+  .topbar{
+    height:76px; flex:0 0 76px;
+    display:flex; align-items:center; justify-content:space-between;
+    gap:20px;
+  }
+  .brand{display:flex;align-items:center;gap:13px;min-width:0;}
+  .brand-mark{
+    width:48px;height:48px;flex:0 0 48px;border-radius:16px;
+    display:grid;place-items:center;
+    background:linear-gradient(145deg,#ff9cc5 0%,#ff6ea8 54%,#f04f91 100%);
+    border:2.5px solid rgba(255,255,255,.92);
+    box-shadow:0 8px 18px rgba(240,79,145,.28),inset 0 2px 0 rgba(255,255,255,.5);
+    color:#fff;font-size:25px;font-weight:900;line-height:1;
+    transform:rotate(-5deg);
+    position:relative;
+  }
+  .brand-mark::after{
+    content:"";position:absolute;width:9px;height:9px;border-radius:50%;
+    background:#fff;right:8px;top:8px;opacity:.8;
+  }
+  .brand-copy{display:flex;flex-direction:column;gap:2px;min-width:0;}
+  .brand-copy h1{
+    margin:0;font-size:23px;line-height:1.05;font-weight:900;letter-spacing:1px;
+    white-space:nowrap;
+  }
+  .brand-copy h1 em{font-style:normal;color:var(--pink-deep);}
+  .brand-copy p{
+    margin:0;font-size:9px;font-weight:800;letter-spacing:3.2px;color:#a893b8;
+    text-transform:uppercase;white-space:nowrap;
+  }
+  .top-actions{display:flex;align-items:center;gap:9px;}
+  .pill-btn{
+    height:38px;padding:0 15px;border-radius:99px;
+    border:1.5px solid rgba(255,255,255,.95);
+    background:rgba(255,255,255,.64);
+    box-shadow:0 7px 18px rgba(120,80,160,.10),inset 0 0 0 1px rgba(255,255,255,.3);
+    backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);
+    color:var(--ink);font-size:12px;font-weight:800;letter-spacing:.4px;
+    display:flex;flex:0 0 auto;align-items:center;gap:7px;cursor:pointer;white-space:nowrap;
+    transition:transform .2s ease,background .2s ease,box-shadow .2s ease,color .2s;
+  }
+  .pill-btn:hover{transform:translateY(-2px);background:#fff;box-shadow:0 10px 22px rgba(120,80,160,.15);}
+  .pill-btn:active{transform:translateY(0) scale(.98);}
+  .pill-btn .dot{
+    width:7px;height:7px;border-radius:50%;background:#c7bad8;
+    box-shadow:0 0 0 3px rgba(199,186,216,.2);transition:.2s;
+  }
+  .pill-btn.on{background:#fff;color:var(--pink-deep);border-color:#ffc2dc;}
+  .pill-btn.on .dot{background:var(--pink);box-shadow:0 0 0 3px rgba(255,110,168,.17);animation:dotpulse 1.8s infinite;}
+  @keyframes dotpulse{50%{box-shadow:0 0 0 7px rgba(255,110,168,0);}}
+
+  /* ---------- main layout ---------- */
+  .layout{
+    flex:1 1 auto;min-height:0;
+    display:grid;grid-template-columns:minmax(0,1fr) 386px;
+    gap:18px;
+  }
+
+  /* ---------- stage ---------- */
+  .stage{
+    position:relative;min-height:0;border-radius:34px;overflow:hidden;
+    border:2px solid rgba(255,255,255,.94);
+    background:
+      radial-gradient(80% 90% at 46% 40%, rgba(255,255,255,.74) 0%, rgba(255,255,255,.35) 48%, rgba(255,255,255,.12) 100%),
+      linear-gradient(150deg,rgba(255,255,255,.55),rgba(255,255,255,.12));
+    box-shadow:
+      0 26px 60px rgba(126,82,164,.15),
+      inset 0 0 0 1px rgba(255,255,255,.6),
+      inset 0 -40px 80px rgba(219,239,255,.18);
+    backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);
+  }
+  .stage::before{
+    content:"";position:absolute;inset:0;pointer-events:none;z-index:1;
+    background:
+      radial-gradient(50% 42% at 12% 4%, rgba(255,214,234,.55), transparent 72%),
+      radial-gradient(38% 36% at 92% 96%, rgba(198,240,255,.55), transparent 75%);
+    opacity:.75;
+  }
+  .stage::after{
+    content:"";position:absolute;inset:13px;border-radius:25px;pointer-events:none;z-index:1;
+    border:1px dashed rgba(130,104,162,.14);
+  }
+  #scene{
+    position:absolute;inset:0;width:100%;height:100%;display:block;
+    z-index:2;touch-action:none;cursor:grab;
+    outline:none;
+  }
+  #scene.dragging{cursor:grabbing;}
+  #scene.handle-hover{cursor:grab;}
+
+  .stage-tip{
+    position:absolute;left:22px;top:20px;z-index:4;
+    display:flex;align-items:center;gap:9px;
+    height:37px;padding:0 14px 0 10px;border-radius:99px;
+    background:rgba(255,255,255,.69);
+    border:1.5px solid rgba(255,255,255,.95);
+    box-shadow:0 8px 20px rgba(120,80,160,.10);
+    backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);
+    color:var(--ink-2);font-size:11.5px;font-weight:700;letter-spacing:.35px;
+    pointer-events:none;
+  }
+  .mouse-ico{
+    width:20px;height:25px;border:2px solid var(--ink-2);border-radius:10px;
+    position:relative;flex:0 0 20px;
+  }
+  .mouse-ico::before{
+    content:"";position:absolute;width:2px;height:5px;border-radius:2px;background:var(--pink);
+    left:50%;top:4px;transform:translateX(-50%);
+  }
+  .stage-tip b{color:var(--pink-deep);font-weight:900;}
+
+  .view-switch{
+    position:absolute;right:20px;top:20px;z-index:5;
+    display:flex;gap:3px;padding:4px;border-radius:99px;
+    background:rgba(255,255,255,.66);
+    border:1.5px solid rgba(255,255,255,.95);
+    box-shadow:0 8px 20px rgba(120,80,160,.09);
+    backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);
+  }
+  .view-switch button{
+    border:0;background:transparent;border-radius:99px;
+    padding:7px 12px;font-size:11px;font-weight:800;color:var(--ink-3);
+    cursor:pointer;transition:.18s;
+  }
+  .view-switch button:hover{color:var(--ink);background:rgba(255,255,255,.7);}
+  .view-switch button.active{
+    color:#fff;background:linear-gradient(135deg,#a98aff,#7c5bf0);
+    box-shadow:0 4px 10px rgba(124,91,240,.28);
+  }
+
+  .stage-footer{
+    position:absolute;left:22px;bottom:20px;z-index:4;
+    display:flex;flex-wrap:wrap;gap:7px;max-width:calc(100% - 220px);
+    pointer-events:none;
+  }
+  .hint{
+    display:flex;align-items:center;gap:6px;
+    border-radius:99px;padding:7px 11px;
+    background:rgba(255,255,255,.62);border:1px solid rgba(255,255,255,.9);
+    box-shadow:0 5px 14px rgba(120,80,160,.06);
+    backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);
+    color:var(--ink-2);font-size:10.5px;font-weight:700;white-space:nowrap;
+  }
+  .hint i{
+    font-style:normal;font-size:12px;display:inline-grid;place-items:center;
+    width:16px;height:16px;border-radius:50%;
+  }
+  .hint:nth-child(1) i{background:#ffe1ed;color:#e84f8d;}
+  .hint:nth-child(2) i{background:#dcf5ff;color:#38a9d4;}
+  .hint:nth-child(3) i{background:#fff2c9;color:#c39420;}
+  .touch-tools{display:none;}
+  .touch-toggle{
+    padding:0 11px;min-height:36px;border:1px solid #fff;border-radius:99px;
+    background:#fff;color:var(--ink);font-size:11px;font-weight:800;cursor:pointer;
+  }
+  .touch-toggle[aria-pressed="true"]{background:#6d4dd8;color:#fff;}
+  .touch-hint{font-size:10px;font-weight:700;color:var(--ink-2);}
+
+  .mini-card{
+    position:absolute;right:19px;bottom:19px;z-index:4;width:158px;
+    padding:11px 12px 9px;border-radius:22px;
+    background:rgba(255,255,255,.72);
+    border:1.5px solid rgba(255,255,255,.96);
+    box-shadow:0 13px 30px rgba(120,80,160,.13),inset 0 0 0 1px rgba(255,255,255,.4);
+    backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);
+    pointer-events:none;
+  }
+  .mini-head{display:flex;align-items:center;justify-content:space-between;gap:8px;}
+  .mini-head span{font-size:9px;letter-spacing:1.9px;font-weight:900;color:#a08eb7;text-transform:uppercase;}
+  .mini-head b{font-size:9px;font-weight:800;color:var(--pink-deep);background:#fff0f6;padding:2px 6px;border-radius:99px;}
+  #miniCanvas{display:block;width:132px;height:88px;margin:4px auto 0;}
+
+  /* ---------- side panel ---------- */
+  .panel{
+    min-height:0;display:flex;flex-direction:column;gap:12px;
+    overflow-y:auto;overscroll-behavior:contain;padding:2px 4px 6px 0;
+    scrollbar-width:thin;scrollbar-color:rgba(141,107,242,.25) transparent;
+  }
+  .panel::-webkit-scrollbar{width:6px;}
+  .panel::-webkit-scrollbar-thumb{background:rgba(141,107,242,.22);border-radius:99px;}
+  .card{
+    position:relative;flex:0 0 auto;
+    background:var(--card);
+    border:1.5px solid rgba(255,255,255,.95);
+    border-radius:25px;
+    box-shadow:var(--shadow),inset 0 0 0 1px rgba(255,255,255,.35);
+    backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);
+    padding:16px;
+  }
+
+  /* hero */
+  .hero{--accent:var(--pink);overflow:hidden;padding:15px 17px 14px;}
+  .hero::before{
+    content:"";position:absolute;width:150px;height:150px;border-radius:50%;
+    right:-60px;top:-70px;background:var(--accent);opacity:.09;
+  }
+  .hero::after{
+    content:"";position:absolute;width:54px;height:54px;border-radius:50%;
+    left:-26px;bottom:-30px;border:9px solid var(--accent);opacity:.07;
+  }
+  .hero-grid{
+    position:relative;display:grid;grid-template-columns:91px minmax(0,1fr);
+    gap:9px;align-items:center;
+  }
+  .mascot-wrap{
+    width:91px;height:102px;display:grid;place-items:center;position:relative;
+  }
+  .mascot-svg{width:96px;height:104px;overflow:visible;filter:drop-shadow(0 10px 12px rgba(111,72,146,.15));}
+  .mascot-float{animation:bob 3.4s ease-in-out infinite;transform-origin:60px 80px;}
+  .eyes{transform-box:fill-box;transform-origin:center;animation:blink 5.2s infinite;}
+  @keyframes bob{0%,100%{transform:translateY(0) rotate(-1deg);}50%{transform:translateY(-5px) rotate(1deg);}}
+  @keyframes blink{0%,44%,48%,100%{transform:scaleY(1);}46%{transform:scaleY(.08);}}
+  .hero-copy{min-width:0;position:relative;z-index:1;}
+  .eyebrow{
+    font-size:9px;font-weight:900;letter-spacing:2.6px;color:#a795bb;
+    text-transform:uppercase;margin-bottom:2px;
+  }
+  .shape-line{display:flex;align-items:baseline;gap:6px;min-width:0;}
+  .shape-name{
+    font-size:27px;line-height:1.12;font-weight:900;letter-spacing:.5px;
+    color:var(--accent);
+    text-shadow:0 2px 0 #fff,0 4px 10px rgba(255,255,255,.6);
+    overflow-wrap:anywhere;
+  }
+  .shape-en{
+    min-width:0;
+    font-size:9px;font-weight:900;letter-spacing:1.1px;color:#b4a3c2;
+    white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+  }
+  .bubble{
+    position:relative;margin-top:6px;
+    background:#fff;border:1.5px solid rgba(72,53,108,.11);
+    border-radius:12px;border-top-left-radius:4px;
+    padding:6px 8px;font-size:10.5px;line-height:1.48;font-weight:600;
+    color:var(--ink-2);min-height:45px;
+    box-shadow:0 4px 10px rgba(122,84,158,.06);
+  }
+  .bubble.pop{animation:pop .28s ease;}
+  @keyframes pop{0%{transform:scale(.94);opacity:.5;}65%{transform:scale(1.02);}100%{transform:scale(1);opacity:1;}}
+  .metrics{
+    position:relative;display:grid;grid-template-columns:repeat(3,1fr);
+    gap:4px;margin-top:11px;padding-top:10px;
+    border-top:1px dashed rgba(90,70,120,.14);
+  }
+  .metric{text-align:center;position:relative;}
+  .metric + .metric::before{
+    content:"";position:absolute;left:-2px;top:6px;bottom:4px;width:1px;
+    background:rgba(90,70,120,.08);
+  }
+  .metric b{
+    display:block;font-size:17px;line-height:1;font-weight:900;color:var(--ink);
+    font-variant-numeric:tabular-nums;letter-spacing:-.2px;
+  }
+  .metric span{display:block;margin-top:4px;font-size:8.5px;font-weight:800;letter-spacing:1px;color:#aa9bb9;}
+
+  /* section headers */
+  .card-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:9px;}
+  .card-title{display:flex;align-items:center;gap:7px;font-size:12px;font-weight:900;letter-spacing:.5px;}
+  .card-title .tiny-ico{
+    width:20px;height:20px;border-radius:7px;display:grid;place-items:center;
+    font-size:10px;background:#f4edff;color:#7c5bf0;
+  }
+  .card-kicker{font-size:8px;font-weight:900;letter-spacing:2.1px;color:#b7a8c4;text-transform:uppercase;}
+  .icon-btn{
+    width:27px;height:27px;border-radius:50%;display:grid;place-items:center;
+    border:1.5px solid rgba(255,255,255,.95);background:#fff;
+    color:#9d8fae;font-size:14px;cursor:pointer;
+    box-shadow:0 4px 10px rgba(120,80,160,.14);transition:.2s;
+  }
+  .icon-btn:hover{transform:rotate(-40deg);color:var(--pink-deep);}
+
+
+  /* solid picker */
+  .solid-line{display:flex;align-items:center;gap:8px;}
+  .solid-select{
+    flex:1 1 auto;min-width:0;appearance:none;-webkit-appearance:none;
+    border:1.5px solid rgba(72,53,108,.10);background:#fff;
+    border-radius:13px;padding:9px 30px 9px 11px;
+    font-family:inherit;font-size:11.5px;font-weight:900;color:var(--ink);
+    cursor:pointer;box-shadow:0 4px 10px rgba(120,80,160,.06);
+    background-image:linear-gradient(45deg,transparent 50%,#9d8fae 50%),linear-gradient(135deg,#9d8fae 50%,transparent 50%);
+    background-position:calc(100% - 16px) 52%,calc(100% - 11px) 52%;
+    background-size:5px 5px,5px 5px;background-repeat:no-repeat;
+  }
+  .solid-select:focus{outline:none;border-color:#c9b8f5;box-shadow:0 0 0 3px #f1ebff;}
+  .prism-n{display:none;align-items:center;gap:6px;flex:0 0 auto;}
+  .prism-n.on{display:flex;}
+  .prism-n label{font-size:9px;font-weight:800;color:#9d8fae;white-space:nowrap;}
+  .prism-n input{
+    width:48px;border:1.5px solid rgba(72,53,108,.10);border-radius:10px;
+    padding:7px 4px;text-align:center;font-family:inherit;
+    font-size:11.5px;font-weight:900;color:var(--ink);background:#fff;
+  }
+  .prism-n input:focus{outline:none;border-color:#c9b8f5;box-shadow:0 0 0 3px #f1ebff;}
+  .solid-note{
+    margin-top:7px;font-size:9px;font-weight:700;color:#a99ab8;letter-spacing:.3px;
+    display:flex;align-items:center;gap:5px;
+  }
+  .solid-note b{color:#8d6bf2;font-weight:900;}
+  .metric b.long{font-size:14px;letter-spacing:-.5px;}
+  .metric b.xlong{font-size:10.5px;letter-spacing:-.6px;}
+  .metric b .approx{font-size:10px;color:#b1a3bf;font-weight:800;margin-right:1px;}
+
+  /* controls */
+  .controls{padding-bottom:12px;}
+  .control{
+    display:grid;grid-template-columns:56px minmax(0,1fr) 53px;
+    align-items:center;gap:9px;margin-top:9px;
+  }
+  .control-label{font-size:10.5px;font-weight:800;color:var(--ink-2);white-space:nowrap;}
+  .control-label small{display:block;font-size:8px;font-weight:800;color:#b6a7c3;letter-spacing:.5px;margin-top:1px;}
+  .control-val{
+    font-size:10px;font-weight:900;color:#6d4dd8;background:#f4efff;
+    border-radius:8px;padding:4px 4px;text-align:center;
+    font-variant-numeric:tabular-nums;letter-spacing:-.2px;
+  }
+  input[type=range]{
+    --fill:50%;--thumb:var(--pink);--track:var(--pink);
+    -webkit-appearance:none;appearance:none;
+    width:100%;height:20px;margin:0;background:transparent;cursor:pointer;
+  }
+  input[type=range]:focus{outline:none;}
+  input[type=range]::-webkit-slider-runnable-track{
+    height:6px;border-radius:99px;
+    background:linear-gradient(90deg,var(--track) 0%,var(--track) var(--fill),rgba(88,68,118,.11) var(--fill),rgba(88,68,118,.11) 100%);
+  }
+  input[type=range]::-webkit-slider-thumb{
+    -webkit-appearance:none;appearance:none;
+    width:18px;height:18px;border-radius:50%;margin-top:-6px;
+    background:#fff;border:4px solid var(--thumb);
+    box-shadow:0 3px 8px rgba(80,50,120,.22);
+    transition:transform .15s ease;
+  }
+  input[type=range]:active::-webkit-slider-thumb{transform:scale(1.18);}
+  input[type=range]::-moz-range-track{height:6px;border-radius:99px;background:rgba(88,68,118,.11);}
+  input[type=range]::-moz-range-progress{height:6px;border-radius:99px;background:var(--track);}
+  input[type=range]::-moz-range-thumb{width:11px;height:11px;border:4px solid var(--thumb);border-radius:50%;background:#fff;}
+
+  /* presets */
+  .preset-grid{display:grid;grid-template-columns:1fr 1fr;gap:7px;}
+  .preset-grid.three{grid-template-columns:repeat(3,1fr);}
+  .preset{
+    --pc:#ff6ea8;--tint:#ffe4ef;
+    display:flex;align-items:center;gap:7px;
+    border:1.5px solid rgba(72,53,108,.09);
+    background:rgba(255,255,255,.68);
+    border-radius:13px;padding:7px 8px;
+    font-size:10.5px;font-weight:800;color:var(--ink);
+    cursor:pointer;transition:transform .18s ease,background .18s,border-color .18s,box-shadow .18s;
+    text-align:left;
+  }
+  .preset .glyph{
+    flex:0 0 25px;width:25px;height:25px;border-radius:8px;
+    background:var(--tint);color:var(--pc);display:grid;place-items:center;
+    font-size:13px;line-height:1;font-weight:900;
+  }
+  .preset:hover{transform:translateY(-1px);background:#fff;border-color:var(--tint);box-shadow:0 6px 14px rgba(120,80,160,.09);}
+  .preset:active{transform:scale(.98);}
+  .preset.active{background:#fff;border-color:var(--pc);box-shadow:0 0 0 3px var(--tint);}
+  .preset.wide{grid-column:1 / -1;}
+  .preset:nth-child(1){--pc:#f1629b;--tint:#ffe5ef;}
+  .preset:nth-child(2){--pc:#3faed9;--tint:#e0f6ff;}
+  .preset:nth-child(3){--pc:#7c5bf0;--tint:#eee8ff;}
+  .preset:nth-child(4){--pc:#e88d2c;--tint:#fff0d9;}
+  .preset:nth-child(5){--pc:#28b996;--tint:#ddfff5;}
+
+  /* knowledge */
+  .knowledge-card{padding-bottom:14px;}
+  .rule{
+    display:flex;align-items:center;gap:11px;
+    background:linear-gradient(135deg,#fff6d9,#fffaf0);
+    border:1.5px solid rgba(255,216,107,.5);
+    border-radius:15px;padding:9px 11px;
+  }
+  .big-six{
+    width:40px;height:44px;flex:0 0 40px;display:grid;place-items:center;
+    border-radius:12px;background:#fff;color:#d99a13;
+    font-size:27px;font-weight:900;line-height:1;
+    box-shadow:0 4px 10px rgba(217,154,19,.13);
+    font-variant-numeric:tabular-nums;
+  }
+  .rule-copy b{display:block;font-size:11.5px;font-weight:900;color:#7d5b14;}
+  .rule-copy span{display:block;font-size:9.5px;line-height:1.45;color:#a38847;font-weight:600;margin-top:2px;}
+  .knowledge-text{
+    margin:9px 2px 0;font-size:9.8px;line-height:1.6;color:var(--ink-2);font-weight:600;
+  }
+  .knowledge-text b{color:var(--pink-deep);font-weight:900;}
+  .knowledge-foot{
+    margin-top:8px;display:flex;align-items:center;gap:5px;
+    font-size:8.5px;font-weight:800;letter-spacing:.6px;color:#b7a8c4;
+  }
+  .knowledge-foot::before{content:"";width:5px;height:5px;border-radius:50%;background:var(--mint);}
+
+  .page-foot{
+    flex:0 0 auto;text-align:center;padding-top:9px;
+    font-size:9px;font-weight:800;letter-spacing:1.6px;color:#b7a7c4;
+  }
+  .page-foot b{color:#9278b5;}
+
+  /* toast */
+  .toast{
+    position:fixed;left:50%;top:86px;z-index:30;
+    transform:translate(-50%,-12px);opacity:0;pointer-events:none;
+    background:rgba(57,45,85,.92);color:#fff;
+    padding:9px 16px;border-radius:99px;font-size:11px;font-weight:800;
+    box-shadow:0 10px 24px rgba(57,45,85,.25);
+    transition:.3s ease;backdrop-filter:blur(10px);
+  }
+  .toast.show{transform:translate(-50%,0);opacity:1;}
+
+  @media (max-width:1000px){
+    body{overflow:auto;}
+    .app{height:auto;min-height:100%;padding-bottom:18px;}
+    .layout{grid-template-columns:1fr;grid-template-rows:minmax(520px,62vh) auto;}
+    .panel{overflow:visible;display:grid;grid-template-columns:1fr 1fr;align-items:start;padding-right:0;}
+    .hero{grid-column:1 / -1;}
+    .controls{grid-row:span 2;}
+    .page-foot{display:none;}
+  }
+  /* short desktop windows: keep the teaching card in reach */
+  @media (max-height: 960px) and (min-width: 1001px){
+    .panel{gap:7px;}
+    .card{padding:11px;}
+    .hero{padding:10px 14px 9px;}
+    .hero-grid{grid-template-columns:86px minmax(0,1fr);}
+    .mascot-wrap{width:86px;height:90px;}
+    .mascot-svg{width:86px;height:92px;}
+    .bubble{min-height:36px;padding:4px 8px;font-size:9.8px;line-height:1.42;}
+    .metrics{margin-top:7px;padding-top:7px;}
+    .control{margin-top:5px;}
+    .preset-grid{gap:5px;}
+    .preset{padding:5px 7px;font-size:10px;}
+    .preset .glyph{width:23px;height:23px;flex-basis:23px;font-size:12px;}
+    .knowledge-text{margin-top:6px;font-size:9.4px;line-height:1.45;}
+    .knowledge-foot{margin-top:5px;}
+  }
+  @media (max-width:1100px){
+    .hint:nth-child(3){display:none;}
+    .tip-extra{display:none;}
+  }
+  @media (max-width:720px){
+    .app{padding:0 12px 14px;}
+    .topbar{height:68px;flex-basis:68px;}
+    .brand-mark{width:42px;height:42px;flex-basis:42px;font-size:22px;}
+    .brand-copy h1{font-size:19px;}
+    .brand-copy p{font-size:7.5px;letter-spacing:2.3px;}
+    .top-actions .pill-btn:first-child{display:none;}
+    .layout{grid-template-rows:auto auto;gap:12px;}
+    .panel{display:flex;align-items:stretch;}
+    .controls{grid-row:auto;}
+    .stage{height:clamp(300px,44svh,390px);border-radius:26px;}
+    .stage.custom-open{height:clamp(385px,56svh,485px);}
+    .stage::after{inset:10px;border-radius:19px;}
+    .stage-tip{display:none;}
+    .view-switch{right:14px;top:14px;}
+    .view-switch button{padding:6px 8px;font-size:11px;min-height:34px;}
+    .mini-card{display:none;}
+    .control{margin-top:5px;}
+    input[type=range]{height:32px;}
+    .preset{min-height:38px;}
+    .stage-footer{left:14px;bottom:14px;max-width:calc(100% - 28px);}
+    .hint{font-size:9px;padding:6px 8px;}
+    .hint:nth-child(3){display:none;}
+    .toast{display:none;}
+  }
+  @media (max-width:380px){
+    .brand-solid{display:block;font-size:13px;margin-top:2px;}
+    .brand-solid em,.brand-copy p{display:none;}
+    .topbar{gap:8px;}
+    .brand{gap:8px;}
+  }
+  @media (max-width:720px) and (any-pointer:coarse){
+    #scene{height:calc(100% - 51px);touch-action:pan-y pinch-zoom;}
+    .stage.touch-manipulation #scene{touch-action:none;}
+    .stage-footer{bottom:7px;}
+    .stage-footer .hint{display:none;}
+    .touch-tools{
+      display:flex;align-items:center;gap:8px;pointer-events:auto;
+      padding:3px 9px 3px 3px;border:1px solid #fff;border-radius:99px;
+      background:rgba(255,255,255,.85);
+    }
+  }
+
+  /* ---- custom sketch editor ---- */
+  .stage.custom-open .stage-tip,
+  .stage.custom-open .view-switch,
+  .stage.custom-open .stage-footer,
+  .stage.custom-open .mini-card{visibility:hidden;}
+  .stage.custom-open #scene{touch-action:pan-y pinch-zoom;}
+  .draw-editor{
+    position:absolute;inset:10px;z-index:20;display:none;
+    flex-direction:column;border-radius:22px;overflow:hidden;
+    background:linear-gradient(145deg,rgba(255,255,255,.94),rgba(255,244,250,.92) 55%,rgba(240,248,255,.94));
+    border:1px solid rgba(255,255,255,.85);
+    box-shadow:0 22px 60px rgba(98,76,138,.16),inset 0 0 0 1px rgba(255,255,255,.5);
+    backdrop-filter:blur(14px);
+  }
+  .draw-editor.on{display:flex;}
+  .draw-top{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:13px 16px 7px;flex-wrap:wrap;}
+  .draw-title{font-size:13px;font-weight:900;color:#4c3b68;display:flex;align-items:center;gap:7px;}
+  .draw-title small{font-size:8px;letter-spacing:2px;color:#b39ac4;font-weight:800;}
+  .draw-ico{display:grid;place-items:center;width:27px;height:27px;border-radius:9px;background:linear-gradient(135deg,#ffd1e6,#e3d6ff);color:#7a4b83;font-size:14px;}
+  .draw-tools{display:flex;gap:6px;flex-wrap:wrap;}
+  .draw-btn{
+    border:1px solid rgba(137,109,166,.18);background:rgba(255,255,255,.72);
+    color:#5d4b76;border-radius:9px;padding:6px 10px;font:800 10px 'PingFang SC',sans-serif;
+    cursor:pointer;transition:.18s;white-space:nowrap;
+  }
+  .draw-btn:hover{background:#fff;border-color:rgba(137,109,166,.34);}
+  .draw-btn.on{background:linear-gradient(135deg,#ff9cc5,#b79bfa);color:#fff;border-color:transparent;box-shadow:0 4px 12px rgba(190,120,190,.22);}
+  .draw-btn.primary{background:linear-gradient(135deg,#ff7eb2,#b28ef7);color:#fff;border-color:transparent;box-shadow:0 6px 16px rgba(190,110,190,.25);}
+  .draw-btn.ghost{color:#8b7899;background:rgba(255,255,255,.45);}
+  .draw-canvas-wrap{position:relative;flex:1;min-height:0;margin:3px 8px;border-radius:14px;overflow:hidden;background:rgba(255,255,255,.35);}
+  #drawCanvas{display:block;width:100%;height:100%;cursor:crosshair;touch-action:none;}
+  .draw-empty{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);text-align:center;font-size:11px;color:#b09abc;line-height:1.8;pointer-events:none;}
+  .draw-empty small{font-size:9px;color:#c6b5ce;}
+  .draw-bottom{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:6px 12px 11px;flex-wrap:wrap;}
+  .draw-hint{font-size:9.5px;font-weight:700;color:#9a86a9;min-width:140px;flex:1;}
+  .draw-hint.err{color:#d84f83;}
+  .draw-actions{display:flex;align-items:center;gap:5px;flex-wrap:wrap;}
+  .draw-mode{border:1px solid rgba(137,109,166,.18);background:#fff;color:#5d4b76;border-radius:8px;padding:5px 6px;font:800 10px 'PingFang SC',sans-serif;}
+  .edit-custom{
+    margin-top:7px;border:1px dashed rgba(151,116,196,.45);background:rgba(255,255,255,.5);
+    color:#8a5bb0;border-radius:8px;padding:5px 8px;font:800 9.5px 'PingFang SC',sans-serif;cursor:pointer;
+  }
+  .edit-custom:hover{background:#fff;}
+  @media (max-width:720px){
+    .draw-top{padding:9px 10px 4px;gap:6px;}
+    .draw-title{font-size:11px;}
+    .draw-title small{display:none;}
+    .draw-btn{padding:5px 7px;min-height:30px;font-size:10px;}
+    .draw-bottom{padding:5px 8px 8px;gap:5px;}
+    .draw-hint{font-size:10px;min-width:100%;min-height:2.8em;line-height:1.4;}
+    .draw-actions{width:100%;justify-content:flex-end;}
+    .draw-mode{font-size:9px;}
+    .draw-editor{inset:7px;}
+  }
+</style>
+</head>
+<body>
+<div class="bg"></div>
+<div class="blob b1"></div><div class="blob b2"></div><div class="blob b3"></div>
+<div class="deco star d1"></div><div class="deco star s2 d2"></div>
+<div class="deco star s3 d3"></div><div class="deco star s2 d4"></div>
+<div class="deco ring d5"></div><div class="deco ring r2 d6"></div>
+
+<div class="app">
+  <header class="topbar">
+    <div class="brand">
+      <div class="brand-mark">截</div>
+      <div class="brand-copy">
+        <h1>截面实验室 <span class="brand-solid"><em>·</em> <span id="brandSolid">正方体</span></span></h1>
+        <p id="brandSub">CUBE × PLANE · 3D LAB</p>
+      </div>
+    </div>
+    <div class="top-actions">
+      <button class="pill-btn" id="autoBtn" aria-pressed="false">
+        <span class="dot"></span><span id="autoText">自动旋转</span>
+      </button>
+      <button class="pill-btn" id="resetBtn">
+        <span style="font-size:14px;line-height:1;">↺</span> 重置
+      </button>
+    </div>
+  </header>
+
+  <main class="layout">
+    <section class="stage" id="stage">
+      <canvas id="scene" tabindex="0" aria-label="可交互的三维正方体截面演示"></canvas>
+
+      <div class="stage-tip">
+        <span class="mouse-ico"></span>
+        <span>拖动空白处<b>换角度</b>，拖住星星<b>移动平面</b><span class="tip-extra">，拖 n 点<b>旋转平面</b></span></span>
+      </div>
+
+      <div class="view-switch" role="group" aria-label="切换观察角度">
+        <button data-view="iso" class="active">立体</button>
+        <button data-view="front">正视</button>
+        <button data-view="top">俯视</button>
+      </div>
+
+      <div class="stage-footer">
+        <span class="hint"><i>↻</i>拖动旋转</span>
+        <span class="hint"><i>✦</i>拖星标平移 · 拖 n 点转平面</span>
+        <span class="hint"><i>＋</i>滚轮缩放</span>
+        <div class="touch-tools">
+          <button class="touch-toggle" id="touchToggle" type="button" aria-pressed="false" aria-describedby="touchHint">操作画布</button>
+          <span class="touch-hint" id="touchHint">开启后可拖动模型和平面</span>
+        </div>
+      </div>
+
+      <div class="mini-card">
+        <div class="mini-head"><span>截面形状</span><b>真实比例</b></div>
+        <canvas id="miniCanvas" width="264" height="176" aria-hidden="true"></canvas>
+      </div>
+
+      <div class="draw-editor" id="drawEditor" hidden>
+        <div class="draw-top">
+          <div class="draw-title"><span class="draw-ico">✎</span>自绘底面 <small>SKETCH</small></div>
+          <div class="draw-tools">
+            <button class="draw-btn on" data-tool="vertex">＋ 顶点</button>
+            <button class="draw-btn" data-tool="edge">╱ 连线</button>
+            <button class="draw-btn" data-tool="erase-vertex">删点</button>
+            <button class="draw-btn" data-tool="erase">⌫ 删边</button>
+            <button class="draw-btn" id="drawStyleBtn" data-style="solid">━ 实线</button>
+          </div>
+        </div>
+        <div class="draw-canvas-wrap">
+          <canvas id="drawCanvas" tabindex="0" aria-label="自绘多面体底面"></canvas>
+          <div class="draw-empty" id="drawEmpty">点击空白处放置顶点<br><small>再切换到“连线”，依次点两个顶点</small></div>
+        </div>
+        <div class="draw-bottom">
+          <div class="draw-hint" id="drawHint" aria-live="polite">用“顶点”加点，用“连线”闭合一个凸多边形。</div>
+          <div class="draw-actions">
+            <select class="draw-mode" id="drawMode" aria-label="自绘立体化方式">
+              <option value="prism">棱柱</option>
+              <option value="pyramid">棱锥</option>
+              <option value="frustum">棱台</option>
+            </select>
+            <button class="draw-btn ghost" id="drawUndo">撤销</button>
+            <button class="draw-btn ghost" id="drawClear">清空</button>
+            <button class="draw-btn primary" id="drawApply">生成多面体</button>
+            <button class="draw-btn ghost" id="drawClose">返回</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <aside class="panel">
+      <section class="card hero" id="hero">
+        <div class="hero-grid">
+          <div class="mascot-wrap">
+            <svg class="mascot-svg" viewBox="0 0 120 130" aria-hidden="true">
+              <defs>
+                <linearGradient id="mgFront" x1="0" y1="0" x2="1" y2="1">
+                  <stop offset="0" stop-color="#fffdfd"/><stop offset=".55" stop-color="#ffe7f2"/><stop offset="1" stop-color="#ffd4e8"/>
+                </linearGradient>
+                <linearGradient id="mgTop" x1="0" y1="0" x2="1" y2="1">
+                  <stop offset="0" stop-color="#e9e1ff"/><stop offset="1" stop-color="#c8eaff"/>
+                </linearGradient>
+                <linearGradient id="mgSide" x1="0" y1="0" x2="1" y2="1">
+                  <stop offset="0" stop-color="#ffc7df"/><stop offset="1" stop-color="#ffacd0"/>
+                </linearGradient>
+              </defs>
+              <ellipse cx="60" cy="117" rx="29" ry="6.5" fill="#7c5896" opacity=".14"/>
+              <g class="mascot-float">
+                <path d="M23 39 L60 19 L97 39 L60 59 Z" fill="url(#mgTop)" stroke="#493a66" stroke-width="3.4" stroke-linejoin="round"/>
+                <path d="M60 59 L97 39 L97 88 L60 108 Z" fill="url(#mgSide)" stroke="#493a66" stroke-width="3.4" stroke-linejoin="round"/>
+                <path d="M23 39 L60 59 L60 108 L23 88 Z" fill="#fff1f8" stroke="#493a66" stroke-width="3.4" stroke-linejoin="round"/>
+                <rect x="28" y="43" width="64" height="58" rx="17" fill="url(#mgFront)" stroke="#493a66" stroke-width="3.6"/>
+                <path d="M31 85 Q29 93 38 96" fill="none" stroke="#493a66" stroke-width="3.2" stroke-linecap="round" opacity=".3"/>
+                <g class="eyes">
+                  <ellipse cx="48" cy="69" rx="4.4" ry="5.8" fill="#40305e"/>
+                  <ellipse cx="73" cy="69" rx="4.4" ry="5.8" fill="#40305e"/>
+                  <circle cx="49.6" cy="66.8" r="1.7" fill="#fff"/>
+                  <circle cx="74.6" cy="66.8" r="1.7" fill="#fff"/>
+                </g>
+                <ellipse cx="39" cy="79" rx="6" ry="3.2" fill="#ff9fc5" opacity=".65"/>
+                <ellipse cx="82" cy="79" rx="6" ry="3.2" fill="#ff9fc5" opacity=".65"/>
+                <path d="M55 79 Q60 84.5 65 79" fill="none" stroke="#5b3f70" stroke-width="2.2" stroke-linecap="round"/>
+                <path d="M29 41 L22 34 M91 41 L99 33" stroke="#493a66" stroke-width="3" stroke-linecap="round"/>
+                <path d="M24 33 L19 30 M98 32 L104 30" stroke="#ff7fae" stroke-width="2.6" stroke-linecap="round"/>
+                <path d="M92 27 l2.2 5.4 5.8.5-4.4 3.8 1.3 5.7-4.9-3-4.9 3 1.3-5.7-4.4-3.8 5.8-.5Z" fill="#ffd86b" stroke="#493a66" stroke-width="2.1" stroke-linejoin="round"/>
+                <path d="M16 68 l1.3 3.2 3.4.3-2.6 2.2.8 3.4-2.9-1.8-2.9 1.8.8-3.4-2.6-2.2 3.4-.3Z" fill="#8ee8f9" opacity=".9"/>
+                <path d="M104 66 l1 2.5 2.7.2-2 1.7.6 2.6-2.3-1.4-2.3 1.4.6-2.6-2-1.7 2.7-.2Z" fill="#ffb0d1" opacity=".9"/>
+              </g>
+            </svg>
+          </div>
+          <div class="hero-copy">
+            <div class="eyebrow">SECTION SHAPE · 当前截面</div>
+            <div class="shape-line">
+              <div class="shape-name" id="shapeName">正六边形</div>
+              <div class="shape-en" id="shapeEn">REGULAR HEXAGON</div>
+            </div>
+            <div class="bubble" id="bubble">过中心切开，六条边一样长！这是最特别的截面～</div>
+          </div>
+        </div>
+        <div class="metrics">
+          <div class="metric"><b id="mVertices">6</b><span id="mLabel1">顶点 / 个</span></div>
+          <div class="metric"><b id="mArea">1.30</b><span id="mLabel2">面积 / 单位²</span></div>
+          <div class="metric"><b id="mPerimeter">4.24</b><span id="mLabel3">周长 / 单位</span></div>
+        </div>
+      </section>
+
+      <section class="card solid-card">
+        <div class="card-head">
+          <div class="card-title"><span class="tiny-ico">◇</span>几何体</div>
+          <span class="card-kicker">SOLID</span>
+        </div>
+        <div class="solid-line">
+          <select class="solid-select" id="solidSelect" aria-label="选择几何体">
+            <option value="cube">正方体</option>
+            <option value="tetra">正四面体</option>
+            <option value="prism">正棱柱</option>
+            <option value="pyramid">正棱锥</option>
+            <option value="frustum">正棱台</option>
+            <option value="cylinder">圆柱</option>
+            <option value="cone">圆锥</option>
+            <option value="sphere">球</option>
+            <option value="custom">自绘底面…</option>
+          </select>
+          <div class="prism-n" id="prismNRow">
+            <label for="prismN">底面边数</label>
+            <input id="prismN" type="number" min="3" max="12" step="1" value="5">
+          </div>
+        </div>
+        <div class="solid-note" id="solidNote"><b>棱长 1</b> 的正方体</div>
+        <button class="edit-custom" id="editCustomBtn" hidden>✎ 编辑自绘底面</button>
+      </section>
+
+      <section class="card controls">
+        <div class="card-head">
+          <div class="card-title"><span class="tiny-ico">✦</span>平面姿态</div>
+          <button class="icon-btn" id="resetPlaneBtn" title="恢复平面" aria-label="恢复平面">↺</button>
+        </div>
+        <div class="control">
+          <label class="control-label" for="offsetRange">平移量 <small>单位</small></label>
+          <input id="offsetRange" type="range" min="-0.915" max="0.915" step="0.005" value="0" style="--thumb:#8d6bf2;--track:#a892f7;">
+          <span class="control-val" id="offsetVal">0.000</span>
+        </div>
+        <div class="control">
+          <label class="control-label" for="tiltRange">倾斜角 <small>TILT</small></label>
+          <input id="tiltRange" type="range" min="0" max="180" step="0.5" value="54.7" style="--thumb:#ff6ea8;--track:#ff8fba;">
+          <span class="control-val" id="tiltVal">54.7°</span>
+        </div>
+        <div class="control">
+          <label class="control-label" for="spinRange">方位角 <small>SPIN</small></label>
+          <input id="spinRange" type="range" min="0" max="360" step="0.5" value="45" style="--thumb:#57c8f2;--track:#7bd6f6;">
+          <span class="control-val" id="spinVal">45.0°</span>
+        </div>
+      </section>
+
+      <section class="card preset-card">
+        <div class="card-head">
+          <div class="card-title"><span class="tiny-ico">✂</span>一键切法</div>
+          <span class="card-kicker">TRY IT</span>
+        </div>
+        <div class="preset-grid" id="presetGrid">
+          <button class="preset" data-preset="triangle"><span class="glyph">△</span>三角形</button>
+          <button class="preset" data-preset="square"><span class="glyph">□</span>正方形</button>
+          <button class="preset" data-preset="rect"><span class="glyph">▭</span>长方形</button>
+          <button class="preset" data-preset="pentagon"><span class="glyph">⬠</span>五边形</button>
+          <button class="preset wide" data-preset="hexagon"><span class="glyph">⬡</span>正六边形 <span style="margin-left:auto;font-size:8.5px;color:#a99ab8;letter-spacing:.3px;">最特别</span></button>
+        </div>
+      </section>
+
+      <section class="card knowledge-card">
+        <div class="card-head">
+          <div class="card-title"><span class="tiny-ico">!</span>小知识</div>
+          <span class="card-kicker">WHY</span>
+        </div>
+        <div class="rule">
+          <div class="big-six" id="bigFact">6</div>
+          <div class="rule-copy">
+            <b id="factTitle">截面边数最多是 6</b>
+            <span id="factSub">正方体只有 6 个面，截面的每条边都落在其中一个面上。</span>
+          </div>
+        </div>
+        <p class="knowledge-text" id="factText">
+          选择<b>正六边形</b>预设，保持角度不变，向顶点平移。截面先变成非正六边形，再变成<b>等边三角形</b>。改变切面角度，还能切出五边形和四边形。
+        </p>
+        <div class="knowledge-foot">拖星星平移，拖 n 点换角度，观察边数变化</div>
+      </section>
+    </aside>
+  </main>
+
+  <div class="page-foot">DRAG · ROTATE · DISCOVER &nbsp;·&nbsp; <b>自己发现截面规律</b></div>
+</div>
+
+<div class="toast" id="toast">已恢复初始视角</div>
+
+<script>
+(() => {
+  "use strict";
+
+  /* ------------------------------------------------------------------ *
+   *  0. Tiny math kit
+   * ------------------------------------------------------------------ */
+  const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+  const lerp  = (a, b, t) => a + (b - a) * t;
+  const add   = (a, b) => [a[0] + b[0], a[1] + b[1], a[2] + b[2]];
+  const sub   = (a, b) => [a[0] - b[0], a[1] - b[1], a[2] - b[2]];
+  const mul   = (a, s) => [a[0] * s, a[1] * s, a[2] * s];
+  const dot   = (a, b) => a[0] * b[0] + a[1] * b[1] + a[2] * b[2];
+  const cross = (a, b) => [
+    a[1] * b[2] - a[2] * b[1],
+    a[2] * b[0] - a[0] * b[2],
+    a[0] * b[1] - a[1] * b[0]
+  ];
+  const len = a => Math.hypot(a[0], a[1], a[2]);
+  const norm = a => {
+    const l = len(a);
+    return l < 1e-10 ? [0, 1, 0] : [a[0] / l, a[1] / l, a[2] / l];
+  };
+  const dist = (a, b) => Math.hypot(a[0] - b[0], a[1] - b[1], a[2] - b[2]);
+  const easeInOutCubic = t => t < .5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
+
+  /* ------------------------------------------------------------------ *
+   *  1. Solid geometry — cube / tetra / prism / curved
+   * ------------------------------------------------------------------ */
+  let solidKind = "cube";
+  let solidN = 5;
+  let V = [], LABELS = [], FACES = [], EDGES = [], EDGE_FACES = new Map();
+  let EDGE_STYLE = [];
+  let SOLID = null;
+  let customData = null;
+  let customSketch = null;
+
+  const SOLID_META = {
+    cube:     { name: "正方体", en: "CUBE", sub: "CUBE × PLANE · 3D LAB" },
+    tetra:    { name: "正四面体", en: "TETRAHEDRON", sub: "TETRA × PLANE · 3D LAB" },
+    prism:    { name: "正棱柱", en: "REGULAR PRISM", sub: "PRISM × PLANE · 3D LAB" },
+    pyramid:  { name: "正棱锥", en: "REGULAR PYRAMID", sub: "PYRAMID × PLANE · 3D LAB" },
+    frustum:  { name: "正棱台", en: "REGULAR FRUSTUM", sub: "FRUSTUM × PLANE · 3D LAB" },
+    cylinder: { name: "圆柱", en: "CYLINDER", sub: "CYLINDER × PLANE · 3D LAB" },
+    cone:     { name: "圆锥", en: "CONE", sub: "CONE × PLANE · 3D LAB" },
+    sphere:   { name: "球", en: "SPHERE", sub: "SPHERE × PLANE · 3D LAB" },
+    custom:   { name: "自绘图形", en: "CUSTOM", sub: "SKETCH × PLANE · 3D LAB" }
+  };
+
+  const SUB = "₀₁₂₃₄₅₆₇₈₉";
+  const subscript = n => String(n).split("").map(d => SUB[+d]).join("");
+  const LETTERS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+
+  function orientFaces() {
+    FACES = FACES.map((f, fi) => {
+      const c = mul(f.pts.reduce((a, p) => add(a, p), [0, 0, 0]), 1 / f.pts.length);
+      let n = norm(cross(sub(f.pts[1], f.pts[0]), sub(f.pts[2], f.pts[1])));
+      let pts = f.pts;
+      if (dot(n, c) < 0) { n = mul(n, -1); pts = pts.slice().reverse(); }
+      return { idx: f.idx, pts, c, n, fi };
+    });
+    EDGE_FACES = new Map();
+    FACES.forEach((f, fi) => {
+      for (let k = 0; k < f.idx.length; k++) {
+        const a = f.idx[k], b = f.idx[(k + 1) % f.idx.length];
+        const key = a < b ? a + "-" + b : b + "-" + a;
+        if (!EDGE_FACES.has(key)) EDGE_FACES.set(key, []);
+        EDGE_FACES.get(key).push(fi);
+      }
+    });
+    EDGES = [...EDGE_FACES.keys()].map(k => k.split("-").map(Number));
+  }
+
+  function buildPolySolid(kind, n) {
+    let faces = [], labels = [], verts = [];
+    let maxXZ = 1;
+
+    if (kind === "tetra") {
+      verts = [[1, 1, 1], [1, -1, -1], [-1, 1, -1], [-1, -1, 1]];
+      labels = ["A", "B", "C", "D"];
+      const f = [[0, 2, 1], [0, 1, 3], [0, 3, 2], [1, 2, 3]];
+      faces = f.map(idx => ({ idx, pts: idx.map(i => verts[i]) }));
+      maxXZ = Math.SQRT2;
+      SOLID = { kind, curved: false, name: "正四面体", en: "TETRAHEDRON", Rmax: Math.sqrt(3), maxXZ };
+    } else if (kind === "pyramid" || kind === "frustum") {
+      const sides = clamp(Math.round(n), 3, 12);
+      const R = 1 / Math.sin(Math.PI / sides);
+      maxXZ = R;
+      const start = Math.PI * 3 / 4;
+      for (let i = 0; i < sides; i++) {
+        const a = start - i * Math.PI * 2 / sides;
+        verts.push([R * Math.cos(a), -1, R * Math.sin(a)]);
+      }
+      if (kind === "pyramid") {
+        verts.push([0, 1, 0]);
+        labels = new Array(sides + 1).fill("");
+        if (sides <= 8) for (let i = 0; i < sides; i++) labels[i] = LETTERS[i];
+        labels[sides] = "P";
+        faces.push({ idx: Array.from({ length: sides }, (_, i) => i), pts: [] });
+        for (let i = 0; i < sides; i++) faces.push({ idx: [i, (i + 1) % sides, sides], pts: [] });
+        faces = faces.map(f => ({ idx: f.idx, pts: f.idx.map(i => verts[i]) }));
+        SOLID = {
+          kind: "pyramid", sides, curved: false,
+          name: "正" + sides + "棱锥", en: "REGULAR " + sides + "-PYRAMID",
+          Rmax: Math.hypot(R, 1), maxXZ: R
+        };
+      } else {
+        const Rt = R / 2;
+        for (let i = 0; i < sides; i++) {
+          const a = start - i * Math.PI * 2 / sides;
+          verts.push([Rt * Math.cos(a), 1, Rt * Math.sin(a)]);
+        }
+        labels = new Array(sides * 2).fill("");
+        if (sides <= 8) {
+          for (let i = 0; i < sides; i++) labels[i] = LETTERS[i];
+          for (let i = 0; i < sides; i++) labels[sides + i] = LETTERS[i] + SUB[1];
+        }
+        faces.push({ idx: Array.from({ length: sides }, (_, i) => i), pts: [] });
+        faces.push({ idx: Array.from({ length: sides }, (_, i) => sides + i), pts: [] });
+        for (let i = 0; i < sides; i++) {
+          faces.push({ idx: [i, (i + 1) % sides, sides + (i + 1) % sides, sides + i], pts: [] });
+        }
+        faces = faces.map(f => ({ idx: f.idx, pts: f.idx.map(i => verts[i]) }));
+        SOLID = {
+          kind: "frustum", sides, curved: false,
+          name: "正" + sides + "棱台", en: "REGULAR " + sides + "-FRUSTUM",
+          Rmax: Math.hypot(R, 1), maxXZ: R
+        };
+      }
+    } else {
+      const sides = kind === "cube" ? 4 : clamp(Math.round(n), 3, 12);
+      const R = 1 / Math.sin(Math.PI / sides);
+      maxXZ = R;
+      const start = Math.PI * 3 / 4;
+      for (let i = 0; i < sides; i++) {
+        const a = start - i * Math.PI * 2 / sides;
+        verts.push([R * Math.cos(a), -1, R * Math.sin(a)]);
+      }
+      for (let i = 0; i < sides; i++) {
+        const a = start - i * Math.PI * 2 / sides;
+        verts.push([R * Math.cos(a), 1, R * Math.sin(a)]);
+      }
+      if (sides <= 8) {
+        for (let i = 0; i < sides; i++) labels.push(LETTERS[i]);
+        for (let i = 0; i < sides; i++) labels.push(LETTERS[i] + SUB[1]);
+      } else {
+        labels = new Array(sides * 2).fill("");
+      }
+      faces.push({ idx: Array.from({ length: sides }, (_, i) => i), pts: [], kind: "bottom" });
+      faces.push({ idx: Array.from({ length: sides }, (_, i) => sides + i), pts: [], kind: "top" });
+      for (let i = 0; i < sides; i++) {
+        faces.push({ idx: [i, (i + 1) % sides, sides + (i + 1) % sides, sides + i], pts: [] });
+      }
+      faces = faces.map(f => ({ idx: f.idx, pts: f.idx.map(i => verts[i]) }));
+      SOLID = kind === "cube"
+        ? { kind: "cube", curved: false, name: "正方体", en: "CUBE", Rmax: Math.sqrt(3), maxXZ: Math.SQRT2 }
+        : { kind: "prism", sides, curved: false, name: "正" + sides + "棱柱", en: "REGULAR " + sides + "-PRISM", Rmax: Math.hypot(R, 1), maxXZ: R };
+    }
+
+    V = verts;
+    LABELS = labels;
+    FACES = faces;
+    orientFaces();
+
+    const Rm = Math.max(...V.map(len));
+    SOLID.Rmax = SOLID.Rmax || Rm;
+    SOLID.areaScale = kind === "tetra" ? 1 / 8 : 1 / 4;
+    SOLID.lenScale = kind === "tetra" ? Math.SQRT2 / 4 : 1 / 2;
+    SOLID.areaSquare = kind === "tetra" ? 1 / 64 : 1 / 16;
+    SOLID.lenSquare = kind === "tetra" ? 1 / 8 : 1 / 4;
+    SOLID.lenFactor = kind === "tetra" ? { coef: [1, 4], rad: 2 } : { coef: [1, 2], rad: 1 };
+    SOLID.planeHalf = Math.max(1.42, maxXZ * 1.05 + .18);
+    SOLID.dMax = SOLID.Rmax * 1.02 + .06;
+    SOLID.curved = false;
+  }
+
+  function buildCurvedSolid(kind) {
+    const meta = {
+      cylinder: { name: "圆柱", en: "CYLINDER", R: 1, half: 1 },
+      cone: { name: "圆锥", en: "CONE", R: 1, half: 1 },
+      sphere: { name: "球", en: "SPHERE", R: 1, half: 1 }
+    }[kind];
+    V = []; LABELS = []; FACES = []; EDGES = []; EDGE_FACES = new Map();
+    SOLID = {
+      kind, curved: true, name: meta.name, en: meta.en,
+      R: meta.R, half: meta.half, Rmax: kind === "sphere" ? 1 : Math.SQRT2,
+      maxXZ: 1, areaScale: 1 / 4, lenScale: 1 / 2,
+      lenFactor: { coef: [1, 2], rad: 1 },
+      planeHalf: 1.42, dMax: kind === "sphere" ? 1.06 : 1.55
+    };
+  }
+
+  function buildCustomSolid(data) {
+    const pts = data.points, cycle = data.cycle, mode = data.mode || "prism";
+    const n = cycle.length;
+    let cx = 0, cz = 0;
+    for (const i of cycle) { cx += pts[i].x; cz += pts[i].y; }
+    cx /= n; cz /= n;
+    const base = cycle.map(i => [pts[i].x - cx, -1, pts[i].y - cz]);
+    let verts = base.slice();
+    let labels = new Array(n).fill("");
+    if (n <= 8) for (let i = 0; i < n; i++) labels[i] = LETTERS[i];
+    let faces = [];
+    const styleMap = new Map();
+    const keyOf = (a, b) => a < b ? a + "-" + b : b + "-" + a;
+    for (const e of data.edges) styleMap.set(keyOf(e.a, e.b), !!e.dashed);
+    for (let i = 0; i < n; i++) {
+      const a = cycle[i], b = cycle[(i + 1) % n];
+      styleMap.set("base-" + keyOf(a, b), !!styleMap.get(keyOf(a, b)));
+    }
+    if (mode === "pyramid") {
+      verts.push([0, 1, 0]);
+      labels.push("P");
+      faces.push({ idx: Array.from({ length: n }, (_, i) => i), pts: [] });
+      for (let i = 0; i < n; i++) faces.push({ idx: [i, (i + 1) % n, n], pts: [] });
+    } else {
+      const k = mode === "frustum" ? .5 : 1;
+      for (let i = 0; i < n; i++) verts.push([base[i][0] * k, 1, base[i][2] * k]);
+      if (n <= 8) for (let i = 0; i < n; i++) labels.push(LETTERS[i] + SUB[1]);
+      else for (let i = 0; i < n; i++) labels.push("");
+      faces.push({ idx: Array.from({ length: n }, (_, i) => i), pts: [] });
+      faces.push({ idx: Array.from({ length: n }, (_, i) => n + i), pts: [] });
+      for (let i = 0; i < n; i++) faces.push({ idx: [i, (i + 1) % n, n + (i + 1) % n, n + i], pts: [] });
+    }
+    faces = faces.map(f => ({ idx: f.idx, pts: f.idx.map(i => verts[i]) }));
+    V = verts; LABELS = labels; FACES = faces;
+    orientFaces();
+    let maxXZ = 1;
+    for (const p of base) maxXZ = Math.max(maxXZ, Math.hypot(p[0], p[2]));
+    // style generated edges: base/top copy the drawn edge style; verticals solid.
+    EDGE_STYLE = EDGES.map(([a, b]) => {
+      const m = Math.min(a, b), x = Math.max(a, b);
+      const baseStyle = styleMap.get("base-" + keyOf(a % n, b % n));
+      return baseStyle !== undefined ? baseStyle : false;
+    });
+    SOLID = {
+      kind: "custom", custom: true, curved: false, sides: n, mode,
+      name: "自绘" + (mode === "prism" ? "棱柱" : mode === "pyramid" ? "棱锥" : "棱台"),
+      en: "CUSTOM " + mode.toUpperCase(),
+      Rmax: Math.max(maxXZ, Math.hypot(maxXZ, 1)), maxXZ,
+      areaScale: 1, lenScale: 1, areaSquare: 1, lenSquare: 1, lenFactor: { coef: [1, 1], rad: 1 },
+      planeHalf: Math.max(1.42, maxXZ * 1.05 + .18),
+      dMax: Math.max(1.55, Math.hypot(maxXZ, 1) * 1.02 + .06)
+    };
+    SOLID.fitDist = clamp(8.05 * SOLID.Rmax / Math.sqrt(3), 4.6, 22);
+  }
+
+  function rebuildSolid(kind, n) {
+    solidKind = kind;
+    if (kind === "custom") {
+      if (customData) buildCustomSolid(customData);
+      return SOLID;
+    }
+    EDGE_STYLE = [];
+    if (kind === "cylinder" || kind === "cone" || kind === "sphere") buildCurvedSolid(kind);
+    else buildPolySolid(kind, n);
+    const meta = SOLID_META[kind];
+    if (kind === "prism") {
+      SOLID.name = "正" + SOLID.sides + "棱柱";
+      SOLID.en = "REGULAR " + SOLID.sides + "-PRISM";
+    } else if (kind === "pyramid") {
+      SOLID.name = "正" + SOLID.sides + "棱锥";
+      SOLID.en = "REGULAR " + SOLID.sides + "-PYRAMID";
+    } else if (kind === "frustum") {
+      SOLID.name = "正" + SOLID.sides + "棱台";
+      SOLID.en = "REGULAR " + SOLID.sides + "-FRUSTUM";
+    } else {
+      SOLID.name = meta.name;
+      SOLID.en = meta.en;
+    }
+    SOLID.fitDist = clamp(8.05 * SOLID.Rmax / Math.sqrt(3) * (kind === "sphere" ? 1.18 : 1), 4.6, 22);
+    return SOLID;
+  }
+
+  /* ------------------------------------------------------------------ *
+   *  2. State  /* ------------------------------------------------------------------ *
+   *  2. State
+   * ------------------------------------------------------------------ */
+  // Build the initial solid before any state/render code touches V/EDGES.
+  rebuildSolid("cube", 4);
+
+  const DEFAULT_N = norm([1, 1, 1]);
+  const state = {
+    theta: Math.acos(DEFAULT_N[1]),
+    phi: Math.atan2(DEFAULT_N[2], DEFAULT_N[0]),
+    d: 0,
+    yaw: 0.30,
+    pitch: 0.27,
+    dist: SOLID.fitDist || 8.05,
+    goalYaw: 0.30,
+    goalPitch: 0.27,
+    goalDist: SOLID.fitDist || 8.05,
+    auto: false,
+    dragging: null,
+    dragStartX: 0,
+    dragStartY: 0,
+    dragStartD: 0,
+    normalPx: 1,
+    hoverHandle: false,
+    hoverNormal: false,
+    lastFrame: 0,
+    time: 0,
+    planeAnim: null,
+    lastKind: "",
+    lastShapeKey: "",
+    cameraAnim: false
+  };
+
+  const normal = () => {
+    const st = Math.sin(state.theta), ct = Math.cos(state.theta);
+    return [st * Math.cos(state.phi), ct, st * Math.sin(state.phi)];
+  };
+
+  let PRESETS = {};
+
+  const planeFromCoef = c => {
+    const L = Math.hypot(c[0], c[1], c[2]) || 1;
+    return { n: [c[0] / L, c[1] / L, c[2] / L], d: c[3] / L };
+  };
+
+  const regLabel = n => n === 3 ? "正三角形" : n === 4 ? "正方形" : `正${n}边形`;
+
+  function presetDefs(kind, sides) {
+    if (kind === "cube") return [
+      { key: "hexagon",  label: "正六边形", glyph: "⬡", coef: [1, 1, 1, 0], wide: true },
+      { key: "triangle", label: "三角形",   glyph: "△", coef: [1, 1, 1, 2] },
+      { key: "square",   label: "正方形",   glyph: "□", coef: [0, 1, 0, 0] },
+      { key: "rect",     label: "长方形",   glyph: "▭", coef: [1, 1, 0, 0] },
+      { key: "pentagon", label: "五边形",   glyph: "⬠", coef: [1, 1, 2, .5] }
+    ];
+    if (kind === "tetra") return [
+      { key: "square",   label: "正方形",   glyph: "◇", coef: [0, 1, 0, 0], wide: true },
+      { key: "triangle", label: "正三角形", glyph: "△", coef: [1, 1, 1, 0] },
+      { key: "tri2",     label: "小三角形", glyph: "▽", coef: [1, 1, 1, .6] }
+    ];
+    if (kind === "prism") return [
+      { key: "regular", label: regLabel(sides), glyph: "⬡", coef: [0, 1, 0, 0], wide: true },
+      { key: "rect",    label: "长方形",        glyph: "▭", coef: [1, 0, 0, 0] },
+      { key: "oblique", label: "斜截面",        glyph: "◇", coef: [1, 1, 1, 0] }
+    ];
+    if (kind === "pyramid") return [
+      { key: "regular",  label: regLabel(sides), glyph: "⬡", coef: [0, 1, 0, 0], wide: true },
+      { key: "triangle", label: "三角形",          glyph: "△", coef: [1, 0, 0, 0] },
+      { key: "oblique",  label: "斜截面",          glyph: "◇", coef: [1, 1, 1, 0] }
+    ];
+    if (kind === "frustum") return [
+      { key: "regular",   label: regLabel(sides), glyph: "⬡", coef: [0, 1, 0, 0], wide: true },
+      { key: "trapezoid", label: "轴截面",          glyph: "▱", coef: [1, 0, 0, 0] },
+      { key: "oblique",   label: "斜截面",          glyph: "◇", coef: [1, 1, 1, 0] }
+    ];
+    if (kind === "custom") return [
+      { key: "regular", label: "平行底面", glyph: "⬡", coef: [0, 1, 0, 0], wide: true },
+      { key: "axis",    label: "轴截面",   glyph: "▯", coef: [1, 0, 0, 0] },
+      { key: "oblique", label: "斜截面",   glyph: "◇", coef: [1, 1, 1, 0] }
+    ];
+    if (kind === "cylinder") return [
+      { key: "circle",  label: "圆",     glyph: "○", coef: [0, 1, 0, 0], wide: true },
+      { key: "rect",    label: "轴截面", glyph: "▭", coef: [1, 0, 0, 0] },
+      { key: "ellipse", label: "椭圆",   glyph: "⬭", coef: [1, 5, 1, 0] }
+    ];
+    if (kind === "cone") return [
+      { key: "circle",   label: "圆",     glyph: "○", coef: [0, 1, 0, 0] },
+      { key: "triangle", label: "三角形", glyph: "△", coef: [1, 0, 0, 0] },
+      { key: "ellipse",  label: "椭圆",   glyph: "⬭", coef: [1, 2, 1, .35] },
+      { key: "parabola", label: "抛物线", glyph: "◡", coef: [2, 1, 0, .25] },
+      { key: "hyperbola",label: "双曲线", glyph: "⋈", coef: [1, 0, 0, .2] }
+    ];
+    if (kind === "sphere") return [
+      { key: "great", label: "大圆",     glyph: "◯", coef: [0, 1, 0, 0], wide: true },
+      { key: "small", label: "小圆",     glyph: "○", coef: [0, 1, 0, .5] },
+      { key: "tilt",  label: "斜圆",     glyph: "◌", coef: [1, 1, 1, 1.0392304845413265] }
+    ];
+    return [];
+  }
+
+  function buildPresets(kind) {
+    PRESETS = {};
+    const defs = presetDefs(kind, SOLID && SOLID.sides ? SOLID.sides : solidN);
+    defs.forEach(def => {
+      const p = planeFromCoef(def.coef);
+      PRESETS[def.key] = { ...p, label: def.label, glyph: def.glyph, def };
+    });
+    return defs;
+  }
+
+  /* ------------------------------------------------------------------ *
+   *  3. DOM
+   * ------------------------------------------------------------------ */
+  const canvas = document.getElementById("scene");
+  const ctx = canvas.getContext("2d");
+  const stage = document.getElementById("stage");
+  const miniCanvas = document.getElementById("miniCanvas");
+  const miniCtx = miniCanvas.getContext("2d");
+  const hero = document.getElementById("hero");
+  const shapeNameEl = document.getElementById("shapeName");
+  const shapeEnEl = document.getElementById("shapeEn");
+  const bubbleEl = document.getElementById("bubble");
+  const mVertices = document.getElementById("mVertices");
+  const mArea = document.getElementById("mArea");
+  const mPerimeter = document.getElementById("mPerimeter");
+  const tiltRange = document.getElementById("tiltRange");
+  const spinRange = document.getElementById("spinRange");
+  const offsetRange = document.getElementById("offsetRange");
+  const tiltVal = document.getElementById("tiltVal");
+  const spinVal = document.getElementById("spinVal");
+  const offsetVal = document.getElementById("offsetVal");
+  const mLabel1 = document.getElementById("mLabel1");
+  const solidSelect = document.getElementById("solidSelect");
+  const prismNRow = document.getElementById("prismNRow");
+  const prismNInput = document.getElementById("prismN");
+  const solidNote = document.getElementById("solidNote");
+  const editCustomBtn = document.getElementById("editCustomBtn");
+  const drawEditor = document.getElementById("drawEditor");
+  const drawCanvas = document.getElementById("drawCanvas");
+  const drawCtx = drawCanvas.getContext("2d");
+  const drawHint = document.getElementById("drawHint");
+  const drawEmpty = document.getElementById("drawEmpty");
+  const drawStyleBtn = document.getElementById("drawStyleBtn");
+  const drawMode = document.getElementById("drawMode");
+  const brandSolid = document.getElementById("brandSolid");
+  const brandSub = document.getElementById("brandSub");
+  const bigFact = document.getElementById("bigFact");
+  const factTitle = document.getElementById("factTitle");
+  const factSub = document.getElementById("factSub");
+  const factText = document.getElementById("factText");
+  const autoBtn = document.getElementById("autoBtn");
+  const autoText = document.getElementById("autoText");
+  const resetBtn = document.getElementById("resetBtn");
+  const resetPlaneBtn = document.getElementById("resetPlaneBtn");
+  let presetButtons = [];
+  const presetGrid = document.getElementById("presetGrid");
+  const viewButtons = [...document.querySelectorAll(".view-switch button")];
+  const toast = document.getElementById("toast");
+  const panel = document.querySelector(".panel");
+  const solidCard = document.querySelector(".solid-card");
+  const controlsCard = document.querySelector(".controls");
+  const presetCard = document.querySelector(".preset-card");
+  const compactLayout = matchMedia("(max-width: 720px)");
+  const touchLayout = matchMedia("(max-width: 720px) and (any-pointer: coarse)");
+  const touchToggle = document.getElementById("touchToggle");
+  const touchHint = document.getElementById("touchHint");
+
+  function setTouchManipulation(enabled) {
+    stage.classList.toggle("touch-manipulation", enabled);
+    touchToggle.setAttribute("aria-pressed", String(enabled));
+    touchHint.textContent = enabled ? "拖模型换视角，拖星标平移" : "开启后可拖动模型和平面";
+  }
+
+  function placeControls() {
+    if (compactLayout.matches) panel.prepend(controlsCard, presetCard);
+    else solidCard.after(controlsCard, presetCard);
+  }
+
+  placeControls();
+  compactLayout.addEventListener("change", placeControls);
+  touchLayout.addEventListener("change", () => setTouchManipulation(false));
+  touchToggle.addEventListener("click", () => {
+    setTouchManipulation(!stage.classList.contains("touch-manipulation"));
+  });
+
+  let W = 0, H = 0, DPR = 1;
+
+  function resize() {
+    const r = canvas.getBoundingClientRect();
+    W = Math.max(1, r.width);
+    H = Math.max(1, r.height);
+    DPR = Math.min(window.devicePixelRatio || 1, 2);
+    canvas.width = Math.round(W * DPR);
+    canvas.height = Math.round(H * DPR);
+    ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+  }
+  new ResizeObserver(resize).observe(stage);
+  window.addEventListener("resize", resize);
+  resize();
+
+  /* ------------------------------------------------------------------ *
+   *  4. Camera + projection
+   * ------------------------------------------------------------------ */
+  const camera = {};
+  function updateCamera() {
+    const cp = Math.cos(state.pitch);
+    const target = [0, 0, 0];
+    const pos = [
+      target[0] + state.dist * Math.sin(state.yaw) * cp,
+      target[1] + state.dist * Math.sin(state.pitch),
+      target[2] + state.dist * Math.cos(state.yaw) * cp
+    ];
+    const forward = norm(sub(target, pos));
+    let right = norm(cross(forward, [0, 1, 0]));
+    if (len(right) < 1e-6) right = [1, 0, 0];
+    const up = norm(cross(right, forward));
+    camera.pos = pos;
+    camera.forward = forward;
+    camera.right = right;
+    camera.up = up;
+    camera.focal = Math.min(W, H) * 1.88;
+    camera.cx = W / 2;
+    camera.cy = H / 2 + Math.min(W, H) * 0.02;
+  }
+
+  function project(p) {
+    const dx = p[0] - camera.pos[0];
+    const dy = p[1] - camera.pos[1];
+    const dz = p[2] - camera.pos[2];
+    const z = dx * camera.forward[0] + dy * camera.forward[1] + dz * camera.forward[2];
+    if (z <= 0.08) return null;
+    const x = dx * camera.right[0] + dy * camera.right[1] + dz * camera.right[2];
+    const y = dx * camera.up[0] + dy * camera.up[1] + dz * camera.up[2];
+    const s = camera.focal / z;
+    return {
+      x: camera.cx + x * s,
+      y: camera.cy - y * s,
+      z,
+      s,
+      depth: z
+    };
+  }
+
+  function isFaceFront(f) {
+    return dot(f.n, sub(camera.pos, f.c)) > 0;
+  }
+
+  /* ------------------------------------------------------------------ *
+   *  5. Plane section math
+   * ------------------------------------------------------------------ */
+  const SECTION_EPSILON = 1e-7;
+  const FULL_TURN = 2 * Math.PI;
+
+  function sectionPolygon(n, d) {
+    const points = [];
+    const eps = SECTION_EPSILON;
+    for (const [i, j] of EDGES) {
+      const a = V[i], b = V[j];
+      const fa = dot(n, a) - d;
+      const fb = dot(n, b) - d;
+      if (Math.abs(fa) <= eps) points.push(a);
+      if (Math.abs(fb) <= eps) points.push(b);
+      if ((fa > eps && fb < -eps) || (fa < -eps && fb > eps)) {
+        points.push(add(a, mul(sub(b, a), fa / (fa - fb))));
+      }
+    }
+    return makePoly(points, n, { d });
+  }
+
+  function makePoly(points, n, { d = 0, curved = false, shape = "poly" } = {}) {
+    const pts = [];
+    for (const p of points) {
+      const duplicate = pts.some(q => {
+        const x = p[0] - q[0], y = p[1] - q[1], z = p[2] - q[2];
+        return x * x + y * y + z * z < 1e-14;
+      });
+      if (!duplicate) pts.push(p);
+    }
+    if (pts.length < 3) {
+      return { points: pts, n, d, area: 0, perimeter: 0, sides: pts.length, curved: false };
+    }
+    const centroid = mul(pts.reduce((a, p) => add(a, p), [0, 0, 0]), 1 / pts.length);
+    const { u, v } = planeBasis(n);
+    pts.sort((p, q) => {
+      const pp = sub(p, centroid), qq = sub(q, centroid);
+      return Math.atan2(dot(pp, v), dot(pp, u)) - Math.atan2(dot(qq, v), dot(qq, u));
+    });
+    let area = 0, perimeter = 0;
+    for (let i = 0; i < pts.length; i++) {
+      const p = pts[i], q = pts[(i + 1) % pts.length];
+      area += dot(cross(sub(p, centroid), sub(q, centroid)), n) * .5;
+      perimeter += dist(p, q);
+    }
+    return {
+      points: pts, n, d, centroid, u, v,
+      area: Math.abs(area) * SOLID.areaScale,
+      perimeter: perimeter * SOLID.lenScale,
+      sides: pts.length, curved, shape
+    };
+  }
+
+  function solveCircleLine(A, B, rhs) {
+    // A cos t + B sin t = rhs.
+    const amp = Math.hypot(A, B);
+    if (amp < SECTION_EPSILON || Math.abs(rhs) > amp + SECTION_EPSILON) return [];
+    const phi = Math.atan2(B, A);
+    const alpha = Math.acos(clamp(rhs / amp, -1, 1));
+    return [phi + alpha, phi - alpha];
+  }
+
+  function sampleSide(count, boundaries, pointAt) {
+    // Subdivide at the cap intersections so even a short visible arc is sampled.
+    const angles = [
+      0,
+      ...boundaries.map(a => ((a % FULL_TURN) + FULL_TURN) % FULL_TURN),
+      FULL_TURN
+    ].sort((a, b) => a - b);
+    const points = [];
+    for (let i = 1; i < angles.length; i++) {
+      const from = angles[i - 1], to = angles[i];
+      if (to - from < 1e-12) continue;
+      const steps = Math.max(2, Math.ceil((to - from) * count / FULL_TURN));
+      for (let j = 0; j < steps; j++) {
+        const point = pointAt(lerp(from, to, j / steps));
+        if (point) points.push(point);
+      }
+    }
+    return points;
+  }
+
+  function circleSection(n, d, center, r) {
+    const { u, v } = planeBasis(n);
+    const points = [];
+    for (let i = 0; i < 160; i++) {
+      const a = i / 160 * FULL_TURN;
+      points.push(add(center, add(mul(u, r * Math.cos(a)), mul(v, r * Math.sin(a)))));
+    }
+    const poly = makePoly(points, n, { curved: true, shape: "circle", d });
+    poly.circle = { center, r, n };
+    poly.area = Math.PI * r * r * SOLID.areaScale;
+    poly.perimeter = FULL_TURN * r * SOLID.lenScale;
+    return poly;
+  }
+
+  function sphereSection(n, d) {
+    const distance = Math.abs(d);
+    if (distance > 1 + SECTION_EPSILON) return makePoly([], n, { d });
+    if (distance >= 1 - SECTION_EPSILON) return makePoly([mul(n, Math.sign(d))], n, { d });
+    return circleSection(n, d, mul(n, d), Math.sqrt(1 - d * d));
+  }
+
+  function cylinderSection(n, d) {
+    const [nx, ny, nz] = n;
+    const eps = SECTION_EPSILON;
+    const radial = Math.hypot(nx, nz);
+    const extent = radial + Math.abs(ny);
+    if (Math.abs(d) > extent + eps) return makePoly([], n, { d });
+    if (radial <= eps) {
+      return circleSection(n, d, [0, clamp(d / ny, -1, 1), 0], 1);
+    }
+    if (Math.abs(ny) <= eps) {
+      const points = [];
+      for (const t of solveCircleLine(nx, nz, d)) {
+        for (const y of [-1, 1]) points.push([Math.cos(t), y, Math.sin(t)]);
+      }
+      return makePoly(points, n, { shape: "cylinder-rectangle", d });
+    }
+    if (Math.abs(d) >= extent - eps) {
+      const sign = Math.sign(d);
+      return makePoly([[sign * nx / radial, sign * Math.sign(ny), sign * nz / radial]], n, { d });
+    }
+
+    const bottom = solveCircleLine(nx, nz, d + ny);
+    const top = solveCircleLine(nx, nz, d - ny);
+    const points = sampleSide(720, [...bottom, ...top], t => {
+      const x = Math.cos(t), z = Math.sin(t);
+      const y = (d - nx * x - nz * z) / ny;
+      return Math.abs(y) <= 1 + eps ? [x, clamp(y, -1, 1), z] : null;
+    });
+    for (const t of bottom) points.push([Math.cos(t), -1, Math.sin(t)]);
+    for (const t of top) points.push([Math.cos(t), 1, Math.sin(t)]);
+    const fullEllipse = Math.abs(d) + radial <= Math.abs(ny) + eps;
+    return makePoly(points, n, { curved: true, shape: fullEllipse ? "ellipse" : "ellipse-cut", d });
+  }
+
+  function coneSection(n, d) {
+    const [nx, ny, nz] = n;
+    const eps = SECTION_EPSILON;
+    const radial = Math.hypot(nx, nz);
+    const min = Math.min(ny, -ny - radial), max = Math.max(ny, -ny + radial);
+    if (d < min - eps || d > max + eps) return makePoly([], n, { d });
+    if (radial <= eps) {
+      const y = clamp(d / ny, -1, 1);
+      const r = (1 - y) / 2;
+      if (r <= eps) return makePoly([[0, 1, 0]], n, { d });
+      return circleSection(n, d, [0, y, 0], r);
+    }
+
+    const bottom = solveCircleLine(nx, nz, d + ny);
+    const basePoints = bottom.map(t => [Math.cos(t), -1, Math.sin(t)]);
+    if (Math.abs(d - ny) <= eps) {
+      return makePoly([[0, 1, 0], ...basePoints], n, { shape: "cone-triangle", d });
+    }
+    if (d <= min + eps || d >= max - eps) {
+      const sign = d <= min + eps ? -1 : 1;
+      return makePoly([[sign * nx / radial, -1, sign * nz / radial]], n, { d });
+    }
+
+    const asymptotes = solveCircleLine(nx, nz, 2 * ny);
+    const points = sampleSide(900, [...bottom, ...asymptotes], t => {
+      const x = Math.cos(t), z = Math.sin(t);
+      const den = nx * x + nz * z - 2 * ny;
+      if (Math.abs(den) < 1e-10) return null;
+      const r = (d - ny) / den;
+      if (r < 0 || r > 1 + eps) return null;
+      const rr = Math.min(1, r);
+      return [rr * x, 1 - 2 * rr, rr * z];
+    });
+    const tilt = Math.acos(clamp(Math.abs(ny), 0, 1));
+    const critical = Math.atan(2);
+    let conic = "ellipse";
+    if (Math.abs(tilt - critical) < 0.02) conic = "parabola";
+    else if (tilt > critical) conic = "hyperbola";
+    const crossesBase = basePoints.length === 2 && dist(...basePoints) > eps;
+    const shape = crossesBase ? conic + "-cut" : conic;
+    return makePoly([...points, ...basePoints], n, { curved: true, shape, d });
+  }
+
+  function curvedSection(n, d) {
+    if (solidKind === "sphere") return sphereSection(n, d);
+    if (solidKind === "cylinder") return cylinderSection(n, d);
+    return coneSection(n, d);
+  }
+
+  /* ---- exact radical arithmetic (rational coords → √rational) ---- */
+  const gcdI = (a, b) => { a = Math.abs(a); b = Math.abs(b); while (b) { [a, b] = [b, a % b]; } return a || 1; };
+  function F(n, d = 1) {
+    if (!isFinite(n) || !isFinite(d) || d === 0) return null;
+    if (d < 0) { n = -n; d = -d; }
+    const g = gcdI(n, d);
+    return { n: n / g, d: d / g };
+  }
+  const fAdd = (a, b) => F(a.n * b.d + b.n * a.d, a.d * b.d);
+  const fMul = (a, b) => F(a.n * b.n, a.d * b.d);
+  const fDiv = (a, b) => b.n === 0 ? null : F(a.n * b.d, a.d * b.n);
+  const fNeg = a => ({ n: -a.n, d: a.d });
+  const fAbs = a => ({ n: Math.abs(a.n), d: a.d });
+
+  function ratOf(x, maxDen = 80, tol = 1e-9) {
+    if (!isFinite(x)) return null;
+    for (let d = 1; d <= maxDen; d++) {
+      const n = Math.round(x * d);
+      if (Math.abs(x - n / d) < tol) return F(n, d);
+    }
+    return null;
+  }
+
+  function sqrtRat(q) {
+    if (!q || q.n < 0) return null;
+    let N = q.n * q.d, D = q.d, s = 1;
+    for (let i = 2; i * i <= N; i++) {
+      while (N % (i * i) === 0) { N /= i * i; s *= i; }
+    }
+    return { coef: F(s, D), rad: N };
+  }
+
+  const fmtF = q => q.n + (q.d === 1 ? "" : "/" + q.d);
+  function fmtSqrtTerm(t) {
+    if (!t) return "—";
+    const c = t.coef;
+    if (c.n === 0) return "0";
+    const sign = c.n < 0 ? "−" : "";
+    const a = fAbs(c);
+    if (t.rad === 1) return sign + fmtF(a);
+    const num = a.n === 1 ? "" : String(a.n);
+    return sign + num + "√" + t.rad + (a.d === 1 ? "" : "/" + a.d);
+  }
+  function fmtSqrtSum(terms) {
+    const map = new Map();
+    for (const t of terms) {
+      if (!t) return "—";
+      map.set(t.rad, fAdd(map.get(t.rad) || F(0), t.coef));
+    }
+    const list = [...map.entries()].filter(([, c]) => c.n !== 0).sort((a, b) => a[0] - b[0]);
+    if (!list.length) return "0";
+    return list.map(([rad, coef], i) => {
+      const neg = coef.n < 0;
+      const s = fmtSqrtTerm({ coef: fAbs(coef), rad });
+      return (i === 0 ? (neg ? "−" : "") : (neg ? " − " : " + ")) + s;
+    }).join("");
+  }
+  function fmtPi(coef) {
+    if (!coef) return "—";
+    if (coef.n === 0) return "0";
+    const sign = coef.n < 0 ? "−" : "";
+    const a = fAbs(coef);
+    if (a.d === 1) return sign + (a.n === 1 ? "" : a.n) + "π";
+    return sign + (a.n === 1 ? "" : a.n) + "π/" + a.d;
+  }
+  function fmtPiSqrt(t) {
+    if (!t) return "—";
+    const c = t.coef, sign = c.n < 0 ? "−" : "", a = fAbs(c);
+    if (t.rad === 1) return fmtPi(c);
+    const num = a.n === 1 ? "" : a.n;
+    return sign + num + "π√" + t.rad + (a.d === 1 ? "" : "/" + a.d);
+  }
+
+  function exactPolyMetrics(poly) {
+    if (poly.points.length > 240) return null;
+    const rp = poly.points.map(p => p.map(v => ratOf(v, 80)));
+    if (rp.some(p => p.some(v => !v))) return null;
+    let ax = F(0), ay = F(0), az = F(0);
+    for (let i = 0; i < rp.length; i++) {
+      const p = rp[i], q = rp[(i + 1) % rp.length];
+      const yz = fAdd(fMul(p[1], q[2]), fNeg(fMul(p[2], q[1])));
+      const zx = fAdd(fMul(p[2], q[0]), fNeg(fMul(p[0], q[2])));
+      const xy = fAdd(fMul(p[0], q[1]), fNeg(fMul(p[1], q[0])));
+      ax = fAdd(ax, yz); ay = fAdd(ay, zx); az = fAdd(az, xy);
+    }
+    const half = F(1, 2);
+    ax = fMul(ax, half); ay = fMul(ay, half); az = fMul(az, half);
+    const areaSq = fAdd(fAdd(fMul(ax, ax), fMul(ay, ay)), fMul(az, az));
+    const aSq = ratOf(SOLID && SOLID.areaSquare != null ? SOLID.areaSquare : (solidKind === "tetra" ? 1 / 64 : 1 / 16));
+    const lSq = ratOf(SOLID && SOLID.lenSquare != null ? SOLID.lenSquare : (solidKind === "tetra" ? 1 / 8 : 1 / 4));
+    const areaT = sqrtRat(fMul(areaSq, aSq));
+    const terms = [];
+    for (let i = 0; i < rp.length; i++) {
+      const p = rp[i], q = rp[(i + 1) % rp.length];
+      let s = F(0);
+      for (let k = 0; k < 3; k++) {
+        const d = fAdd(q[k], fNeg(p[k]));
+        s = fAdd(s, fMul(d, d));
+      }
+      terms.push(sqrtRat(fMul(s, lSq)));
+    }
+    return { area: fmtSqrtTerm(areaT), perimeter: fmtSqrtSum(terms) };
+  }
+
+  function attachExact(poly) {
+    if (poly.points.length < 3) return;
+    if (poly.shape === "circle" && poly.circle) {
+      const r2 = ratOf(poly.circle.r * poly.circle.r, 2000);
+      if (r2) {
+        poly.exactArea = fmtPi(fMul(r2, F(1, 4)));
+        const t = sqrtRat(r2);
+        poly.exactPerimeter = fmtPiSqrt(t);
+      }
+      return;
+    }
+    if ((solidKind === "pyramid" || solidKind === "frustum") && poly.regular &&
+        Math.abs(poly.n[1]) > 1 - 1e-6 && Math.abs(poly.d) < 1e-6) {
+      const T = solidKind === "pyramid" ? {
+        3: ["√3/16", "3/2"],
+        4: ["1/4", "2"],
+        5: ["√(25+10√5)/16", "5/2"],
+        6: ["3√3/8", "3"],
+        8: ["(1 + √2)/2", "4"],
+        10: ["(5/8)√(5+2√5)", "5"],
+        12: ["(6 + 3√3)/4", "6"]
+      } : {
+        3: ["9√3/64", "9/4"],
+        4: ["9/16", "3"],
+        5: ["9√(25+10√5)/64", "15/4"],
+        6: ["27√3/32", "9/2"],
+        8: ["9(1 + √2)/8", "6"],
+        10: ["(45/32)√(5+2√5)", "15/2"],
+        12: ["(54 + 27√3)/16", "9"]
+      };
+      if (T[poly.regular]) {
+        poly.exactArea = T[poly.regular][0];
+        poly.exactPerimeter = T[poly.regular][1];
+        return;
+      }
+    }
+    if (solidKind === "prism" && poly.regular && Math.abs(poly.n[1]) > 1 - 1e-6) {
+      const E = {
+        3: ["√3/4", "3"],
+        4: ["1", "4"],
+        5: ["√(25+10√5)/4", "5"],
+        6: ["3√3/2", "6"],
+        8: ["2 + 2√2", "8"],
+        10: ["(5/2)√(5+2√5)", "10"],
+        12: ["6 + 3√3", "12"]
+      };
+      if (E[poly.regular]) {
+        poly.exactArea = E[poly.regular][0];
+        poly.exactPerimeter = E[poly.regular][1];
+        return;
+      }
+    }
+    if (poly.shape === "ellipse" && solidKind === "cylinder") {
+      const ny2 = ratOf(poly.n[1] * poly.n[1], 120);
+      if (ny2 && ny2.n > 0) {
+        const K = fDiv(F(1, 16), ny2);
+        poly.exactArea = fmtPiSqrt(sqrtRat(K));
+      }
+      return;
+    }
+    if (poly.curved) return;
+    const ex = exactPolyMetrics(poly);
+    if (ex) { poly.exactArea = ex.area; poly.exactPerimeter = ex.perimeter; }
+  }
+
+  function nearly(a, b, tol) { return Math.abs(a - b) < (tol || 0.012); }
+
+  function classify(poly) {
+    const sides = poly.points.length;
+    if (sides === 0) return { family: 0, name: "无截面", en: "NO SECTION", key: "none" };
+    if (sides === 1) return { family: 0, name: "相切于一点", en: "POINT CONTACT", key: "touch-point" };
+    if (sides === 2) return { family: 0, name: "相切于线段", en: "LINE CONTACT", key: "touch-segment" };
+    if (poly.shape === "cone-triangle") return { family: 3, name: "三角形", en: "TRIANGLE", key: "cone-tri" };
+    if (poly.shape === "cylinder-rectangle") {
+      const lengths = poly.points.map((p, i) => dist(p, poly.points[(i + 1) % 4]));
+      if (Math.max(...lengths) - Math.min(...lengths) < SECTION_EPSILON) {
+        return { family: 4, name: "正方形", en: "SQUARE", key: "square-curve" };
+      }
+      return { family: 4, name: "矩形", en: "RECTANGLE", key: "rect-curve" };
+    }
+    if (poly.curved) {
+      if (poly.shape === "circle") return { family: 20, name: "圆", en: "CIRCLE", key: solidKind === "sphere" ? "sphere-circle" : "circle" };
+      if (poly.shape === "ellipse") return { family: 21, name: "椭圆", en: "ELLIPSE", key: "ellipse" };
+      if (poly.shape === "ellipse-cut") return { family: 21, name: "椭圆弓形", en: "ELLIPSE SEGMENT", key: "ellipse-cut" };
+      if (poly.shape === "parabola") return { family: 22, name: "抛物线", en: "PARABOLA", key: "parabola" };
+      if (poly.shape === "parabola-cut") return { family: 22, name: "抛物线弓形", en: "PARABOLA SEGMENT", key: "parabola" };
+      if (poly.shape === "hyperbola") return { family: 23, name: "双曲线", en: "HYPERBOLA", key: "hyperbola" };
+      if (poly.shape === "hyperbola-cut") return { family: 23, name: "双曲线弓形", en: "HYPERBOLA SEGMENT", key: "hyperbola" };
+      return { family: 21, name: "封闭曲线", en: "CLOSED CURVE", key: "curve" };
+    }
+    const pts = poly.points;
+    const edgeLens = [], angles = [], edgeDirs = [];
+    for (let i = 0; i < sides; i++) {
+      const p = pts[i], q = pts[(i + 1) % sides];
+      const e = sub(q, p);
+      edgeLens.push(len(e));
+      edgeDirs.push(norm(e));
+    }
+    for (let i = 0; i < sides; i++) {
+      const a = norm(sub(pts[(i - 1 + sides) % sides], pts[i]));
+      const b = norm(sub(pts[(i + 1) % sides], pts[i]));
+      angles.push(Math.acos(clamp(dot(a, b), -1, 1)));
+    }
+    const allEqual = arr => arr.every(x => nearly(x, arr[0], 0.015));
+    const regularKey = solidKind === "pyramid" ? "pyramid-regular" : solidKind === "frustum" ? "frustum-regular" : "regular-n";
+    const rightCount = angles.filter(a => nearly(a, Math.PI / 2, 0.02)).length;
+    const parallel = (a, b) => Math.abs(Math.abs(dot(a, b)) - 1) < 0.02;
+
+    if (sides === 3) {
+      if (allEqual(edgeLens)) {
+        poly.regular = 3;
+        const key = solidKind === "tetra" ? "tetra-tri" : (["prism", "pyramid", "frustum"].includes(solidKind) ? "regular-tri" : "eq-tri");
+        return { family: 3, name: "等边三角形", en: "EQUILATERAL △", key };
+      }
+      if (nearly(edgeLens[0], edgeLens[1], .02) || nearly(edgeLens[1], edgeLens[2], .02) || nearly(edgeLens[0], edgeLens[2], .02))
+        return { family: 3, name: "等腰三角形", en: "ISOSCELES △", key: "iso-tri" };
+      return { family: 3, name: "三角形", en: "TRIANGLE", key: "tri" };
+    }
+    if (sides === 4) {
+      if (rightCount === 4) {
+        if (nearly(edgeLens[0], edgeLens[1], .02)) {
+          poly.regular = 4;
+          const key = solidKind === "tetra" ? "tetra-square" : (["prism", "pyramid", "frustum"].includes(solidKind) ? "regular-square" : "square");
+          return { family: 4, name: "正方形", en: "SQUARE", key };
+        }
+        return { family: 4, name: "长方形", en: "RECTANGLE", key: "rect" };
+      }
+      if (allEqual(edgeLens)) return { family: 4, name: "菱形", en: "RHOMBUS", key: "rhombus" };
+      const p02 = parallel(edgeDirs[0], edgeDirs[2]);
+      const p13 = parallel(edgeDirs[1], edgeDirs[3]);
+      if (p02 && p13) return { family: 4, name: "平行四边形", en: "PARALLELOGRAM", key: "para" };
+      if (p02 || p13) return { family: 4, name: "梯形", en: "TRAPEZOID", key: "trap" };
+      return { family: 4, name: "四边形", en: "QUADRILATERAL", key: "quad" };
+    }
+    const regular = allEqual(edgeLens) && angles.every(a => nearly(a, (sides - 2) * Math.PI / sides, 0.025));
+    if (sides === 5) {
+      if (regular) { poly.regular = 5; return { family: 5, name: "正五边形", en: "REGULAR PENTAGON", key: regularKey }; }
+      return { family: 5, name: "五边形", en: "PENTAGON", key: "penta" };
+    }
+    if (sides === 6) {
+      if (regular) { poly.regular = 6; return { family: 6, name: "正六边形", en: "REGULAR HEXAGON", key: solidKind === "cube" ? "reg-hex" : regularKey }; }
+      return { family: 6, name: "六边形", en: "HEXAGON", key: "hex" };
+    }
+    if (regular) { poly.regular = sides; return { family: sides, name: "正" + sides + "边形", en: "REGULAR " + sides + "-GON", key: regularKey }; }
+    return { family: sides, name: sides + " 边形", en: "POLYGON", key: "poly" };
+  }
+
+  const COPY = {
+    "eq-tri": "等边三角形！从角上切下来，三条边一样长～",
+    "iso-tri": "等腰三角形！平面切到了角上呢。",
+    "tri": "三角形！平面只穿过了三个面。",
+    "square": "正方形！平面与一组对面平行，最规整的切法。",
+    "rect": "长方形！有一组对边互相平行哦。",
+    "rhombus": "菱形！四条边一样长，但角不是直角～",
+    "para": "平行四边形！两组对边分别平行。",
+    "trap": "梯形！只有一组对边平行，很特别吧。",
+    "quad": "四边形！观察它的对边有什么关系？",
+    "penta": "五边形！平面穿过了五个面。",
+    "reg-hex": "过中心切开，六条边一样长！这是最特别的截面。",
+    "hex": "六边形！平面穿过了全部六个面。",
+    "none": "平面与几何体没有交集，向内平移就能重新切到。",
+    "touch-point": "平面只接触几何体上的一个点。",
+    "touch-segment": "平面与几何体只共有一条线段。",
+    "circle": "圆！平面与底面平行时，截面就是圆。",
+    "ellipse": "椭圆！平面斜着穿过曲面，截面被拉长啦。",
+    "ellipse-cut": "椭圆弓形！平面斜切并截到底面，得到一段椭圆弧。",
+    "parabola": "抛物线！平面和一条母线平行，截面张开了。",
+    "hyperbola": "平面比母线更陡，截面边界包含双曲线的一段和底面上的弦。",
+    "rect-curve": "矩形！平面与轴线平行，截面是规整的矩形。",
+    "square-curve": "正方形！平面过轴线，截面正好是正方形。",
+    "conic": "圆锥曲线！平面与圆锥面相交，形状很丰富。",
+    "sphere-circle": "平面切过球的内部时，截面是圆。",
+    "tetra-tri": "从顶点切下去，三条边一样长，是等边三角形。",
+    "tetra-square": "过四条棱的中点切开，截面正好是正方形。",
+    "cone-tri": "过顶点切开，截面是三角形。",
+    "regular-n": "平行于底面切开，截面与底面全等，是正多边形。",
+    "pyramid-regular": "平行于底面切开，截面是与底面相似的正多边形。",
+    "regular-tri": "平行于底面切开，截面是正三角形。",
+    "regular-square": "平行于底面切开，截面是与底面相似的正方形。",
+    "frustum-regular": "平行于底面切开，截面是正多边形，边数与上、下底相同。",
+    "curve": "曲面截出来的封闭曲线，观察它的长短轴。",
+    "poly-curve": "平面截出了一条封闭曲线。"
+  };
+  const ACCENT = {
+    3: "#f1629b",
+    4: "#3faed9",
+    5: "#e88d2c",
+    6: "#14b795",
+    20: "#7c5bf0",
+    21: "#8d6bf2",
+    22: "#e06a9f",
+    23: "#5e8bd8"
+  };
+
+  /* ------------------------------------------------------------------ *
+   *  6. UI updates
+   * ------------------------------------------------------------------ */
+  let currentPoly = sectionPolygon(normal(), state.d);
+  let currentKind = classify(currentPoly);
+
+  function setSliderFill(el) {
+    const min = +el.min, max = +el.max, v = +el.value;
+    el.style.setProperty("--fill", ((v - min) / (max - min) * 100).toFixed(2) + "%");
+  }
+
+  function syncControls() {
+    const thetaDeg = state.theta * 180 / Math.PI;
+    let phiDeg = state.phi * 180 / Math.PI;
+    phiDeg = ((phiDeg % 360) + 360) % 360;
+    tiltRange.value = thetaDeg.toFixed(1);
+    spinRange.value = phiDeg.toFixed(1);
+    const offset = state.d * SOLID.lenScale;
+    const offsetText = (Math.abs(offset) < .0005 ? 0 : offset).toFixed(3);
+    offsetRange.value = String(offset);
+    offsetRange.setAttribute("aria-valuetext", offsetText + " 单位");
+    tiltVal.textContent = thetaDeg.toFixed(1) + "°";
+    spinVal.textContent = phiDeg.toFixed(1) + "°";
+    offsetVal.textContent = offsetText;
+    [tiltRange, spinRange, offsetRange].forEach(setSliderFill);
+  }
+
+  function popBubble(text) {
+    bubbleEl.textContent = text;
+    bubbleEl.classList.remove("pop");
+    void bubbleEl.offsetWidth;
+    bubbleEl.classList.add("pop");
+  }
+
+  function updatePanel(poly, kind) {
+    const accent = ACCENT[kind.family] || "#8d6bf2";
+    hero.style.setProperty("--accent", accent);
+    shapeNameEl.textContent = kind.name;
+    shapeEnEl.textContent = kind.en;
+    const count = poly.points.length;
+    mVertices.textContent = poly.curved ? 1 : count;
+    mLabel1.textContent = poly.curved ? "闭合边界 / 条"
+      : count === 1 ? "接触点 / 个" : count === 2 ? "端点 / 个" : "顶点 / 个";
+    mArea.innerHTML = count < 3 ? "—" : poly.exactArea || `<span class="approx">≈</span>${poly.area.toFixed(2)}`;
+    mPerimeter.innerHTML = count < 3 ? "—" : poly.exactPerimeter || `<span class="approx">≈</span>${poly.perimeter.toFixed(2)}`;
+    mArea.classList.toggle("long", (poly.exactArea || "").length > 6 && (poly.exactArea || "").length <= 9);
+    mArea.classList.toggle("xlong", (poly.exactArea || "").length > 9);
+    mPerimeter.classList.toggle("long", (poly.exactPerimeter || "").length > 6 && (poly.exactPerimeter || "").length <= 9);
+    mPerimeter.classList.toggle("xlong", (poly.exactPerimeter || "").length > 9);
+    if (kind.key !== state.lastShapeKey) {
+      state.lastShapeKey = kind.key;
+      popBubble(COPY[kind.key] || "拖动星星继续观察，截面还会变化哦～");
+    }
+    updatePresetActive();
+    drawMini(poly, accent);
+    syncControls();
+  }
+
+  function refreshSection() {
+    const n = normal();
+    currentPoly = SOLID && SOLID.curved ? curvedSection(n, state.d) : sectionPolygon(n, state.d);
+    const kind = classify(currentPoly);
+    attachExact(currentPoly);
+    currentKind = kind;
+    updatePanel(currentPoly, kind);
+  }
+
+  function updateKnowledge(kind, sides) {
+    const set = (big, title, sub, text) => {
+      bigFact.textContent = big;
+      factTitle.textContent = title;
+      factSub.textContent = sub;
+      factText.innerHTML = text;
+    };
+    if (kind === "cube") {
+      set("6", "截面边数最多是 6", "正方体只有 6 个面，截面的每条边都落在其中一个面上。",
+        "选择<b>正六边形</b>预设，保持角度不变，向顶点平移。截面先变成非正六边形，再变成<b>等边三角形</b>。改变切面角度，还能切出五边形和四边形。");
+    } else if (kind === "tetra") {
+      set("4", "截面最多是 4 条边", "正四面体只有 4 个面，截面边数不会超过 4。",
+        "过一组对棱中点的平面会切出<b>正方形</b>；靠近顶点时是三角形；斜着切还能得到梯形等四边形。");
+    } else if (kind === "prism") {
+      set(String(sides), `平行底面是${regLabel(sides)}`, "正棱柱的上下底面互相平行且全等。",
+        "平行于底面的截面与底面<b>全等</b>；垂直于底面、过轴线的截面是<b>矩形</b>；斜切时边数会随平面位置改变。");
+    } else if (kind === "custom") {
+      const faceCount = FACES.length || 0;
+      set(String(faceCount), `截面最多 ${faceCount} 条边`, `自绘多面体有 ${faceCount} 个面，${SOLID ? SOLID.sides : 0} 个底面顶点。`,
+        "平面与每个面相交得到一条边；平行底面时截面与底面相似，斜切时边数会改变。");
+    } else if (kind === "pyramid") {
+      set(String(sides + 1), `截面最多 ${sides + 1} 条边`, `正${sides}棱锥有 ${sides + 1} 个面。`,
+        "平行于底面切出与底面<b>相似</b>的正多边形；过顶点切出<b>三角形</b>；斜切还会出现四边形、五边形等。");
+    } else if (kind === "frustum") {
+      set(String(sides + 2), `截面最多 ${sides + 2} 条边`, `正${sides}棱台有 ${sides + 2} 个面。`,
+        "平行于底面切出<b>正多边形</b>；过轴线的截面是<b>等腰梯形</b>；斜切时边数会随平面位置改变。");
+    } else if (kind === "cylinder") {
+      set("○", "圆柱的三种典型截面", "圆、矩形、椭圆，都由平面方向决定。",
+        "平行于底面切出<b>圆</b>；垂直于底面、过轴线的截面是<b>矩形</b>（轴截面正好是正方形）；斜着切出<b>椭圆</b>。椭圆周长没有初等根式公式，课件会给出数值。");
+    } else if (kind === "cone") {
+      set("△", "圆锥曲线藏在这里", "圆、椭圆、抛物线、双曲线都可能出现。",
+        "平行于底面切出<b>圆</b>；过顶点切出<b>三角形</b>；平面比母线平缓时是<b>椭圆</b>，与母线平行时是<b>抛物线</b>，比母线更陡时是<b>双曲线</b>。一般椭圆的周长没有初等根式，课件用 ≈ 给出数值。");
+    } else if (kind === "sphere") {
+      set("○", "平面切过球的内部时，截面是圆", "平移距离等于球的半径时，平面与球相切于一点。",
+        "截面圆的圆心是<b>球心在平面上的投影</b>。平面过球心时得到最大的圆。超过球的半径，就切不到球了。");
+    }
+  }
+
+  function solidNoteText(kind, sides) {
+    if (kind === "cube") return "<b>棱长 1</b> 的正方体";
+    if (kind === "tetra") return "<b>棱长 1</b> 的正四面体";
+    if (kind === "prism") return `<b>底面边长 1 · 高 1</b> 的正${sides}棱柱`;
+    if (kind === "pyramid") return `<b>底面边长 1 · 高 1</b> 的正${sides}棱锥`;
+    if (kind === "frustum") return `<b>下底 1 · 上底 ½ · 高 1</b> 的正${sides}棱台`;
+    if (kind === "custom") {
+      const mode = customData ? customData.mode : "prism";
+      const label = mode === "pyramid" ? "棱锥" : mode === "frustum" ? "棱台" : "棱柱";
+      return `<b>自绘 ${sides} 边形底面</b> · ${label} · 网格间距 0.5 单位`;
+    }
+    if (kind === "cylinder") return "<b>底面半径 ½ · 高 1</b> 的圆柱";
+    if (kind === "cone") return "<b>底面半径 ½ · 高 1</b> 的圆锥";
+    if (kind === "sphere") return "<b>半径 ½</b> 的球";
+    return "";
+  }
+
+  const hasAdjustableSides = kind => ["prism", "pyramid", "frustum"].includes(kind);
+
+  function updateSolidLabels() {
+    solidSelect.value = solidKind;
+    prismNRow.classList.toggle("on", hasAdjustableSides(solidKind));
+    if (hasAdjustableSides(solidKind)) prismNInput.value = solidN;
+    editCustomBtn.hidden = solidKind !== "custom";
+    solidNote.innerHTML = solidNoteText(solidKind, solidN);
+    brandSolid.textContent = SOLID.name;
+    brandSub.textContent = SOLID_META[solidKind].sub;
+    canvas.setAttribute("aria-label", SOLID.name + "的三维截面演示");
+    document.title = "截面实验室 · " + SOLID.name;
+  }
+
+  function syncOffsetBounds() {
+    const limit = (dLimit() * SOLID.lenScale).toFixed(3);
+    offsetRange.min = "-" + limit;
+    offsetRange.max = limit;
+  }
+
+  function applySolid(kind, sides) {
+    if (!drawEditor.hidden) closeDrawEditor();
+    rebuildSolid(kind, sides);
+    solidN = SOLID.sides || sides;
+
+    // default plane for this solid: first preset
+    const defs = renderPresetButtons(kind);
+    const first = PRESETS[defs[0].key];
+    state.planeAnim = null;
+    state.theta = Math.acos(clamp(first.n[1], -1, 1));
+    state.phi = Math.atan2(first.n[2], first.n[0]);
+    state.d = clamp(first.d, -dLimit(), dLimit());
+    state.goalDist = SOLID.fitDist;
+    state.cameraAnim = true;
+    if (state.auto) setAuto(false);
+
+    syncOffsetBounds();
+    updateSolidLabels();
+    updateKnowledge(kind, solidN);
+    refreshSection();
+  }
+
+  solidSelect.addEventListener("change", () => {
+    const kind = solidSelect.value;
+    if (kind === "custom") {
+      openDrawEditor();
+      return;
+    }
+    applySolid(kind, clamp(Math.round(+prismNInput.value || 5), 3, 12));
+    showToast("已切换到 " + SOLID.name);
+  });
+  prismNInput.addEventListener("change", () => {
+    const n = clamp(Math.round(+prismNInput.value || 5), 3, 12);
+    prismNInput.value = n;
+    if (hasAdjustableSides(solidSelect.value)) applySolid(solidSelect.value, n);
+  });
+
+  /* ------------------------------------------------------------------ *
+   *  6b. Custom sketch editor
+   * ------------------------------------------------------------------ */
+  let sketchTool = "vertex";
+  let sketchDashed = false;
+  let sketchSelected = -1;
+  let sketchHistory = [];
+  const sketchButtons = [...document.querySelectorAll(".draw-btn[data-tool]")];
+  const sketchHints = {
+    vertex: "点空白处加顶点，再用“连线”围成凸多边形。",
+    edge: "依次点两个顶点连边。重复点同一对顶点可更新线型。",
+    "erase-vertex": "点一个顶点，删除它和相连的边。",
+    erase: "点一条边删除它。"
+  };
+
+  function cloneSketch(sk) {
+    return {
+      points: sk.points.map(p => ({ x: p.x, y: p.y })),
+      edges: sk.edges.map(e => ({ a: e.a, b: e.b, dashed: !!e.dashed }))
+    };
+  }
+
+  function starterSketch() {
+    const points = [], edges = [];
+    for (let i = 0; i < 5; i++) {
+      const a = -Math.PI / 2 + i * Math.PI * 2 / 5;
+      points.push({ x: Math.cos(a) * 1.25, y: Math.sin(a) * 1.25 });
+    }
+    for (let i = 0; i < 5; i++) edges.push({ a: i, b: (i + 1) % 5, dashed: false });
+    return { points, edges };
+  }
+
+  function pushSketchHistory() {
+    if (!customSketch) return;
+    sketchHistory.push(cloneSketch(customSketch));
+    if (sketchHistory.length > 50) sketchHistory.shift();
+  }
+
+  function sketchScreen(p, geom) {
+    return { x: geom.cx + p.x * geom.scale, y: geom.cy + p.y * geom.scale };
+  }
+
+  function sketchGeom() {
+    const w = drawCanvas.clientWidth || 600, h = drawCanvas.clientHeight || 400;
+    const scale = Math.min(w / 4.8, h / 3.5);
+    return { w, h, scale, cx: w / 2, cy: h / 2 };
+  }
+
+  function drawSketchCanvas() {
+    if (!customSketch) return;
+    const dpr = Math.min(window.devicePixelRatio || 1, 2);
+    const w = drawCanvas.clientWidth || 600, h = drawCanvas.clientHeight || 400;
+    drawCanvas.width = Math.round(w * dpr);
+    drawCanvas.height = Math.round(h * dpr);
+    drawCtx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    const g = sketchGeom();
+    drawCtx.clearRect(0, 0, w, h);
+
+    // grid
+    drawCtx.save();
+    drawCtx.lineWidth = 1;
+    for (let x = -2.5; x <= 2.5001; x += .5) {
+      const q = sketchScreen({ x, y: 0 }, g);
+      drawCtx.strokeStyle = Math.abs(x) < 1e-6 ? "rgba(137,109,166,.25)" : "rgba(137,109,166,.09)";
+      drawCtx.beginPath(); drawCtx.moveTo(q.x, 0); drawCtx.lineTo(q.x, h); drawCtx.stroke();
+    }
+    for (let y = -2; y <= 2.0001; y += .5) {
+      const q = sketchScreen({ x: 0, y }, g);
+      drawCtx.strokeStyle = Math.abs(y) < 1e-6 ? "rgba(137,109,166,.25)" : "rgba(137,109,166,.09)";
+      drawCtx.beginPath(); drawCtx.moveTo(0, q.y); drawCtx.lineTo(w, q.y); drawCtx.stroke();
+    }
+    drawCtx.restore();
+
+    const pts = customSketch.points;
+    const scr = pts.map(p => sketchScreen(p, g));
+
+    // edges
+    drawCtx.save();
+    drawCtx.lineCap = "round";
+    customSketch.edges.forEach(e => {
+      const a = scr[e.a], b = scr[e.b];
+      if (!a || !b) return;
+      drawCtx.setLineDash(e.dashed ? [7, 7] : []);
+      drawCtx.strokeStyle = e.dashed ? "rgba(111,83,145,.62)" : "rgba(80,55,112,.86)";
+      drawCtx.lineWidth = 2;
+      drawCtx.beginPath(); drawCtx.moveTo(a.x, a.y); drawCtx.lineTo(b.x, b.y); drawCtx.stroke();
+    });
+    drawCtx.setLineDash([]);
+    drawCtx.restore();
+
+    // vertices
+    scr.forEach((q, i) => {
+      const sel = i === sketchSelected;
+      drawCtx.save();
+      drawCtx.beginPath();
+      drawCtx.arc(q.x, q.y, sel ? 8 : 6.2, 0, Math.PI * 2);
+      drawCtx.fillStyle = sel ? "#ff7eb2" : "#fff";
+      drawCtx.fill();
+      drawCtx.lineWidth = sel ? 2.6 : 2;
+      drawCtx.strokeStyle = sel ? "#d84f83" : "#8a5bb0";
+      drawCtx.stroke();
+      drawCtx.fillStyle = sel ? "#fff" : "#7a5a91";
+      drawCtx.font = "800 8px 'PingFang SC',sans-serif";
+      drawCtx.textAlign = "center";
+      drawCtx.textBaseline = "middle";
+      drawCtx.fillText(String(i + 1), q.x, q.y - 14);
+      drawCtx.restore();
+    });
+
+    if (drawEmpty) drawEmpty.style.display = pts.length ? "none" : "block";
+  }
+
+  function setSketchTool(tool) {
+    sketchTool = tool;
+    sketchSelected = -1;
+    sketchButtons.forEach(button => {
+      const selected = button.dataset.tool === tool;
+      button.classList.toggle("on", selected);
+      button.setAttribute("aria-pressed", String(selected));
+    });
+    drawCanvas.style.cursor = tool === "vertex" ? "crosshair" : "pointer";
+    setSketchMessage(sketchHints[tool]);
+    drawSketchCanvas();
+  }
+
+  function setSketchMessage(message, error = false) {
+    drawHint.classList.toggle("err", error);
+    drawHint.textContent = message;
+  }
+
+  function setSketchStyle(dashed) {
+    sketchDashed = dashed;
+    drawStyleBtn.textContent = dashed ? "┄ 虚线" : "━ 实线";
+    drawStyleBtn.classList.toggle("on", dashed);
+    drawStyleBtn.setAttribute("aria-pressed", String(dashed));
+  }
+
+  function openDrawEditor() {
+    customSketch = customData ? cloneSketch(customData) : starterSketch();
+    drawMode.value = customData ? customData.mode : "prism";
+    solidSelect.value = "custom";
+    prismNRow.classList.remove("on");
+    editCustomBtn.hidden = true;
+    if (toast) toast.classList.remove("show");
+    brandSolid.textContent = "自绘底面";
+    brandSub.textContent = SOLID_META.custom.sub;
+    document.title = "截面实验室 · 自绘图形";
+    solidNote.innerHTML = "<b>先画底面</b>，再点击“生成多面体”";
+    drawEditor.hidden = false;
+    drawEditor.classList.add("on");
+    stage.classList.add("custom-open");
+    canvas.inert = true;
+    setTouchManipulation(false);
+    if (state.auto) setAuto(false);
+    stopPlaneAnim();
+    sketchHistory = [];
+    setSketchTool("vertex");
+    setSketchStyle(false);
+    if (!customData) setSketchMessage("可用示例五边形生成，也可清空后自己画。");
+    if (compactLayout.matches) stage.scrollIntoView({ block: "start" });
+    sketchButtons[0].focus({ preventScroll: true });
+  }
+
+  function closeDrawEditor() {
+    drawEditor.classList.remove("on");
+    drawEditor.hidden = true;
+    stage.classList.remove("custom-open");
+    canvas.inert = false;
+  }
+
+  function canvasGridPoint(ev) {
+    const r = drawCanvas.getBoundingClientRect();
+    const g = sketchGeom();
+    const x = (ev.clientX - r.left - g.cx) / g.scale;
+    const y = (ev.clientY - r.top - g.cy) / g.scale;
+    return { x: Math.round(x * 4) / 4, y: Math.round(y * 4) / 4 };
+  }
+
+  function nearestSketchVertex(ev) {
+    const r = drawCanvas.getBoundingClientRect();
+    const g = sketchGeom();
+    let best = -1, bd = 15;
+    customSketch.points.forEach((p, i) => {
+      const q = sketchScreen(p, g);
+      const d = Math.hypot(ev.clientX - r.left - q.x, ev.clientY - r.top - q.y);
+      if (d < bd) { bd = d; best = i; }
+    });
+    return best;
+  }
+
+  function addSketchVertex(p) {
+    if (customSketch.points.length >= 12) {
+      setSketchMessage("最多支持 12 个顶点，可先删掉多余的点。", true);
+      return;
+    }
+    if (customSketch.points.some(q => Math.hypot(q.x - p.x, q.y - p.y) < .22)) {
+      setSketchMessage("这个位置已有顶点。", true);
+      return;
+    }
+    pushSketchHistory();
+    customSketch.points.push(p);
+    sketchSelected = customSketch.points.length - 1;
+    setSketchMessage("顶点已添加，可继续加点或切到“连线”。");
+    drawSketchCanvas();
+  }
+
+  function nearestSketchEdge(ev) {
+    const r = drawCanvas.getBoundingClientRect();
+    const g = sketchGeom();
+    const px = ev.clientX - r.left, py = ev.clientY - r.top;
+    let best = -1, bd = 11;
+    customSketch.edges.forEach((e, k) => {
+      const a = sketchScreen(customSketch.points[e.a], g);
+      const b = sketchScreen(customSketch.points[e.b], g);
+      if (!a || !b) return;
+      const dx = b.x - a.x, dy = b.y - a.y;
+      const l2 = dx * dx + dy * dy || 1;
+      const t = clamp(((px - a.x) * dx + (py - a.y) * dy) / l2, 0, 1);
+      const d = Math.hypot(px - (a.x + t * dx), py - (a.y + t * dy));
+      if (d < bd) { bd = d; best = k; }
+    });
+    return best;
+  }
+
+  function removeSketchVertex(index) {
+    pushSketchHistory();
+    customSketch.points.splice(index, 1);
+    customSketch.edges = customSketch.edges
+      .filter(e => e.a !== index && e.b !== index)
+      .map(e => ({ a: e.a > index ? e.a - 1 : e.a, b: e.b > index ? e.b - 1 : e.b, dashed: e.dashed }));
+    sketchSelected = -1;
+    setSketchMessage("已删除顶点和相连的边。");
+    drawSketchCanvas();
+  }
+
+  drawCanvas.addEventListener("pointerdown", ev => {
+    if (!ev.isPrimary || ev.button !== 0) return;
+    ev.preventDefault();
+    drawCanvas.focus({ preventScroll: true });
+    const hit = nearestSketchVertex(ev);
+    if (sketchTool === "erase-vertex") {
+      if (hit < 0) setSketchMessage("请点在一个顶点上。", true);
+      else removeSketchVertex(hit);
+      return;
+    }
+    if (sketchTool === "erase") {
+      const ei = nearestSketchEdge(ev);
+      if (ei < 0) {
+        setSketchMessage("请点在一条边上。", true);
+        return;
+      }
+      pushSketchHistory();
+      customSketch.edges.splice(ei, 1);
+      sketchSelected = -1;
+      setSketchMessage("已删除这条边。");
+      drawSketchCanvas();
+      return;
+    }
+    if (sketchTool === "vertex") {
+      if (hit >= 0) {
+        sketchSelected = hit;
+        setSketchMessage("已选中顶点。可用“删点”或 Delete 删除。");
+        drawSketchCanvas();
+      } else {
+        addSketchVertex(canvasGridPoint(ev));
+      }
+      return;
+    }
+    if (hit < 0) {
+      setSketchMessage("请点在一个顶点上。", true);
+      return;
+    }
+    if (sketchSelected < 0) {
+      sketchSelected = hit;
+      setSketchMessage("再点第二个顶点完成连线。");
+      drawSketchCanvas();
+      return;
+    }
+    if (sketchSelected === hit) {
+      sketchSelected = -1;
+      setSketchMessage("已取消选择。");
+      drawSketchCanvas();
+      return;
+    }
+    pushSketchHistory();
+    const a = Math.min(sketchSelected, hit), b = Math.max(sketchSelected, hit);
+    const ex = customSketch.edges.find(e => (e.a === a && e.b === b) || (e.a === b && e.b === a));
+    if (ex) {
+      ex.dashed = sketchDashed;
+      setSketchMessage("已更新这条边的线型。");
+    } else {
+      customSketch.edges.push({ a, b, dashed: sketchDashed });
+      setSketchMessage("已连线。闭合底面后，点击“生成多面体”。");
+    }
+    sketchSelected = -1;
+    drawSketchCanvas();
+  });
+
+  drawCanvas.addEventListener("keydown", ev => {
+    if (sketchSelected >= 0 && (ev.key === "Delete" || ev.key === "Backspace")) {
+      ev.preventDefault();
+      removeSketchVertex(sketchSelected);
+    }
+  });
+
+  const SKETCH_EPSILON = 1e-9;
+  const orient2D = (a, b, c) => (b.x - a.x) * (c.y - a.y) - (b.y - a.y) * (c.x - a.x);
+  const orientationSign = value => Math.abs(value) <= SKETCH_EPSILON ? 0 : Math.sign(value);
+
+  function sketchEdgesIntersect(a, b, c, d) {
+    const overlap = (a, b, c, d) => Math.max(Math.min(a, b), Math.min(c, d)) <=
+      Math.min(Math.max(a, b), Math.max(c, d)) + SKETCH_EPSILON;
+    return overlap(a.x, b.x, c.x, d.x) && overlap(a.y, b.y, c.y, d.y) &&
+      orientationSign(orient2D(a, b, c)) * orientationSign(orient2D(a, b, d)) <= 0 &&
+      orientationSign(orient2D(c, d, a)) * orientationSign(orient2D(c, d, b)) <= 0;
+  }
+
+  function validateSketch() {
+    const n = customSketch.points.length;
+    if (n < 3) return { error: "至少需要 3 个顶点" };
+    if (n > 12) return { error: "当前最多支持 12 个顶点" };
+    const adj = Array.from({ length: n }, () => []);
+    for (const e of customSketch.edges) {
+      if (e.a >= n || e.b >= n || e.a === e.b) continue;
+      if (!adj[e.a].includes(e.b)) adj[e.a].push(e.b);
+      if (!adj[e.b].includes(e.a)) adj[e.b].push(e.a);
+    }
+    if (adj.some(a => a.length !== 2)) return { error: "每个顶点要恰好连两条边，围成一个闭合多边形" };
+    const cycle = [0];
+    let prev = -1, cur = 0;
+    for (let k = 1; k < n; k++) {
+      const nx = adj[cur].find(x => x !== prev);
+      if (nx === 0) return { error: "请只保留一个闭合多边形" };
+      cycle.push(nx);
+      prev = cur;
+      cur = nx;
+    }
+
+    const points = cycle.map(i => customSketch.points[i]);
+    let areaTwice = 0;
+    for (let i = 0; i < n; i++) {
+      const a = points[i], b = points[(i + 1) % n];
+      areaTwice += a.x * b.y - a.y * b.x;
+      for (let j = i + 2; j < n; j++) {
+        if (i === 0 && j === n - 1) continue;
+        if (sketchEdgesIntersect(a, b, points[j], points[(j + 1) % n])) {
+          return { error: "底面的边不能交叉或重叠，请重新连线。" };
+        }
+      }
+    }
+    const winding = orientationSign(areaTwice);
+    if (!winding) return { error: "底面面积必须大于 0，请调整顶点。" };
+    for (let i = 0; i < n; i++) {
+      const turn = orientationSign(orient2D(points[i], points[(i + 1) % n], points[(i + 2) % n]));
+      if (turn === 0) return { error: "连续三个顶点不能共线，请删去中间的点。" };
+      if (turn !== winding) return { error: "底面必须是凸多边形，请调整向内凹的顶点。" };
+    }
+    return { cycle, error: "" };
+  }
+
+  function applySketch() {
+    const v = validateSketch();
+    if (v.error) {
+      setSketchMessage(v.error, true);
+      return;
+    }
+    customData = {
+      ...cloneSketch(customSketch),
+      cycle: v.cycle,
+      mode: drawMode.value
+    };
+    applySolid("custom", v.cycle.length);
+    canvas.focus({ preventScroll: true });
+    showToast("已生成 " + SOLID.name);
+  }
+
+  sketchButtons.forEach(btn => {
+    btn.addEventListener("click", () => setSketchTool(btn.dataset.tool));
+  });
+  drawStyleBtn.addEventListener("click", () => setSketchStyle(!sketchDashed));
+  document.getElementById("drawUndo").addEventListener("click", () => {
+    const prev = sketchHistory.pop();
+    if (!prev) return;
+    customSketch = prev;
+    sketchSelected = -1;
+    setSketchMessage("已撤销上一步。");
+    drawSketchCanvas();
+  });
+  document.getElementById("drawClear").addEventListener("click", () => {
+    if (!customSketch) return;
+    pushSketchHistory();
+    customSketch = { points: [], edges: [] };
+    sketchSelected = -1;
+    setSketchTool("vertex");
+    setSketchMessage("画布已清空，点空白处添加顶点。");
+  });
+  document.getElementById("drawApply").addEventListener("click", applySketch);
+  document.getElementById("drawClose").addEventListener("click", () => {
+    closeDrawEditor();
+    updateSolidLabels();
+    canvas.focus({ preventScroll: true });
+  });
+  editCustomBtn.addEventListener("click", openDrawEditor);
+  if (window.ResizeObserver) new ResizeObserver(() => { if (!drawEditor.hidden) drawSketchCanvas(); }).observe(drawCanvas.parentElement);
+  window.addEventListener("resize", () => { if (!drawEditor.hidden) drawSketchCanvas(); });
+
+  /* ------------------------------------------------------------------ *
+   *  7. Mini 2D canvas
+   * ------------------------------------------------------------------ */
+  function drawMini(poly, accent) {
+    const dpr = Math.min(window.devicePixelRatio || 1, 2);
+    const w = miniCanvas.clientWidth || 132;
+    const h = miniCanvas.clientHeight || 88;
+    if (miniCanvas.width !== Math.round(w * dpr) || miniCanvas.height !== Math.round(h * dpr)) {
+      miniCanvas.width = Math.round(w * dpr);
+      miniCanvas.height = Math.round(h * dpr);
+    }
+    miniCtx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    miniCtx.clearRect(0, 0, w, h);
+
+    // little dotted backdrop
+    miniCtx.save();
+    miniCtx.strokeStyle = "rgba(123,91,240,.10)";
+    miniCtx.lineWidth = 1;
+    miniCtx.setLineDash([2, 5]);
+    miniCtx.beginPath();
+    miniCtx.arc(w / 2, h / 2, Math.min(w, h) * .39, 0, Math.PI * 2);
+    miniCtx.stroke();
+    miniCtx.restore();
+
+    if (!poly.points.length) {
+      miniCtx.fillStyle = "rgba(109,96,140,.45)";
+      miniCtx.font = "800 10px 'PingFang SC', sans-serif";
+      miniCtx.textAlign = "center";
+      miniCtx.textBaseline = "middle";
+      miniCtx.fillText("平面未切到几何体", w / 2, h / 2);
+      return;
+    }
+    if (poly.points.length < 3) {
+      const points = poly.points.length === 1 ? [{ x: w / 2, y: h / 2 }]
+        : [{ x: w * .26, y: h / 2 }, { x: w * .74, y: h / 2 }];
+      drawContact(miniCtx, points, accent);
+      return;
+    }
+    const c = poly.centroid;
+    const u = poly.u, v = poly.v;
+    const pts = poly.points.map(p => {
+      const q = sub(p, c);
+      return [dot(q, u), dot(q, v)];
+    });
+    let minx = Infinity, maxx = -Infinity, miny = Infinity, maxy = -Infinity;
+    pts.forEach(([x, y]) => {
+      minx = Math.min(minx, x); maxx = Math.max(maxx, x);
+      miny = Math.min(miny, y); maxy = Math.max(maxy, y);
+    });
+    const scale = Math.min((w - 34) / Math.max(maxx - minx, 1e-4), (h - 26) / Math.max(maxy - miny, 1e-4));
+    const cx = w / 2, cy = h / 2;
+    const mapped = pts.map(([x, y]) => [cx + (x - (minx + maxx) / 2) * scale, cy - (y - (miny + maxy) / 2) * scale]);
+
+    const g = miniCtx.createLinearGradient(0, 8, w, h);
+    g.addColorStop(0, "rgba(255,255,255,.96)");
+    g.addColorStop(.42, "rgba(255,222,238,.92)");
+    g.addColorStop(1, "rgba(207,243,255,.95)");
+
+    miniCtx.save();
+    miniCtx.beginPath();
+    mapped.forEach(([x, y], i) => i ? miniCtx.lineTo(x, y) : miniCtx.moveTo(x, y));
+    miniCtx.closePath();
+    miniCtx.shadowColor = "rgba(255,110,168,.25)";
+    miniCtx.shadowBlur = 9;
+    miniCtx.fillStyle = g;
+    miniCtx.fill();
+    miniCtx.shadowBlur = 0;
+    miniCtx.lineWidth = 2.2;
+    miniCtx.lineJoin = "round";
+    miniCtx.strokeStyle = accent;
+    miniCtx.stroke();
+    miniCtx.restore();
+
+    if (poly.curved) return;
+    miniCtx.fillStyle = "#fff";
+    miniCtx.strokeStyle = accent;
+    miniCtx.lineWidth = 1.6;
+    mapped.forEach(([x, y]) => {
+      miniCtx.beginPath();
+      miniCtx.arc(x, y, 2.4, 0, Math.PI * 2);
+      miniCtx.fill();
+      miniCtx.stroke();
+    });
+  }
+
+  /* ------------------------------------------------------------------ *
+   *  8. Drawing helpers
+   * ------------------------------------------------------------------ */
+  function drawContact(context, points, accent) {
+    context.save();
+    context.strokeStyle = accent;
+    context.fillStyle = "#fff";
+    context.lineWidth = 2.5;
+    if (points.length === 2) {
+      context.beginPath();
+      context.moveTo(points[0].x, points[0].y);
+      context.lineTo(points[1].x, points[1].y);
+      context.stroke();
+    }
+    for (const { x, y } of points) {
+      context.beginPath();
+      context.arc(x, y, 4.5, 0, FULL_TURN);
+      context.fill();
+      context.stroke();
+    }
+    context.restore();
+  }
+
+  function roundPolyPath(points, close) {
+    ctx.beginPath();
+    points.forEach((p, i) => i ? ctx.lineTo(p.x, p.y) : ctx.moveTo(p.x, p.y));
+    if (close) ctx.closePath();
+  }
+
+  function drawFloor() {
+    const span = Math.max(1.55, (SOLID ? SOLID.Rmax : 1.55) * .92);
+    const y = -1.32;
+    ctx.save();
+    // soft projected shadow
+    const shadow = [];
+    for (let i = 0; i < 48; i++) {
+      const a = i / 48 * Math.PI * 2;
+      const p = project([Math.cos(a) * span, y + .1, Math.sin(a) * span]);
+      if (p) shadow.push(p);
+    }
+    if (shadow.length > 3) {
+      const g = ctx.createRadialGradient(W / 2, camera.cy + Math.min(W, H) * .17, 8, W / 2, camera.cy + Math.min(W, H) * .17, Math.min(W, H) * .34);
+      g.addColorStop(0, "rgba(132,91,170,.13)");
+      g.addColorStop(1, "rgba(132,91,170,0)");
+      ctx.fillStyle = g;
+      roundPolyPath(shadow, true);
+      ctx.fill();
+    }
+
+    // perspective grid
+    ctx.strokeStyle = "rgba(121,106,164,.15)";
+    ctx.lineWidth = 1;
+    ctx.setLineDash([3, 7]);
+    const grid = Math.max(2.25, span * 1.45);
+    for (let i = -2; i <= 2; i++) {
+      const a = project([-grid, y, i * span * .55]);
+      const b = project([grid, y, i * span * .55]);
+      if (a && b) {
+        ctx.beginPath(); ctx.moveTo(a.x, a.y); ctx.lineTo(b.x, b.y); ctx.stroke();
+      }
+    }
+    for (let i = -2; i <= 2; i++) {
+      const a = project([i * span * .55, y, -grid]);
+      const b = project([i * span * .55, y, grid]);
+      if (a && b) {
+        ctx.beginPath(); ctx.moveTo(a.x, a.y); ctx.lineTo(b.x, b.y); ctx.stroke();
+      }
+    }
+    ctx.setLineDash([]);
+
+    // orbit ring
+    const ring = [];
+    for (let i = 0; i < 64; i++) {
+      const a = i / 64 * Math.PI * 2;
+      const p = project([Math.cos(a) * span * 1.12, y + .01, Math.sin(a) * span * 1.12]);
+      if (p) ring.push(p);
+    }
+    if (ring.length > 4) {
+      ctx.strokeStyle = "rgba(255,112,171,.17)";
+      ctx.lineWidth = 1.4;
+      ctx.setLineDash([2, 6]);
+      roundPolyPath(ring, true);
+      ctx.stroke();
+    }
+    ctx.restore();
+  }
+
+  function planeBasis(n) {
+    const ref = Math.abs(n[1]) < .88 ? [0, 1, 0] : [1, 0, 0];
+    const u = norm(cross(ref, n));
+    const v = norm(cross(n, u));
+    return { u, v };
+  }
+
+  function drawPlane(n, d) {
+    const c = mul(n, d);
+    const { u, v } = planeBasis(n);
+    const half = SOLID ? SOLID.planeHalf : 1.42;
+    const corners = [
+      add(add(c, mul(u, -half)), mul(v, -half)),
+      add(add(c, mul(u,  half)), mul(v, -half)),
+      add(add(c, mul(u,  half)), mul(v,  half)),
+      add(add(c, mul(u, -half)), mul(v,  half))
+    ].map(project);
+    if (corners.some(p => !p)) return;
+
+    ctx.save();
+    // translucent pane
+    const g = ctx.createLinearGradient(corners[0].x, corners[0].y, corners[2].x, corners[2].y);
+    g.addColorStop(0, "rgba(255,255,255,.20)");
+    g.addColorStop(.35, "rgba(255,183,217,.22)");
+    g.addColorStop(.72, "rgba(174,223,255,.24)");
+    g.addColorStop(1, "rgba(255,255,255,.16)");
+    roundPolyPath(corners, true);
+    ctx.fillStyle = g;
+    ctx.fill();
+
+    // inner grid
+    ctx.save();
+    roundPolyPath(corners, true);
+    ctx.clip();
+    ctx.strokeStyle = "rgba(255,255,255,.40)";
+    ctx.lineWidth = 1;
+    for (let i = -2; i <= 2; i++) {
+      const t = i / 2.5;
+      const a = project(add(add(c, mul(u, -half)), mul(v, t * half)));
+      const b = project(add(add(c, mul(u,  half)), mul(v, t * half)));
+      const a2 = project(add(add(c, mul(v, -half)), mul(u, t * half)));
+      const b2 = project(add(add(c, mul(v,  half)), mul(u, t * half)));
+      if (a && b) { ctx.beginPath(); ctx.moveTo(a.x, a.y); ctx.lineTo(b.x, b.y); ctx.stroke(); }
+      if (a2 && b2) { ctx.beginPath(); ctx.moveTo(a2.x, a2.y); ctx.lineTo(b2.x, b2.y); ctx.stroke(); }
+    }
+    ctx.restore();
+
+    // glowing rim
+    ctx.save();
+    ctx.shadowColor = "rgba(255,105,166,.50)";
+    ctx.shadowBlur = 12;
+    ctx.strokeStyle = "rgba(255,126,180,.72)";
+    ctx.lineWidth = 1.8;
+    ctx.setLineDash([5, 6]);
+    roundPolyPath(corners, true);
+    ctx.stroke();
+    ctx.restore();
+    ctx.restore();
+  }
+
+  function projectedLoop(points) {
+    const out = points.map(project);
+    return out.some(p => !p) ? null : out;
+  }
+
+  function drawSphereBody() {
+    const c = project([0, 0, 0]);
+    if (!c) return;
+    const r = camera.focal / Math.sqrt(Math.max(.16, state.dist * state.dist - 1));
+    ctx.save();
+    const g = ctx.createRadialGradient(c.x - r * .34, c.y - r * .38, r * .08, c.x, c.y, r * 1.02);
+    g.addColorStop(0, "rgba(255,255,255,.70)");
+    g.addColorStop(.30, "rgba(244,235,255,.48)");
+    g.addColorStop(.70, "rgba(206,232,255,.30)");
+    g.addColorStop(1, "rgba(255,218,238,.22)");
+    ctx.fillStyle = g;
+    ctx.beginPath();
+    ctx.arc(c.x, c.y, r, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.strokeStyle = "rgba(120,92,160,.36)";
+    ctx.lineWidth = 1.6;
+    ctx.beginPath();
+    ctx.arc(c.x, c.y, r, 0, Math.PI * 2);
+    ctx.stroke();
+
+    ctx.restore();
+  }
+
+  function ring3(y, r, n = 80) {
+    const pts = [];
+    for (let i = 0; i < n; i++) {
+      const a = i / n * Math.PI * 2;
+      pts.push([Math.cos(a) * r, y, Math.sin(a) * r]);
+    }
+    return pts;
+  }
+
+  function drawCylinderBody() {
+    const top = projectedLoop(ring3(1, 1, 96));
+    const bot = projectedLoop(ring3(-1, 1, 96));
+    if (!top || !bot) return;
+    const all = [...top, ...bot];
+    const ys = all.map(p => p.y);
+    ctx.save();
+    const g = ctx.createLinearGradient(0, Math.min(...ys), 0, Math.max(...ys));
+    g.addColorStop(0, "rgba(255,255,255,.40)");
+    g.addColorStop(.28, "rgba(246,230,255,.32)");
+    g.addColorStop(.72, "rgba(208,236,255,.26)");
+    g.addColorStop(1, "rgba(255,226,241,.30)");
+    ctx.fillStyle = g;
+    ctx.beginPath();
+    top.forEach((p, i) => i ? ctx.lineTo(p.x, p.y) : ctx.moveTo(p.x, p.y));
+    for (let i = bot.length - 1; i >= 0; i--) ctx.lineTo(bot[i].x, bot[i].y);
+    ctx.closePath(); ctx.fill();
+
+    if (state.pitch > -.02) {
+      ctx.fillStyle = "rgba(249,241,255,.44)";
+      roundPolyPath(top, true); ctx.fill();
+    } else {
+      ctx.fillStyle = "rgba(249,241,255,.38)";
+      roundPolyPath(bot, true); ctx.fill();
+    }
+    ctx.restore();
+  }
+
+  function drawConeBody() {
+    const base = projectedLoop(ring3(-1, 1, 96));
+    const apex = project([0, 1, 0]);
+    if (!base || !apex) return;
+    const ys = base.map(p => p.y).concat([apex.y]);
+    ctx.save();
+    const g = ctx.createLinearGradient(0, Math.min(...ys), 0, Math.max(...ys));
+    g.addColorStop(0, "rgba(255,255,255,.44)");
+    g.addColorStop(.35, "rgba(249,230,255,.30)");
+    g.addColorStop(1, "rgba(255,218,238,.30)");
+    ctx.fillStyle = g;
+    ctx.beginPath();
+    ctx.moveTo(apex.x, apex.y);
+    base.forEach(p => ctx.lineTo(p.x, p.y));
+    ctx.closePath(); ctx.fill();
+
+    if (state.pitch > -.02) {
+      ctx.fillStyle = "rgba(249,241,255,.34)";
+      roundPolyPath(base, true); ctx.fill();
+    }
+    ctx.restore();
+  }
+
+  function drawCurvedBody() {
+    if (solidKind === "sphere") drawSphereBody();
+    else if (solidKind === "cylinder") drawCylinderBody();
+    else if (solidKind === "cone") drawConeBody();
+  }
+
+  function drawCurvedLines() {
+    if (solidKind === "sphere") {
+      const c = project([0, 0, 0]);
+      if (!c) return;
+      const r = camera.focal / Math.sqrt(Math.max(.16, state.dist * state.dist - 1));
+      ctx.save();
+      ctx.beginPath(); ctx.arc(c.x, c.y, r - 1, 0, Math.PI * 2); ctx.clip();
+      ctx.lineWidth = 1;
+      ctx.setLineDash([3, 6]);
+      for (const y of [-.62, -.3, .02, .34, .66]) {
+        const rr = Math.sqrt(Math.max(0, 1 - y * y));
+        const pts = [];
+        for (let i = 0; i < 72; i++) {
+          const a = i / 72 * Math.PI * 2;
+          pts.push([Math.cos(a) * rr, y, Math.sin(a) * rr]);
+        }
+        const loop = projectedLoop(pts);
+        if (!loop) continue;
+        ctx.strokeStyle = "rgba(109,84,150,.18)";
+        roundPolyPath(loop, true); ctx.stroke();
+      }
+      for (const ph of [0, Math.PI / 3, Math.PI * 2 / 3]) {
+        const pts = [];
+        for (let i = 0; i < 72; i++) {
+          const a = i / 72 * Math.PI * 2;
+          pts.push([Math.cos(a) * Math.cos(ph), Math.sin(a), Math.cos(a) * Math.sin(ph)]);
+        }
+        const loop = projectedLoop(pts);
+        if (!loop) continue;
+        ctx.strokeStyle = "rgba(109,84,150,.14)";
+        roundPolyPath(loop, true); ctx.stroke();
+      }
+      ctx.setLineDash([]);
+      ctx.restore();
+      return;
+    }
+    if (solidKind === "cylinder") {
+      const center = project([0, 0, 0]);
+      for (const y of [-1, 1]) {
+        const pts = ring3(y, 1, 96).map(project);
+        if (pts.some(p => !p)) continue;
+        for (let i = 0; i < pts.length; i++) {
+          const p = pts[i], q = pts[(i + 1) % pts.length];
+          const far = center && ((p.z + q.z) / 2 > center.z);
+          ctx.strokeStyle = far ? "rgba(116,94,150,.30)" : "rgba(68,53,88,.66)";
+          ctx.lineWidth = far ? 1.1 : 1.9;
+          ctx.setLineDash(far ? [3, 5] : []);
+          ctx.beginPath(); ctx.moveTo(p.x, p.y); ctx.lineTo(q.x, q.y); ctx.stroke();
+        }
+      }
+      ctx.setLineDash([]);
+      const xt = ring3(1, 1, 96).map(project), xb = ring3(-1, 1, 96).map(project);
+      if (xt.every(Boolean) && xb.every(Boolean)) {
+        const lt = xt.reduce((a, b) => a.x < b.x ? a : b), lb = xb.reduce((a, b) => a.x < b.x ? a : b);
+        const rt = xt.reduce((a, b) => a.x > b.x ? a : b), rb = xb.reduce((a, b) => a.x > b.x ? a : b);
+        ctx.strokeStyle = "rgba(68,53,88,.55)"; ctx.lineWidth = 1.6;
+        ctx.beginPath(); ctx.moveTo(lt.x, lt.y); ctx.lineTo(lb.x, lb.y); ctx.stroke();
+        ctx.beginPath(); ctx.moveTo(rt.x, rt.y); ctx.lineTo(rb.x, rb.y); ctx.stroke();
+      }
+      return;
+    }
+    if (solidKind === "cone") {
+      const base = ring3(-1, 1, 96).map(project);
+      const apex = project([0, 1, 0]);
+      if (base.some(p => !p) || !apex) return;
+      const c = project([0, 0, 0]);
+      for (let i = 0; i < base.length; i++) {
+        const p = base[i], q = base[(i + 1) % base.length];
+        const far = c && ((p.z + q.z) / 2 > c.z);
+        ctx.strokeStyle = far ? "rgba(116,94,150,.30)" : "rgba(68,53,88,.66)";
+        ctx.lineWidth = far ? 1.1 : 1.9;
+        ctx.setLineDash(far ? [3, 5] : []);
+        ctx.beginPath(); ctx.moveTo(p.x, p.y); ctx.lineTo(q.x, q.y); ctx.stroke();
+      }
+      ctx.setLineDash([]);
+      const left = base.reduce((a, b) => a.x < b.x ? a : b);
+      const right = base.reduce((a, b) => a.x > b.x ? a : b);
+      ctx.strokeStyle = "rgba(68,53,88,.58)"; ctx.lineWidth = 1.7;
+      ctx.beginPath(); ctx.moveTo(apex.x, apex.y); ctx.lineTo(left.x, left.y); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(apex.x, apex.y); ctx.lineTo(right.x, right.y); ctx.stroke();
+    }
+  }
+
+  function drawCurvedLabels() {
+    ctx.save();
+    ctx.font = "800 11px 'PingFang SC', sans-serif";
+    ctx.fillStyle = "#5b4a70";
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+    if (solidKind === "sphere") {
+      const c = project([0, 0, 0]);
+      if (c) ctx.fillText("O", c.x + 12, c.y + 12);
+    } else if (solidKind === "cone") {
+      const s = project([0, 1, 0]), o = project([0, -1, 0]);
+      if (s) ctx.fillText("S", s.x + 12, s.y - 8);
+      if (o) ctx.fillText("O", o.x + 12, o.y + 12);
+    } else if (solidKind === "cylinder") {
+      const o = project([0, 0, 0]);
+      if (o) ctx.fillText("O", o.x + 12, o.y + 12);
+    }
+    ctx.restore();
+  }
+
+  function drawCubeFaces() {
+    const visible = FACES.filter(isFaceFront);
+    visible.sort((a, b) => {
+      const da = Math.abs(dot(sub(a.c, camera.pos), camera.forward));
+      const db = Math.abs(dot(sub(b.c, camera.pos), camera.forward));
+      return db - da;
+    });
+    for (const f of visible) {
+      const pts = f.idx.map(i => project(V[i]));
+      if (pts.some(p => !p)) continue;
+      let col;
+      if (f.n[1] > .55) col = "245,231,255";
+      else if (Math.abs(f.n[0]) > .55) col = "211,241,255";
+      else col = "255,231,243";
+      const g = ctx.createLinearGradient(pts[0].x, pts[0].y, pts[2].x, pts[2].y);
+      g.addColorStop(0, `rgba(${col},.38)`);
+      g.addColorStop(.55, `rgba(${col},.16)`);
+      g.addColorStop(1, "rgba(255,255,255,.06)");
+      roundPolyPath(pts, true);
+      ctx.fillStyle = g;
+      ctx.fill();
+    }
+  }
+
+  function drawCubeEdges() {
+    if (SOLID && SOLID.custom) {
+      for (let k = 0; k < EDGES.length; k++) {
+        const [i, j] = EDGES[k];
+        const a = project(V[i]), b = project(V[j]);
+        if (!a || !b) continue;
+        const dashed = !!EDGE_STYLE[k];
+        ctx.setLineDash(dashed ? [5, 6] : []);
+        if (!dashed) {
+          ctx.strokeStyle = "rgba(255,255,255,.78)";
+          ctx.lineWidth = 5.2;
+          ctx.beginPath(); ctx.moveTo(a.x, a.y); ctx.lineTo(b.x, b.y); ctx.stroke();
+          ctx.strokeStyle = "#443558";
+          ctx.lineWidth = 2.15;
+        } else {
+          ctx.strokeStyle = "rgba(86,70,112,.62)";
+          ctx.lineWidth = 1.5;
+        }
+        ctx.beginPath(); ctx.moveTo(a.x, a.y); ctx.lineTo(b.x, b.y); ctx.stroke();
+      }
+      ctx.setLineDash([]);
+      return;
+    }
+    const frontFaces = new Set(FACES.filter(isFaceFront).map(f => f.fi));
+    for (const [i, j] of EDGES) {
+      const key = i < j ? i + "-" + j : j + "-" + i;
+      const adj = EDGE_FACES.get(key) || [];
+      const visible = adj.some(fi => frontFaces.has(fi));
+      const a = project(V[i]), b = project(V[j]);
+      if (!a || !b) continue;
+      if (visible) {
+        ctx.strokeStyle = "rgba(255,255,255,.78)";
+        ctx.lineWidth = 5.2;
+        ctx.setLineDash([]);
+        ctx.beginPath(); ctx.moveTo(a.x, a.y); ctx.lineTo(b.x, b.y); ctx.stroke();
+        ctx.strokeStyle = "#443558";
+        ctx.lineWidth = 2.15;
+        ctx.beginPath(); ctx.moveTo(a.x, a.y); ctx.lineTo(b.x, b.y); ctx.stroke();
+      } else {
+        ctx.strokeStyle = "rgba(93,76,124,.28)";
+        ctx.lineWidth = 1.2;
+        ctx.setLineDash([4, 6]);
+        ctx.beginPath(); ctx.moveTo(a.x, a.y); ctx.lineTo(b.x, b.y); ctx.stroke();
+      }
+    }
+    ctx.setLineDash([]);
+  }
+
+  function drawNormalArrow(n, d) {
+    const c = mul(n, d);
+    const tip = add(c, mul(n, 1.12));
+    const a = project(c), b = project(tip);
+    if (!a || !b) return;
+    ctx.save();
+    ctx.strokeStyle = "rgba(84,65,115,.42)";
+    ctx.lineWidth = 1.4;
+    ctx.setLineDash([4, 5]);
+    ctx.beginPath(); ctx.moveTo(a.x, a.y); ctx.lineTo(b.x, b.y); ctx.stroke();
+    ctx.setLineDash([]);
+
+    // little arrowhead before the draggable knob
+    const ang = Math.atan2(b.y - a.y, b.x - a.x);
+    const ah = 6.5;
+    const hx = b.x - 9 * Math.cos(ang), hy = b.y - 9 * Math.sin(ang);
+    ctx.fillStyle = "rgba(84,65,115,.46)";
+    ctx.beginPath();
+    ctx.moveTo(hx, hy);
+    ctx.lineTo(hx - ah * Math.cos(ang - .42), hy - ah * Math.sin(ang - .42));
+    ctx.lineTo(hx - ah * Math.cos(ang + .42), hy - ah * Math.sin(ang + .42));
+    ctx.closePath();
+    ctx.fill();
+
+    // draggable normal tip: grab here to tilt the plane
+    const hover = !!state.hoverNormal;
+    const r = hover ? 8.2 : 6.4;
+    ctx.beginPath();
+    ctx.arc(b.x, b.y, r + 4, 0, Math.PI * 2);
+    ctx.fillStyle = hover ? "rgba(141,107,242,.14)" : "rgba(141,107,242,.08)";
+    ctx.fill();
+    ctx.shadowColor = "rgba(124,91,240,.45)";
+    ctx.shadowBlur = hover ? 14 : 9;
+    ctx.beginPath();
+    ctx.arc(b.x, b.y, r, 0, Math.PI * 2);
+    ctx.fillStyle = "#fff";
+    ctx.fill();
+    ctx.shadowBlur = 0;
+    ctx.lineWidth = 2;
+    ctx.strokeStyle = hover ? "#7c5bf0" : "rgba(124,91,240,.72)";
+    ctx.stroke();
+    ctx.beginPath();
+    ctx.arc(b.x, b.y, 2.1, 0, Math.PI * 2);
+    ctx.fillStyle = hover ? "#7c5bf0" : "rgba(124,91,240,.72)";
+    ctx.fill();
+
+    ctx.font = "800 10px 'PingFang SC', sans-serif";
+    ctx.fillStyle = "rgba(84,65,115,.62)";
+    ctx.fillText("n", b.x + 12, b.y - 7);
+    if (hover) {
+      ctx.font = "800 9.5px 'PingFang SC', sans-serif";
+      ctx.fillStyle = "rgba(84,65,115,.66)";
+      ctx.fillText("拖动转平面", b.x + 12, b.y + 7);
+    }
+    ctx.restore();
+  }
+
+  function drawSectionFill(poly) {
+    if (poly.points.length < 3) return;
+    const pts = poly.points.map(project);
+    if (pts.some(p => !p)) return;
+
+    ctx.save();
+    const xs = pts.map(p => p.x), ys = pts.map(p => p.y);
+    const g = ctx.createLinearGradient(Math.min(...xs), Math.min(...ys), Math.max(...xs), Math.max(...ys));
+    g.addColorStop(0, "rgba(255,255,255,.38)");
+    g.addColorStop(.30, "rgba(255,191,222,.34)");
+    g.addColorStop(.68, "rgba(162,223,255,.33)");
+    g.addColorStop(1, "rgba(255,255,255,.24)");
+    ctx.shadowColor = "rgba(255,86,160,.42)";
+    ctx.shadowBlur = 20;
+    roundPolyPath(pts, true);
+    ctx.fillStyle = g;
+    ctx.fill();
+    ctx.restore();
+  }
+
+  function drawSectionLine(poly, kind) {
+    if (!poly.points.length) return;
+    const pts = poly.points.map(project);
+    if (pts.some(p => !p)) return;
+    const accent = ACCENT[kind.family] || "#8d6bf2";
+    if (pts.length < 3) {
+      drawContact(ctx, pts, accent);
+      return;
+    }
+
+    ctx.save();
+    ctx.lineJoin = "round";
+    ctx.strokeStyle = "rgba(255,255,255,.95)";
+    ctx.lineWidth = 5.6;
+    roundPolyPath(pts, true);
+    ctx.stroke();
+    ctx.shadowColor = "rgba(255,86,160,.34)";
+    ctx.shadowBlur = 10;
+    ctx.strokeStyle = accent;
+    ctx.lineWidth = 2.5;
+    roundPolyPath(pts, true);
+    ctx.stroke();
+    ctx.shadowBlur = 0;
+    ctx.restore();
+    if (poly.curved) return;
+
+    // sparkle glints at vertices
+    const t = state.time;
+    poly.points.forEach((p, i) => {
+      const q = project(p);
+      if (!q) return;
+      const tw = .5 + .5 * Math.sin(t * 2.2 + i * 1.7);
+      if (tw < .45) return;
+      ctx.save();
+      ctx.translate(q.x, q.y);
+      ctx.rotate(t * .35 + i);
+      ctx.globalAlpha = (tw - .45) * .8;
+      ctx.fillStyle = "#fff";
+      ctx.beginPath();
+      [[0, -7], [2, -1.5], [7, 0], [2, 1.5], [0, 7], [-2, 1.5], [-7, 0], [-2, -1.5]].forEach(([x, y], k) => {
+        k ? ctx.lineTo(x, y) : ctx.moveTo(x, y);
+      });
+      ctx.closePath();
+      ctx.fill();
+      ctx.restore();
+    });
+
+    // vertex pips + numbers
+    ctx.save();
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+    ctx.font = "800 9px 'PingFang SC', sans-serif";
+    pts.forEach((q, i) => {
+      ctx.beginPath();
+      ctx.arc(q.x, q.y, 4.2, 0, Math.PI * 2);
+      ctx.fillStyle = "#fff";
+      ctx.fill();
+      ctx.lineWidth = 1.8;
+      ctx.strokeStyle = accent;
+      ctx.stroke();
+      ctx.fillStyle = accent;
+      const ox = q.x - camera.cx, oy = q.y - camera.cy;
+      const l = Math.hypot(ox, oy) || 1;
+      ctx.fillText(String(i + 1), q.x + ox / l * 11, q.y + oy / l * 11);
+    });
+    ctx.restore();
+  }
+
+  function drawCubeLabels() {
+    const labels = [];
+    for (let i = 0; i < V.length; i++) {
+      const p = project(V[i]);
+      if (!p) continue;
+      const dx = p.x - camera.cx;
+      const dy = p.y - camera.cy;
+      const l = Math.hypot(dx, dy) || 1;
+      let lx = p.x + dx / l * 14, ly = p.y + dy / l * 14;
+      if (solidKind === "pyramid" && i === V.length - 1) { lx = p.x + 15; ly = p.y + 2; }
+      labels.push({ i, p, lx, ly, z: p.z });
+    }
+    // Draw near vertices first; suppress labels that would collide with one already drawn.
+    labels.sort((a, b) => a.z - b.z);
+    const placed = [];
+    ctx.save();
+    ctx.font = "800 11.5px 'Yuanti SC','PingFang SC',sans-serif";
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+    for (const item of labels) {
+      if (placed.some(q => Math.hypot(q.lx - item.lx, q.ly - item.ly) < 38)) continue;
+      placed.push(item);
+      ctx.beginPath();
+      ctx.arc(item.p.x, item.p.y, 2.4, 0, Math.PI * 2);
+      ctx.fillStyle = "rgba(57,45,85,.62)";
+      ctx.fill();
+      ctx.lineWidth = 3.5;
+      ctx.strokeStyle = "rgba(255,255,255,.86)";
+      ctx.strokeText(LABELS[item.i], item.lx, item.ly);
+      ctx.fillStyle = "rgba(57,45,85,.86)";
+      ctx.fillText(LABELS[item.i], item.lx, item.ly);
+    }
+    ctx.restore();
+  }
+
+  function drawHandle(n, d) {
+    const center = project(mul(n, d));
+    if (!center) return;
+    const t = state.time;
+    const pulse = 1 + Math.sin(t * 2.7) * .07;
+    ctx.save();
+    ctx.translate(center.x, center.y);
+
+    // soft halo
+    const halo = ctx.createRadialGradient(0, 0, 1, 0, 0, 31);
+    halo.addColorStop(0, "rgba(255,255,255,.92)");
+    halo.addColorStop(.34, "rgba(255,109,168,.35)");
+    halo.addColorStop(1, "rgba(255,109,168,0)");
+    ctx.fillStyle = halo;
+    ctx.beginPath();
+    ctx.arc(0, 0, 30, 0, Math.PI * 2);
+    ctx.fill();
+
+    // orbit ring
+    ctx.strokeStyle = "rgba(255,105,166,.50)";
+    ctx.lineWidth = 1.4;
+    ctx.setLineDash([3, 5]);
+    ctx.beginPath();
+    ctx.arc(0, 0, 20 * pulse, t * .5, t * .5 + Math.PI * 2);
+    ctx.stroke();
+    ctx.setLineDash([]);
+
+    // star
+    ctx.rotate(Math.sin(t * .8) * .12);
+    ctx.shadowColor = "rgba(255,78,145,.5)";
+    ctx.shadowBlur = 12;
+    ctx.beginPath();
+    const r = 11.5 + (state.hoverHandle ? 1.7 : 0);
+    [[0, -r * 1.28], [r * .32, -r * .32], [r * 1.28, 0], [r * .32, r * .32], [0, r * 1.28], [-r * .32, r * .32], [-r * 1.28, 0], [-r * .32, -r * .32]].forEach(([x, y], k) => {
+      k ? ctx.lineTo(x, y) : ctx.moveTo(x, y);
+    });
+    ctx.closePath();
+    ctx.fillStyle = "#fff";
+    ctx.fill();
+    ctx.shadowBlur = 0;
+    ctx.strokeStyle = "#e84f8d";
+    ctx.lineWidth = 2;
+    ctx.stroke();
+
+    ctx.beginPath();
+    ctx.arc(0, 0, 3.2, 0, Math.PI * 2);
+    ctx.fillStyle = "#ff6ea8";
+    ctx.fill();
+    ctx.restore();
+
+    if (state.hoverHandle || state.dragging === "plane") {
+      ctx.save();
+      ctx.font = "800 10px 'PingFang SC', sans-serif";
+      ctx.textAlign = "center";
+      const label = state.dragging === "plane" ? "沿法向移动中…" : "拖我移动平面";
+      const tw = ctx.measureText(label).width;
+      const bx = center.x - tw / 2 - 9, by = center.y + 31;
+      ctx.fillStyle = "rgba(57,45,85,.88)";
+      ctx.beginPath();
+      ctx.roundRect(bx, by, tw + 18, 22, 11);
+      ctx.fill();
+      ctx.fillStyle = "#fff";
+      ctx.fillText(label, center.x, by + 15);
+      ctx.restore();
+    }
+  }
+
+  function drawSparkles() {
+    const t = state.time;
+    for (let i = 0; i < 9; i++) {
+      const a = i * 2.399 + t * .12;
+      const r = .95 + (i % 4) * .36;
+      const p = project([
+        Math.cos(a) * r,
+        .25 + Math.sin(a * 1.7 + t * .4) * .75,
+        Math.sin(a) * r
+      ]);
+      if (!p) continue;
+      const s = (1.4 + (i % 3) * .9) * (.7 + .3 * Math.sin(t * 2 + i));
+      ctx.save();
+      ctx.translate(p.x, p.y);
+      ctx.rotate(t + i);
+      ctx.globalAlpha = .22 + .2 * Math.sin(t * 1.8 + i * 2.1);
+      ctx.fillStyle = i % 2 ? "#ff8fba" : "#8ddcf6";
+      ctx.beginPath();
+      ctx.moveTo(0, -s); ctx.lineTo(s * .25, 0); ctx.lineTo(0, s); ctx.lineTo(-s * .25, 0);
+      ctx.closePath();
+      ctx.fill();
+      ctx.restore();
+    }
+  }
+
+  /* ------------------------------------------------------------------ *
+   *  9. Main render loop
+   * ------------------------------------------------------------------ */
+  function animate(now) {
+    const dt = Math.min(0.05, (now - (state.lastFrame || now)) / 1000);
+    state.lastFrame = now;
+    state.time += dt;
+
+    // plane animation
+    if (state.planeAnim) {
+      const a = state.planeAnim;
+      const raw = clamp((now - a.start) / a.dur, 0, 1);
+      const e = easeInOutCubic(raw);
+      const angle = a.angle * e;
+      const n0 = a.n0;
+      const axis = a.axis;
+      const cA = Math.cos(angle), sA = Math.sin(angle);
+      let n = add(add(mul(n0, cA), mul(cross(axis, n0), sA)), mul(axis, dot(axis, n0) * (1 - cA)));
+      n = norm(n);
+      state.theta = Math.acos(clamp(n[1], -1, 1));
+      state.phi = Math.atan2(n[2], n[0]);
+      state.d = lerp(a.d0, a.d1, e);
+      if (raw >= 1) {
+        state.theta = Math.acos(clamp(a.n1[1], -1, 1));
+        state.phi = Math.atan2(a.n1[2], a.n1[0]);
+        state.d = a.d1;
+        state.planeAnim = null;
+        refreshSection();
+      } else {
+        refreshSection();
+      }
+    }
+
+    // camera easing
+    let dyaw = state.goalYaw - state.yaw;
+    while (dyaw > Math.PI) dyaw -= Math.PI * 2;
+    while (dyaw < -Math.PI) dyaw += Math.PI * 2;
+    state.yaw += dyaw * .16;
+    state.pitch += (state.goalPitch - state.pitch) * .16;
+    state.dist += (state.goalDist - state.dist) * .16;
+
+    if (state.auto) {
+      const addYaw = dt * 0.16;
+      state.yaw += addYaw;
+      state.goalYaw += addYaw;
+    }
+
+    updateCamera();
+    ctx.clearRect(0, 0, W, H);
+
+    const n = normal();
+    drawFloor();
+    drawPlane(n, state.d);
+    if (SOLID && SOLID.curved) drawCurvedBody(); else drawCubeFaces();
+    drawSectionFill(currentPoly);
+    if (SOLID && SOLID.curved) drawCurvedLines(); else drawCubeEdges();
+    drawSectionLine(currentPoly, currentKind);
+    if (SOLID && SOLID.curved) drawCurvedLabels(); else drawCubeLabels();
+    drawNormalArrow(n, state.d);
+    drawHandle(n, state.d);
+    drawSparkles();
+
+    if (state.planeAnim) {
+      // keep the slider visual in sync during animated presets
+      syncControls();
+    }
+    requestAnimationFrame(animate);
+  }
+
+  /* ------------------------------------------------------------------ *
+   * 10. Interaction
+   * ------------------------------------------------------------------ */
+  function pointerPos(e) {
+    const r = canvas.getBoundingClientRect();
+    return { x: e.clientX - r.left, y: e.clientY - r.top };
+  }
+
+  function handleScreenPos() {
+    return project(mul(normal(), state.d));
+  }
+
+  function nearHandle(pos) {
+    const h = handleScreenPos();
+    return h && Math.hypot(pos.x - h.x, pos.y - h.y) < 27;
+  }
+
+  function normalTipScreen() {
+    const n = normal();
+    return project(add(mul(n, state.d), mul(n, 1.12)));
+  }
+
+  function nearNormalHandle(pos) {
+    const p = normalTipScreen();
+    return p && Math.hypot(pos.x - p.x, pos.y - p.y) < 28;
+  }
+
+  function startPlaneDrag(pos) {
+    stopPlaneAnim();
+    state.dragging = "plane";
+    state.dragStartX = pos.x;
+    state.dragStartY = pos.y;
+    state.dragStartD = state.d;
+    state.hoverNormal = false;
+    // pixels per world unit along the normal
+    const c = mul(normal(), state.d);
+    const a = project(c);
+    const b = project(add(c, mul(normal(), .1)));
+    state.normalPx = (a && b) ? Math.hypot(b.x - a.x, b.y - a.y) / .1 : 0;
+    canvas.classList.add("dragging");
+    document.body.style.userSelect = "none";
+  }
+
+  function startNormalDrag(pos) {
+    state.dragging = "normal";
+    state.dragStartX = pos.x;
+    state.dragStartY = pos.y;
+    state.planeAnim = null;
+    state.hoverHandle = false;
+    state.hoverNormal = true;
+    canvas.classList.add("dragging");
+    document.body.style.userSelect = "none";
+    if (state.auto) setAuto(false);
+  }
+
+  function endDrag(e) {
+    state.dragging = null;
+    canvas.classList.remove("dragging");
+    document.body.style.userSelect = "";
+    if (e) {
+      updateHandleHover(e);
+    } else {
+      state.hoverHandle = false;
+      state.hoverNormal = false;
+      canvas.classList.remove("handle-hover");
+    }
+  }
+
+  function updateHandleHover(e) {
+    if (state.dragging) return;
+    const pos = pointerPos(e);
+    const hov = !!nearHandle(pos);
+    const hovN = !!nearNormalHandle(pos);
+    state.hoverHandle = hov;
+    state.hoverNormal = hovN;
+    canvas.classList.toggle("handle-hover", hov || hovN);
+  }
+
+  canvas.addEventListener("pointerdown", e => {
+    if (!e.isPrimary || e.button !== 0 || touchScrolls(e)) return;
+    const pos = pointerPos(e);
+    canvas.focus({ preventScroll: true });
+    if (nearHandle(pos)) {
+      startPlaneDrag(pos);
+      showToast("拖住星星，平面沿法向平移");
+    } else if (nearNormalHandle(pos)) {
+      startNormalDrag(pos);
+      showToast("拖住 n 端点，旋转平面角度");
+    } else {
+      state.dragging = "orbit";
+      state.dragStartX = pos.x;
+      state.dragStartY = pos.y;
+      state.hoverHandle = false;
+      state.hoverNormal = false;
+      canvas.classList.remove("handle-hover");
+      canvas.classList.add("dragging");
+      viewButtons.forEach(b => b.classList.remove("active"));
+    }
+    canvas.setPointerCapture(e.pointerId);
+  });
+
+  canvas.addEventListener("pointermove", e => {
+    if (!e.isPrimary || touchScrolls(e)) return;
+    const pos = pointerPos(e);
+    if (state.dragging === "orbit") {
+      const dx = pos.x - state.dragStartX;
+      const dy = pos.y - state.dragStartY;
+      state.dragStartX = pos.x;
+      state.dragStartY = pos.y;
+      state.goalYaw -= dx * .0062;
+      state.goalPitch = clamp(state.goalPitch + dy * .0058, -1.42, 1.42);
+      state.yaw -= dx * .0062;
+      state.pitch = clamp(state.pitch + dy * .0058, -1.42, 1.42);
+      if (state.auto) setAuto(false);
+    } else if (state.dragging === "normal") {
+      const dx = pos.x - state.dragStartX;
+      const dy = pos.y - state.dragStartY;
+      state.dragStartX = pos.x;
+      state.dragStartY = pos.y;
+      state.phi -= dx * .0085;
+      state.theta = clamp(state.theta + dy * .0058, .06, Math.PI - .06);
+      state.planeAnim = null;
+      refreshSection();
+    } else if (state.dragging === "plane") {
+      const dx = pos.x - state.dragStartX;
+      const dy = pos.y - state.dragStartY;
+      state.dragStartX = pos.x;
+      state.dragStartY = pos.y;
+      let delta;
+      if (state.normalPx > 9) {
+        const a = project(mul(normal(), state.d));
+        const b = project(add(mul(normal(), state.d), mul(normal(), .1)));
+        if (a && b) {
+          const ux = (b.x - a.x) / (state.normalPx * .1);
+          const uy = (b.y - a.y) / (state.normalPx * .1);
+          delta = (dx * ux + dy * uy) / state.normalPx;
+        } else {
+          delta = -dy / 120;
+        }
+      } else {
+        delta = -dy / 120;
+      }
+      state.d = clamp(state.d + delta, -dLimit(), dLimit());
+      refreshSection();
+    } else {
+      updateHandleHover(e);
+    }
+  });
+
+  canvas.addEventListener("pointerup", e => {
+    if (e.isPrimary && state.dragging) {
+      endDrag(e);
+      try { canvas.releasePointerCapture(e.pointerId); } catch (_) {}
+    }
+  });
+  canvas.addEventListener("pointercancel", e => {
+    if (e.isPrimary && state.dragging) endDrag(e);
+  });
+  canvas.addEventListener("pointerleave", () => {
+    if (!state.dragging && (state.hoverHandle || state.hoverNormal)) {
+      state.hoverHandle = false;
+      state.hoverNormal = false;
+      canvas.classList.remove("handle-hover");
+    }
+  });
+
+  canvas.addEventListener("wheel", e => {
+    e.preventDefault();
+    if (e.shiftKey) {
+      stopPlaneAnim();
+      state.d = clamp(state.d - e.deltaY * .0018, -dLimit(), dLimit());
+      refreshSection();
+    } else {
+      const fit = SOLID ? SOLID.fitDist : 8.05;
+      state.goalDist = clamp(state.goalDist * Math.exp(e.deltaY * .0011), Math.max(3.4, fit * .55), fit * 2.1);
+      if (state.auto) setAuto(false);
+    }
+  }, { passive: false });
+
+  canvas.addEventListener("dblclick", e => {
+    const pos = pointerPos(e);
+    if (nearHandle(pos)) {
+      stopPlaneAnim();
+      state.d = 0;
+      refreshSection();
+      showToast("平面已回到中心");
+    } else if (nearNormalHandle(pos)) {
+      stopPlaneAnim();
+      const p = firstPreset();
+      if (p) { state.theta = p.theta; state.phi = p.phi; }
+      refreshSection();
+      showToast("平面角度已复位");
+    } else {
+      setCameraView("iso");
+    }
+  });
+
+  // keyboard nudges
+  canvas.addEventListener("keydown", e => {
+    const step = e.shiftKey ? .1 : .025;
+    if (e.key === "ArrowUp" || e.key === "ArrowLeft") {
+      stopPlaneAnim();
+      state.d = clamp(state.d + step, -dLimit(), dLimit());
+      refreshSection(); e.preventDefault();
+    } else if (e.key === "ArrowDown" || e.key === "ArrowRight") {
+      stopPlaneAnim();
+      state.d = clamp(state.d - step, -dLimit(), dLimit());
+      refreshSection(); e.preventDefault();
+    }
+  });
+
+  /* sliders */
+  function stopPlaneAnim() {
+    state.planeAnim = null;
+  }
+  function touchScrolls(e) {
+    return e.pointerType === "touch" && touchLayout.matches &&
+      !stage.classList.contains("touch-manipulation");
+  }
+  tiltRange.addEventListener("input", () => {
+    stopPlaneAnim();
+    state.theta = clamp(+tiltRange.value * Math.PI / 180, 0, Math.PI);
+    refreshSection();
+  });
+  spinRange.addEventListener("input", () => {
+    stopPlaneAnim();
+    state.phi = +spinRange.value * Math.PI / 180;
+    refreshSection();
+  });
+  offsetRange.addEventListener("input", () => {
+    stopPlaneAnim();
+    state.d = clamp(+offsetRange.value / SOLID.lenScale, -dLimit(), dLimit());
+    refreshSection();
+  });
+
+  /* presets */
+  function goToPreset(name) {
+    const p = PRESETS[name];
+    if (!p) return;
+    setAuto(false);
+    const n0 = normal();
+    let n1 = norm(p.n);
+    let cosA = clamp(dot(n0, n1), -1, 1);
+    let axis = cross(n0, n1);
+    if (len(axis) < 1e-5) {
+      if (cosA > 0) {
+        stopPlaneAnim();
+        state.theta = Math.acos(clamp(n1[1], -1, 1));
+        state.phi = Math.atan2(n1[2], n1[0]);
+        state.d = p.d;
+        refreshSection();
+        return;
+      }
+      axis = norm(cross(n0, Math.abs(n0[1]) < .8 ? [0, 1, 0] : [1, 0, 0]));
+      cosA = -1;
+    } else {
+      axis = norm(axis);
+    }
+    state.planeAnim = {
+      n0, n1, axis, angle: Math.acos(cosA),
+      d0: state.d, d1: p.d,
+      start: performance.now(), dur: 720
+    };
+    showToast("切一刀：" + p.label);
+  }
+  function renderPresetButtons(kind) {
+    const defs = buildPresets(kind);
+    presetGrid.classList.toggle("three", kind === "cone");
+    presetGrid.innerHTML = "";
+    presetButtons = [];
+    for (const def of defs) {
+      const b = document.createElement("button");
+      b.className = "preset" + (def.wide ? " wide" : "");
+      b.dataset.preset = def.key;
+      b.innerHTML = `<span class="glyph">${def.glyph}</span>${def.label}`;
+      b.addEventListener("click", () => goToPreset(def.key));
+      presetGrid.appendChild(b);
+      presetButtons.push(b);
+    }
+    updatePresetActive();
+    return defs;
+  }
+
+  function updatePresetActive() {
+    const n0 = normal();
+    presetButtons.forEach(btn => {
+      const p = PRESETS[btn.dataset.preset];
+      const same = p && nearly(dot(n0, p.n), 1, 0.008) && Math.abs(state.d - p.d) < 0.02;
+      btn.classList.toggle("active", !!same);
+    });
+  }
+
+  /* camera views */
+  const VIEWS = {
+    iso: { yaw: .30, pitch: .27, dist: 8.05 },
+    front: { yaw: 0, pitch: .10, dist: 7.85 },
+    top: { yaw: 0, pitch: 1.30, dist: 7.85 }
+  };
+  function setCameraView(name) {
+    const v = VIEWS[name];
+    if (!v) return;
+    state.goalYaw = v.yaw;
+    state.goalPitch = v.pitch;
+    state.goalDist = v.dist * ((SOLID ? SOLID.fitDist : 8.05) / 8.05);
+    state.cameraAnim = true;
+    if (state.auto) setAuto(false);
+    viewButtons.forEach(b => b.classList.toggle("active", b.dataset.view === name));
+  }
+  viewButtons.forEach(btn => btn.addEventListener("click", () => setCameraView(btn.dataset.view)));
+
+  /* auto rotate */
+  function setAuto(on) {
+    state.auto = on;
+    autoBtn.classList.toggle("on", on);
+    autoBtn.setAttribute("aria-pressed", String(on));
+    autoText.textContent = on ? "自动旋转中" : "自动旋转";
+  }
+  autoBtn.addEventListener("click", () => {
+    setAuto(!state.auto);
+    if (state.auto) showToast("自动旋转已开启，拖动空白处可随时接管");
+  });
+
+  /* reset */
+  function dLimit() {
+    const step = +offsetRange.step;
+    const steps = Math.ceil(SOLID.dMax * SOLID.lenScale / step - 1e-9);
+    return steps * step / SOLID.lenScale;
+  }
+  function firstPreset() {
+    const defs = presetDefs(solidKind, solidN);
+    const p = PRESETS[defs[0] && defs[0].key];
+    if (!p) return null;
+    return { theta: Math.acos(clamp(p.n[1], -1, 1)), phi: Math.atan2(p.n[2], p.n[0]), d: p.d };
+  }
+  function resetAll() {
+    state.planeAnim = null;
+    const p = firstPreset();
+    if (p) { state.theta = p.theta; state.phi = p.phi; state.d = p.d; }
+    setCameraView("iso");
+    setAuto(false);
+    refreshSection();
+    showToast("已重置：回到初始平面与视角");
+  }
+  resetBtn.addEventListener("click", resetAll);
+  resetPlaneBtn.addEventListener("click", () => {
+    state.planeAnim = null;
+    const p = firstPreset();
+    if (p) { state.theta = p.theta; state.phi = p.phi; state.d = p.d; }
+    refreshSection();
+    showToast("平面已恢复到初始位置");
+  });
+
+  /* toast */
+  let toastTimer = null;
+  function showToast(msg) {
+    toast.textContent = msg;
+    toast.classList.add("show");
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => toast.classList.remove("show"), 1800);
+  }
+
+  /* ------------------------------------------------------------------ *
+   * 11. Boot
+   * ------------------------------------------------------------------ */
+  renderPresetButtons(solidKind);
+  updateKnowledge(solidKind, solidN);
+  updateSolidLabels();
+  syncOffsetBounds();
+  refreshSection();
+  updateCamera();
+  requestAnimationFrame(animate);
+
+  // Small inspection hook (harmless for the lesson; useful for sharing exact views)
+  window.__cubeLab = {
+    state,
+    refreshSection,
+    setCameraView,
+    goToPreset,
+    setAuto,
+    get section() { return currentPoly; },
+    get kind() { return currentKind; }
+  };
+
+  // Preload/ensure the panel mini canvas has a size after layout
+  window.addEventListener("load", () => {
+    resize();
+    drawMini(currentPoly, ACCENT[currentKind.family] || "#8d6bf2");
+  });
+})();
+</script>
+</body>
+</html>
