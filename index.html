@@ -538,7 +538,7 @@
     .panel{display:flex;align-items:stretch;}
     .controls{grid-row:auto;}
     .stage{height:clamp(300px,44svh,390px);border-radius:26px;}
-    .stage.custom-open{height:clamp(385px,56svh,485px);}
+    .stage.custom-open{height:clamp(435px,56svh,485px);}
     .stage::after{inset:10px;border-radius:19px;}
     .stage-tip{display:none;}
     .view-switch{right:14px;top:14px;}
@@ -607,7 +607,23 @@
   .draw-hint{font-size:9.5px;font-weight:700;color:#9a86a9;min-width:140px;flex:1;}
   .draw-hint.err{color:#d84f83;}
   .draw-actions{display:flex;align-items:center;gap:5px;flex-wrap:wrap;}
-  .draw-mode{border:1px solid rgba(137,109,166,.18);background:#fff;color:#5d4b76;border-radius:8px;padding:5px 6px;font:800 10px 'PingFang SC',sans-serif;}
+  .draw-mode{
+    display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:5px;
+    min-inline-size:0;margin:0;padding:0;border:0;
+  }
+  .draw-mode legend{margin-bottom:4px;padding:0;color:#5d4b76;font-size:10px;font-weight:800;}
+  .draw-mode label{position:relative;cursor:pointer;}
+  .draw-mode input{
+    position:absolute;inset:0;width:100%;height:100%;margin:0;opacity:0;cursor:inherit;
+  }
+  .draw-mode span{
+    display:grid;place-items:center;min-height:30px;padding:4px 9px;
+    border:1px solid rgba(137,109,166,.24);border-radius:9px;
+    background:rgba(255,255,255,.75);color:#5d4b76;
+    font-size:11px;font-weight:800;white-space:nowrap;
+  }
+  .draw-mode input:checked + span{border-color:#8d6bf2;background:#eee5ff;color:#5130a0;}
+  .draw-mode input:focus-visible + span{outline:2px solid #6d4dd8;outline-offset:2px;}
   .edit-custom{
     margin-top:7px;border:1px dashed rgba(151,116,196,.45);background:rgba(255,255,255,.5);
     color:#8a5bb0;border-radius:8px;padding:5px 8px;font:800 9.5px 'PingFang SC',sans-serif;cursor:pointer;
@@ -621,7 +637,8 @@
     .draw-bottom{padding:5px 8px 8px;gap:5px;}
     .draw-hint{font-size:10px;min-width:100%;min-height:2.8em;line-height:1.4;}
     .draw-actions{width:100%;justify-content:flex-end;}
-    .draw-mode{font-size:9px;}
+    .draw-mode{flex:1 1 100%;}
+    .draw-mode span{min-height:36px;}
     .draw-editor{inset:7px;}
   }
 </style>
@@ -700,11 +717,12 @@
         <div class="draw-bottom">
           <div class="draw-hint" id="drawHint" aria-live="polite">用“顶点”加点，用“连线”闭合一个凸多边形。</div>
           <div class="draw-actions">
-            <select class="draw-mode" id="drawMode" aria-label="自绘立体化方式">
-              <option value="prism">棱柱</option>
-              <option value="pyramid">棱锥</option>
-              <option value="frustum">棱台</option>
-            </select>
+            <fieldset class="draw-mode">
+              <legend>生成类型</legend>
+              <label><input type="radio" name="drawMode" value="prism" checked><span>棱柱</span></label>
+              <label><input type="radio" name="drawMode" value="frustum"><span>棱台</span></label>
+              <label><input type="radio" name="drawMode" value="pyramid"><span>棱锥</span></label>
+            </fieldset>
             <button class="draw-btn ghost" id="drawUndo">撤销</button>
             <button class="draw-btn ghost" id="drawClear">清空</button>
             <button class="draw-btn primary" id="drawApply">生成多面体</button>
@@ -1275,7 +1293,7 @@
   const drawHint = document.getElementById("drawHint");
   const drawEmpty = document.getElementById("drawEmpty");
   const drawStyleBtn = document.getElementById("drawStyleBtn");
-  const drawMode = document.getElementById("drawMode");
+  const drawModeOptions = [...document.querySelectorAll('input[name="drawMode"]')];
   const brandSolid = document.getElementById("brandSolid");
   const brandSub = document.getElementById("brandSub");
   const bigFact = document.getElementById("bigFact");
@@ -2182,7 +2200,8 @@
 
   function openDrawEditor() {
     customSketch = customData ? cloneSketch(customData) : starterSketch();
-    drawMode.value = customData ? customData.mode : "prism";
+    const lastMode = drawModeOptions.find(option => option.value === customData?.mode);
+    (lastMode || drawModeOptions[0]).checked = true;
     solidSelect.value = "custom";
     prismNRow.classList.remove("on");
     editCustomBtn.hidden = true;
@@ -2412,7 +2431,7 @@
     customData = {
       ...cloneSketch(customSketch),
       cycle: v.cycle,
-      mode: drawMode.value
+      mode: drawModeOptions.find(option => option.checked).value
     };
     applySolid("custom", v.cycle.length);
     canvas.focus({ preventScroll: true });
