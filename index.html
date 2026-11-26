@@ -392,6 +392,13 @@
 
   /* controls */
   .controls{padding-bottom:12px;}
+  .custom-position{
+    margin-top:12px;padding-top:10px;border-top:1px dashed rgba(72,53,108,.18);
+  }
+  .custom-position .card-title .tiny-ico{background:#dbf5ec;color:#137568;}
+  .custom-position input[type=range]{--thumb:#1a9c87;--track:#64c4b0;}
+  .custom-position .control-val{background:#e6f6f1;color:#16695d;}
+  .custom-position-hint{margin:0;color:var(--ink-2);font-size:10.5px;line-height:1.45;}
   .control{
     display:grid;grid-template-columns:56px minmax(0,1fr) 53px;
     align-items:center;gap:9px;margin-top:9px;
@@ -834,6 +841,28 @@
           <input id="spinRange" type="range" min="0" max="360" step="0.5" value="45" style="--thumb:#57c8f2;--track:#7bd6f6;">
           <span class="control-val" id="spinVal">45.0°</span>
         </div>
+        <div class="custom-position" id="customPosition" role="group" aria-labelledby="customPositionTitle" hidden>
+          <div class="card-head">
+            <div class="card-title"><span class="tiny-ico" aria-hidden="true">↔</span><span id="customPositionTitle">上底面位置</span></div>
+            <button class="icon-btn" id="resetCustomTopBtn" type="button" title="复位立体位置" aria-label="复位立体位置">↺</button>
+          </div>
+          <p class="custom-position-hint">拖动绿色标签可水平移动，也可用下方滑块精调。</p>
+          <div class="control">
+            <label class="control-label" for="customTopX">横向 X</label>
+            <input id="customTopX" data-top-axis="x" type="range" min="-2.5" max="2.5" step="0.01" value="0">
+            <output class="control-val" for="customTopX">0.00</output>
+          </div>
+          <div class="control">
+            <label class="control-label" for="customTopZ">纵向 Z</label>
+            <input id="customTopZ" data-top-axis="z" type="range" min="-2.5" max="2.5" step="0.01" value="0">
+            <output class="control-val" for="customTopZ">0.00</output>
+          </div>
+          <div class="control">
+            <label class="control-label" for="customTopHeight">高度 <small>单位</small></label>
+            <input id="customTopHeight" data-top-axis="height" type="range" min="0.5" max="4" step="0.01" value="2">
+            <output class="control-val" for="customTopHeight">2.00</output>
+          </div>
+        </div>
       </section>
 
       <section class="card preset-card">
@@ -911,6 +940,8 @@
   let SOLID = null;
   let customData = null;
   let customSketch = null;
+  const DEFAULT_CUSTOM_TOP = { x: 0, z: 0, height: 2 };
+  const CUSTOM_BASE_Y = -1;
 
   const SOLID_META = {
     cube:     { name: "正方体", en: "CUBE", sub: "CUBE × PLANE · 3D LAB" },
@@ -928,12 +959,12 @@
   const subscript = n => String(n).split("").map(d => SUB[+d]).join("");
   const LETTERS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
 
-  function orientFaces() {
+  function orientFaces(interior = [0, 0, 0]) {
     FACES = FACES.map((f, fi) => {
       const c = mul(f.pts.reduce((a, p) => add(a, p), [0, 0, 0]), 1 / f.pts.length);
       let n = norm(cross(sub(f.pts[1], f.pts[0]), sub(f.pts[2], f.pts[1])));
       let pts = f.pts;
-      if (dot(n, c) < 0) { n = mul(n, -1); pts = pts.slice().reverse(); }
+      if (dot(n, sub(c, interior)) < 0) { n = mul(n, -1); pts = pts.slice().reverse(); }
       return { idx: f.idx, pts, c, n, fi };
     });
     EDGE_FACES = new Map();
@@ -1070,10 +1101,12 @@
   function buildCustomSolid(data) {
     const pts = data.points, cycle = data.cycle, mode = data.mode || "prism";
     const n = cycle.length;
+    const { x, z, height } = data.top || DEFAULT_CUSTOM_TOP;
+    const top = [x, CUSTOM_BASE_Y + height, z];
     let cx = 0, cz = 0;
     for (const i of cycle) { cx += pts[i].x; cz += pts[i].y; }
     cx /= n; cz /= n;
-    const base = cycle.map(i => [pts[i].x - cx, -1, pts[i].y - cz]);
+    const base = cycle.map(i => [pts[i].x - cx, CUSTOM_BASE_Y, pts[i].y - cz]);
     let verts = base.slice();
     let labels = new Array(n).fill("");
     if (n <= 8) for (let i = 0; i < n; i++) labels[i] = LETTERS[i];
@@ -1086,13 +1119,13 @@
       styleMap.set("base-" + keyOf(a, b), !!styleMap.get(keyOf(a, b)));
     }
     if (mode === "pyramid") {
-      verts.push([0, 1, 0]);
+      verts.push(top);
       labels.push("P");
       faces.push({ idx: Array.from({ length: n }, (_, i) => i), pts: [] });
       for (let i = 0; i < n; i++) faces.push({ idx: [i, (i + 1) % n, n], pts: [] });
     } else {
       const k = mode === "frustum" ? .5 : 1;
-      for (let i = 0; i < n; i++) verts.push([base[i][0] * k, 1, base[i][2] * k]);
+      for (const p of base) verts.push([p[0] * k + x, top[1], p[2] * k + z]);
       if (n <= 8) for (let i = 0; i < n; i++) labels.push(LETTERS[i] + SUB[1]);
       else for (let i = 0; i < n; i++) labels.push("");
       faces.push({ idx: Array.from({ length: n }, (_, i) => i), pts: [] });
@@ -1101,9 +1134,11 @@
     }
     faces = faces.map(f => ({ idx: f.idx, pts: f.idx.map(i => verts[i]) }));
     V = verts; LABELS = labels; FACES = faces;
-    orientFaces();
+    // Even when the upper shape is offset, the midpoint between the two centers stays inside.
+    orientFaces([x / 2, CUSTOM_BASE_Y + height / 2, z / 2]);
     let maxXZ = 1;
-    for (const p of base) maxXZ = Math.max(maxXZ, Math.hypot(p[0], p[2]));
+    for (const p of verts) maxXZ = Math.max(maxXZ, Math.hypot(p[0], p[2]));
+    const Rmax = Math.max(Math.SQRT2, ...verts.map(len));
     // style generated edges: base/top copy the drawn edge style; verticals solid.
     EDGE_STYLE = EDGES.map(([a, b]) => {
       const m = Math.min(a, b), x = Math.max(a, b);
@@ -1114,10 +1149,10 @@
       kind: "custom", custom: true, curved: false, sides: n, mode,
       name: "自绘" + (mode === "prism" ? "棱柱" : mode === "pyramid" ? "棱锥" : "棱台"),
       en: "CUSTOM " + mode.toUpperCase(),
-      Rmax: Math.max(maxXZ, Math.hypot(maxXZ, 1)), maxXZ,
+      Rmax, maxXZ, top,
       areaScale: 1, lenScale: 1, areaSquare: 1, lenSquare: 1, lenFactor: { coef: [1, 1], rad: 1 },
-      planeHalf: Math.max(1.42, maxXZ * 1.05 + .18),
-      dMax: Math.max(1.55, Math.hypot(maxXZ, 1) * 1.02 + .06)
+      planeHalf: Math.max(1.42, Math.max(maxXZ, Math.abs(top[1])) * 1.05 + .18),
+      dMax: Math.max(1.55, Rmax * 1.02 + .06)
     };
     SOLID.fitDist = clamp(8.05 * SOLID.Rmax / Math.sqrt(3), 4.6, 22);
   }
@@ -1175,6 +1210,7 @@
     normalPx: 1,
     hoverHandle: false,
     hoverNormal: false,
+    hoverCustomTop: false,
     lastFrame: 0,
     time: 0,
     planeAnim: null,
@@ -1227,7 +1263,7 @@
     ];
     if (kind === "custom") return [
       { key: "regular", label: "平行底面", glyph: "⬡", coef: [0, 1, 0, 0], wide: true },
-      { key: "axis",    label: "轴截面",   glyph: "▯", coef: [1, 0, 0, 0] },
+      { key: "axis",    label: "纵向截面", glyph: "▯", coef: [1, 0, 0, 0] },
       { key: "oblique", label: "斜截面",   glyph: "◇", coef: [1, 1, 1, 0] }
     ];
     if (kind === "cylinder") return [
@@ -1304,6 +1340,14 @@
   const autoText = document.getElementById("autoText");
   const resetBtn = document.getElementById("resetBtn");
   const resetPlaneBtn = document.getElementById("resetPlaneBtn");
+  const customPosition = document.getElementById("customPosition");
+  const customPositionTitle = document.getElementById("customPositionTitle");
+  const resetCustomTopBtn = document.getElementById("resetCustomTopBtn");
+  const customTopControls = [...customPosition.querySelectorAll("[data-top-axis]")].map(input => ({
+    input,
+    axis: input.dataset.topAxis,
+    output: input.nextElementSibling
+  }));
   let presetButtons = [];
   const presetGrid = document.getElementById("presetGrid");
   const viewButtons = [...document.querySelectorAll(".view-switch button")];
@@ -1320,7 +1364,14 @@
   function setTouchManipulation(enabled) {
     stage.classList.toggle("touch-manipulation", enabled);
     touchToggle.setAttribute("aria-pressed", String(enabled));
-    touchHint.textContent = enabled ? "拖模型换视角，拖星标平移" : "开启后可拖动模型和平面";
+    updateTouchHint();
+  }
+
+  function updateTouchHint() {
+    const enabled = stage.classList.contains("touch-manipulation");
+    touchHint.textContent = enabled
+      ? (solidKind === "custom" ? "拖绿色标签移动，拖星标平移" : "拖模型换视角，拖星标平移")
+      : "开启后可拖动模型和平面";
   }
 
   function placeControls() {
@@ -1868,6 +1919,8 @@
     "regular-tri": "平行于底面切开，截面是正三角形。",
     "regular-square": "平行于底面切开，截面是与底面相似的正方形。",
     "frustum-regular": "平行于底面切开，截面是正多边形，边数与上、下底相同。",
+    "custom-congruent": "平行于底面切开，截面与下底面全等。",
+    "custom-similar": "平行于底面切开，截面与下底面相似。",
     "curve": "曲面截出来的封闭曲线，观察它的长短轴。",
     "poly-curve": "平面截出了一条封闭曲线。"
   };
@@ -1931,9 +1984,13 @@
     mArea.classList.toggle("xlong", (poly.exactArea || "").length > 9);
     mPerimeter.classList.toggle("long", (poly.exactPerimeter || "").length > 6 && (poly.exactPerimeter || "").length <= 9);
     mPerimeter.classList.toggle("xlong", (poly.exactPerimeter || "").length > 9);
-    if (kind.key !== state.lastShapeKey) {
-      state.lastShapeKey = kind.key;
-      popBubble(COPY[kind.key] || "拖动星星继续观察，截面还会变化哦～");
+    const horizontalCustom = solidKind === "custom" && count >= 3 && Math.abs(poly.n[1]) >= 1 - SECTION_EPSILON;
+    const bubbleKey = horizontalCustom
+      ? (SOLID.mode === "prism" ? "custom-congruent" : "custom-similar")
+      : kind.key;
+    if (bubbleKey !== state.lastShapeKey) {
+      state.lastShapeKey = bubbleKey;
+      popBubble(COPY[bubbleKey] || "拖动星星继续观察，截面还会变化哦～");
     }
     updatePresetActive();
     drawMini(poly, accent);
@@ -2016,7 +2073,62 @@
     brandSub.textContent = SOLID_META[solidKind].sub;
     canvas.setAttribute("aria-label", SOLID.name + "的三维截面演示");
     document.title = "截面实验室 · " + SOLID.name;
+    customPosition.hidden = solidKind !== "custom";
+    if (!customPosition.hidden) {
+      customPositionTitle.textContent = customTopName() + "位置";
+      syncCustomTopControls(customData.top || DEFAULT_CUSTOM_TOP);
+    }
+    updateTouchHint();
   }
+
+  function customTopName() {
+    return SOLID.mode === "pyramid" ? "锥顶" : "上底面";
+  }
+
+  function syncCustomTopControls(top) {
+    const values = {};
+    for (const { input, axis, output } of customTopControls) {
+      input.value = String(top[axis]);
+      values[axis] = Number(input.value);
+      output.value = values[axis].toFixed(2);
+      input.setAttribute("aria-valuetext", output.value + " 单位");
+      setSliderFill(input);
+    }
+    return values;
+  }
+
+  function fitCustomTop(previousFit) {
+    const fit = SOLID.fitDist;
+    state.goalDist = clamp(state.goalDist * fit / previousFit, Math.max(3.4, fit * .55), fit * 2.1);
+  }
+
+  function updateCustomTop(top) {
+    if (customPosition.hidden) return;
+    const previous = customData.top || DEFAULT_CUSTOM_TOP;
+    const next = syncCustomTopControls(top);
+    if (next.x === previous.x && next.z === previous.z && next.height === previous.height) return;
+
+    const previousFit = SOLID.fitDist;
+    stopPlaneAnim();
+    customData.top = next;
+    buildCustomSolid(customData);
+    // A plane may remain outside the resized solid without changing its position.
+    SOLID.dMax = Math.max(SOLID.dMax, Math.abs(state.d));
+    syncOffsetBounds();
+    if (state.dragging !== "custom-top") fitCustomTop(previousFit);
+    refreshSection();
+  }
+
+  for (const { input, axis } of customTopControls) {
+    input.addEventListener("input", () => {
+      if (!customData) return;
+      updateCustomTop({ ...(customData.top || DEFAULT_CUSTOM_TOP), [axis]: Number(input.value) });
+    });
+  }
+  resetCustomTopBtn.addEventListener("click", () => {
+    updateCustomTop(DEFAULT_CUSTOM_TOP);
+    showToast(customTopName() + "已复位");
+  });
 
   function syncOffsetBounds() {
     const limit = (dLimit() * SOLID.lenScale).toFixed(3);
@@ -2025,6 +2137,7 @@
   }
 
   function applySolid(kind, sides) {
+    if (state.dragging === "custom-top") endDrag();
     if (!drawEditor.hidden) closeDrawEditor();
     rebuildSolid(kind, sides);
     solidN = SOLID.sides || sides;
@@ -2199,12 +2312,14 @@
   }
 
   function openDrawEditor() {
+    if (state.dragging === "custom-top") endDrag();
     customSketch = customData ? cloneSketch(customData) : starterSketch();
     const lastMode = drawModeOptions.find(option => option.value === customData?.mode);
     (lastMode || drawModeOptions[0]).checked = true;
     solidSelect.value = "custom";
     prismNRow.classList.remove("on");
     editCustomBtn.hidden = true;
+    customPosition.hidden = true;
     if (toast) toast.classList.remove("show");
     brandSolid.textContent = "自绘底面";
     brandSub.textContent = SOLID_META.custom.sub;
@@ -2431,7 +2546,8 @@
     customData = {
       ...cloneSketch(customSketch),
       cycle: v.cycle,
-      mode: drawModeOptions.find(option => option.checked).value
+      mode: drawModeOptions.find(option => option.checked).value,
+      top: customData?.top || DEFAULT_CUSTOM_TOP
     };
     applySolid("custom", v.cycle.length);
     canvas.focus({ preventScroll: true });
@@ -2574,6 +2690,38 @@
       context.stroke();
     }
     context.restore();
+  }
+
+  function drawCustomTopHandle() {
+    const handle = customTopHandle();
+    if (!handle) return;
+
+    const { point, label, box } = handle;
+    const active = state.dragging === "custom-top" || state.hoverCustomTop;
+    ctx.save();
+    ctx.strokeStyle = "#107969";
+    ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    ctx.moveTo(box.x + box.width / 2, point.y >= box.y ? box.y + box.height : box.y);
+    ctx.lineTo(point.x, point.y);
+    ctx.stroke();
+    ctx.beginPath();
+    ctx.arc(point.x, point.y, 4.5, 0, FULL_TURN);
+    ctx.fillStyle = "#fff";
+    ctx.fill();
+    ctx.stroke();
+
+    ctx.beginPath();
+    ctx.roundRect(box.x, box.y, box.width, box.height, 9);
+    ctx.fillStyle = active ? "#107969" : "#f2fffa";
+    ctx.fill();
+    ctx.stroke();
+    ctx.fillStyle = active ? "#fff" : "#106457";
+    ctx.font = "800 11px 'PingFang SC', sans-serif";
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+    ctx.fillText(label, box.x + box.width / 2, box.y + box.height / 2);
+    ctx.restore();
   }
 
   function roundPolyPath(points, close) {
@@ -3302,6 +3450,7 @@
     drawNormalArrow(n, state.d);
     drawHandle(n, state.d);
     drawSparkles();
+    drawCustomTopHandle();
 
     if (state.planeAnim) {
       // keep the slider visual in sync during animated presets
@@ -3337,6 +3486,73 @@
     return p && Math.hypot(pos.x - p.x, pos.y - p.y) < 28;
   }
 
+  function customTopHandle() {
+    if (customPosition.hidden) return null;
+    const point = project(SOLID.top);
+    if (!point) return null;
+    const label = "拖动" + customTopName();
+    const width = 14 + label.length * 12;
+    const height = 26;
+    return {
+      point,
+      label,
+      box: {
+        x: clamp(point.x - width / 2, 8, W - width - 8),
+        y: clamp(point.y >= 45 ? point.y - 42 : point.y + 14, 8, H - height - 8),
+        width,
+        height
+      }
+    };
+  }
+
+  function nearCustomTopHandle(pos) {
+    const handle = customTopHandle();
+    if (!handle) return false;
+    const { box, point } = handle;
+    const onLabel = pos.x >= box.x - 3 && pos.x <= box.x + box.width + 3 &&
+      pos.y >= box.y - 3 && pos.y <= box.y + box.height + 3;
+    return onLabel || (Math.hypot(pos.x - point.x, pos.y - point.y) < 9 &&
+      !nearHandle(pos) && !nearNormalHandle(pos));
+  }
+
+  let customTopDrag = null;
+
+  function startCustomTopDrag(pos) {
+    const { point } = customTopHandle();
+    setAuto(false);
+    stopPlaneAnim();
+    state.goalYaw = state.yaw;
+    state.goalPitch = state.pitch;
+    state.goalDist = state.dist;
+    state.dragging = "custom-top";
+    state.hoverHandle = false;
+    state.hoverNormal = false;
+    customTopDrag = {
+      pointer: pos,
+      center: SOLID.top,
+      depth: point.depth,
+      camera: { ...camera },
+      fit: SOLID.fitDist
+    };
+    canvas.classList.add("dragging");
+    document.body.style.userSelect = "none";
+  }
+
+  function moveCustomTop(pos) {
+    const drag = customTopDrag;
+    const { camera: view, depth, center } = drag;
+    const ray = mul(sub(center, view.pos), 1 / depth);
+    const dx = (pos.x - drag.pointer.x) / view.focal;
+    const dy = (drag.pointer.y - pos.y) / view.focal;
+    const rayDelta = add(mul(view.right, dx), mul(view.up, dy));
+    // Use a minimum viewing angle so a nearly edge-on drag stays controllable.
+    const sign = ray[1] > 0 ? 1 : -1;
+    const tilt = Math.max(.22, Math.abs(ray[1]));
+    const scale = tilt / Math.max(.06, tilt + sign * rayDelta[1]);
+    const moved = add(view.pos, mul(add(ray, rayDelta), depth * scale));
+    updateCustomTop({ x: moved[0], z: moved[2], height: center[1] - CUSTOM_BASE_Y });
+  }
+
   function startPlaneDrag(pos) {
     stopPlaneAnim();
     state.dragging = "plane";
@@ -3366,6 +3582,10 @@
   }
 
   function endDrag(e) {
+    if (customTopDrag) {
+      if (solidKind === "custom") fitCustomTop(customTopDrag.fit);
+      customTopDrag = null;
+    }
     state.dragging = null;
     canvas.classList.remove("dragging");
     document.body.style.userSelect = "";
@@ -3374,6 +3594,7 @@
     } else {
       state.hoverHandle = false;
       state.hoverNormal = false;
+      state.hoverCustomTop = false;
       canvas.classList.remove("handle-hover");
     }
   }
@@ -3381,18 +3602,22 @@
   function updateHandleHover(e) {
     if (state.dragging) return;
     const pos = pointerPos(e);
-    const hov = !!nearHandle(pos);
-    const hovN = !!nearNormalHandle(pos);
+    const hovTop = nearCustomTopHandle(pos);
+    const hov = !hovTop && !!nearHandle(pos);
+    const hovN = !hovTop && !!nearNormalHandle(pos);
     state.hoverHandle = hov;
     state.hoverNormal = hovN;
-    canvas.classList.toggle("handle-hover", hov || hovN);
+    state.hoverCustomTop = hovTop;
+    canvas.classList.toggle("handle-hover", hov || hovN || hovTop);
   }
 
   canvas.addEventListener("pointerdown", e => {
     if (!e.isPrimary || e.button !== 0 || touchScrolls(e)) return;
     const pos = pointerPos(e);
     canvas.focus({ preventScroll: true });
-    if (nearHandle(pos)) {
+    if (nearCustomTopHandle(pos)) {
+      startCustomTopDrag(pos);
+    } else if (nearHandle(pos)) {
       startPlaneDrag(pos);
       showToast("拖住星星，平面沿法向平移");
     } else if (nearNormalHandle(pos)) {
@@ -3404,6 +3629,7 @@
       state.dragStartY = pos.y;
       state.hoverHandle = false;
       state.hoverNormal = false;
+      state.hoverCustomTop = false;
       canvas.classList.remove("handle-hover");
       canvas.classList.add("dragging");
       viewButtons.forEach(b => b.classList.remove("active"));
@@ -3414,7 +3640,9 @@
   canvas.addEventListener("pointermove", e => {
     if (!e.isPrimary || touchScrolls(e)) return;
     const pos = pointerPos(e);
-    if (state.dragging === "orbit") {
+    if (state.dragging === "custom-top") {
+      moveCustomTop(pos);
+    } else if (state.dragging === "orbit") {
       const dx = pos.x - state.dragStartX;
       const dy = pos.y - state.dragStartY;
       state.dragStartX = pos.x;
@@ -3468,10 +3696,14 @@
   canvas.addEventListener("pointercancel", e => {
     if (e.isPrimary && state.dragging) endDrag(e);
   });
+  canvas.addEventListener("lostpointercapture", () => {
+    if (state.dragging) endDrag();
+  });
   canvas.addEventListener("pointerleave", () => {
-    if (!state.dragging && (state.hoverHandle || state.hoverNormal)) {
+    if (!state.dragging && (state.hoverHandle || state.hoverNormal || state.hoverCustomTop)) {
       state.hoverHandle = false;
       state.hoverNormal = false;
+      state.hoverCustomTop = false;
       canvas.classList.remove("handle-hover");
     }
   });
@@ -3491,6 +3723,7 @@
 
   canvas.addEventListener("dblclick", e => {
     const pos = pointerPos(e);
+    if (nearCustomTopHandle(pos)) return;
     if (nearHandle(pos)) {
       stopPlaneAnim();
       state.d = 0;
