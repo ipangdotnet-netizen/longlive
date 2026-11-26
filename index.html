@@ -722,7 +722,7 @@
           <div class="draw-empty" id="drawEmpty">点击空白处放置顶点<br><small>再切换到“连线”，依次点两个顶点</small></div>
         </div>
         <div class="draw-bottom">
-          <div class="draw-hint" id="drawHint" aria-live="polite">用“顶点”加点，用“连线”闭合一个凸多边形。</div>
+          <div class="draw-hint" id="drawHint" aria-live="polite">连成一个闭合多边形，边可以内凹，但不能交叉或重叠。</div>
           <div class="draw-actions">
             <fieldset class="draw-mode">
               <legend>生成类型</legend>
@@ -959,12 +959,15 @@
   const subscript = n => String(n).split("").map(d => SUB[+d]).join("");
   const LETTERS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
 
-  function orientFaces(interior = [0, 0, 0]) {
+  function orientFaces(preserveWinding = false) {
     FACES = FACES.map((f, fi) => {
       const c = mul(f.pts.reduce((a, p) => add(a, p), [0, 0, 0]), 1 / f.pts.length);
-      let n = norm(cross(sub(f.pts[1], f.pts[0]), sub(f.pts[2], f.pts[1])));
+      const areaVector = f.pts.reduce((sum, p, i) => {
+        return add(sum, cross(sub(p, c), sub(f.pts[(i + 1) % f.pts.length], c)));
+      }, [0, 0, 0]);
+      let n = norm(areaVector);
       let pts = f.pts;
-      if (dot(n, sub(c, interior)) < 0) { n = mul(n, -1); pts = pts.slice().reverse(); }
+      if (!preserveWinding && dot(n, c) < 0) { n = mul(n, -1); pts = pts.slice().reverse(); }
       return { idx: f.idx, pts, c, n, fi };
     });
     EDGE_FACES = new Map();
@@ -1111,45 +1114,50 @@
     let labels = new Array(n).fill("");
     if (n <= 8) for (let i = 0; i < n; i++) labels[i] = LETTERS[i];
     let faces = [];
-    const styleMap = new Map();
     const keyOf = (a, b) => a < b ? a + "-" + b : b + "-" + a;
-    for (const e of data.edges) styleMap.set(keyOf(e.a, e.b), !!e.dashed);
-    for (let i = 0; i < n; i++) {
-      const a = cycle[i], b = cycle[(i + 1) % n];
-      styleMap.set("base-" + keyOf(a, b), !!styleMap.get(keyOf(a, b)));
-    }
+    const styleMap = new Map(data.edges.map(e => [keyOf(e.a, e.b), !!e.dashed]));
     if (mode === "pyramid") {
       verts.push(top);
       labels.push("P");
       faces.push({ idx: Array.from({ length: n }, (_, i) => i), pts: [] });
-      for (let i = 0; i < n; i++) faces.push({ idx: [i, (i + 1) % n, n], pts: [] });
+      for (let i = 0; i < n; i++) faces.push({ idx: [(i + 1) % n, i, n], pts: [] });
     } else {
       const k = mode === "frustum" ? .5 : 1;
       for (const p of base) verts.push([p[0] * k + x, top[1], p[2] * k + z]);
       if (n <= 8) for (let i = 0; i < n; i++) labels.push(LETTERS[i] + SUB[1]);
       else for (let i = 0; i < n; i++) labels.push("");
       faces.push({ idx: Array.from({ length: n }, (_, i) => i), pts: [] });
-      faces.push({ idx: Array.from({ length: n }, (_, i) => n + i), pts: [] });
-      for (let i = 0; i < n; i++) faces.push({ idx: [i, (i + 1) % n, n + (i + 1) % n, n + i], pts: [] });
+      faces.push({ idx: Array.from({ length: n }, (_, i) => 2 * n - 1 - i), pts: [] });
+      for (let i = 0; i < n; i++) {
+        const j = (i + 1) % n;
+        faces.push({ idx: [j, i, n + i, n + j], pts: [] });
+      }
     }
-    faces = faces.map(f => ({ idx: f.idx, pts: f.idx.map(i => verts[i]) }));
+    // The wireframe follows the boundary, including sides facing into a notch.
+    faces = faces.map(f => {
+      const idx = data.winding < 0 ? f.idx.slice().reverse() : f.idx;
+      return { idx, pts: idx.map(i => verts[i]) };
+    });
     V = verts; LABELS = labels; FACES = faces;
-    // Even when the upper shape is offset, the midpoint between the two centers stays inside.
-    orientFaces([x / 2, CUSTOM_BASE_Y + height / 2, z / 2]);
+    orientFaces(true);
     let maxXZ = 1;
     for (const p of verts) maxXZ = Math.max(maxXZ, Math.hypot(p[0], p[2]));
     const Rmax = Math.max(Math.SQRT2, ...verts.map(len));
     // style generated edges: base/top copy the drawn edge style; verticals solid.
     EDGE_STYLE = EDGES.map(([a, b]) => {
-      const m = Math.min(a, b), x = Math.max(a, b);
-      const baseStyle = styleMap.get("base-" + keyOf(a % n, b % n));
-      return baseStyle !== undefined ? baseStyle : false;
+      const onBase = a < n && b < n;
+      const onTop = mode !== "pyramid" && a >= n && b >= n;
+      return (onBase || onTop) && !!styleMap.get(keyOf(cycle[a % n], cycle[b % n]));
     });
+    const sectionCells = data.triangles.map(triangle => triangle.flatMap((a, i) => {
+      const b = triangle[(i + 1) % 3];
+      return mode === "pyramid" ? [[a, b], [a, n]] : [[a, b], [a, a + n], [a + n, b + n]];
+    }));
     SOLID = {
       kind: "custom", custom: true, curved: false, sides: n, mode,
       name: "自绘" + (mode === "prism" ? "棱柱" : mode === "pyramid" ? "棱锥" : "棱台"),
       en: "CUSTOM " + mode.toUpperCase(),
-      Rmax, maxXZ, top,
+      Rmax, maxXZ, top, sectionCells,
       areaScale: 1, lenScale: 1, areaSquare: 1, lenSquare: 1, lenFactor: { coef: [1, 1], rad: 1 },
       planeHalf: Math.max(1.42, Math.max(maxXZ, Math.abs(top[1])) * 1.05 + .18),
       dMax: Math.max(1.55, Rmax * 1.02 + .06)
@@ -1454,10 +1462,10 @@
   const SECTION_EPSILON = 1e-7;
   const FULL_TURN = 2 * Math.PI;
 
-  function sectionPolygon(n, d) {
+  function sectionPolygon(n, d, edges = EDGES) {
     const points = [];
     const eps = SECTION_EPSILON;
-    for (const [i, j] of EDGES) {
+    for (const [i, j] of edges) {
       const a = V[i], b = V[j];
       const fa = dot(n, a) - d;
       const fb = dot(n, b) - d;
@@ -1500,6 +1508,125 @@
       perimeter: perimeter * SOLID.lenScale,
       sides: pts.length, curved, shape
     };
+  }
+
+  function sectionLoops(poly) {
+    return poly.loops || (poly.points.length >= 3 ? [poly.points] : []);
+  }
+
+  function sectionContacts(poly) {
+    return poly.contacts || (poly.points.length > 0 && poly.points.length < 3 ? [poly.points] : []);
+  }
+
+  function sectionTurn(a, b, c, n) {
+    return dot(cross(sub(b, a), sub(c, b)), n);
+  }
+
+  function traceSectionLoops(edges, nodes, u, v) {
+    const outgoing = new Map();
+    for (const edge of edges) {
+      if (!outgoing.has(edge.from)) outgoing.set(edge.from, []);
+      outgoing.get(edge.from).push(edge);
+    }
+    const direction = (from, to) => {
+      const delta = sub(nodes[to], nodes[from]);
+      return Math.atan2(dot(delta, v), dot(delta, u));
+    };
+    const remaining = new Set(edges);
+    const loops = [];
+    while (remaining.size) {
+      const first = remaining.values().next().value;
+      let edge = first;
+      const path = [];
+      while (edge) {
+        remaining.delete(edge);
+        path.push(edge.from);
+        if (edge.to === first.from) {
+          if (path.length >= 3) loops.push(path.map(i => nodes[i]));
+          break;
+        }
+        const reverse = direction(edge.to, edge.from);
+        let bestTurn = Infinity;
+        let next = null;
+        for (const candidate of outgoing.get(edge.to) || []) {
+          if (!remaining.has(candidate)) continue;
+          // At a touching vertex, walk clockwise from the incoming edge's reverse.
+          const turn = (reverse - direction(candidate.from, candidate.to) + FULL_TURN) % FULL_TURN;
+          if (turn < bestTurn) { bestTurn = turn; next = candidate; }
+        }
+        edge = next;
+      }
+    }
+    return loops;
+  }
+
+  function simplifySectionLoop(points, n) {
+    const simplified = points.filter((b, i) => {
+      const a = points[(i + points.length - 1) % points.length], c = points[(i + 1) % points.length];
+      const ab = sub(b, a), bc = sub(c, b);
+      return dot(ab, bc) < 0 || Math.abs(sectionTurn(a, b, c, n)) > SECTION_EPSILON * (len(ab) + len(bc));
+    });
+    return simplified.length >= 3 ? simplified : points;
+  }
+
+  function customSection(n, d) {
+    const eps = SECTION_EPSILON;
+    const { u, v } = planeBasis(n);
+    const nodes = [];
+    const indexOf = p => {
+      const found = nodes.findIndex(q => dist(p, q) < eps);
+      if (found >= 0) return found;
+      nodes.push(p);
+      return nodes.length - 1;
+    };
+    const edgeKey = (a, b) => a < b ? a + "-" + b : b + "-" + a;
+    const seenTiles = new Set(), tiles = [], boundary = new Map(), touches = new Map();
+    let area = 0;
+    for (const edges of SOLID.sectionCells) {
+      const tile = sectionPolygon(n, d, edges);
+      const ids = [...new Set(tile.points.map(indexOf))];
+      if (!ids.length) continue;
+      if (ids.length < 3 || tile.area === 0) {
+        const farthest = i => ids.reduce((a, b) => dist(nodes[a], nodes[i]) > dist(nodes[b], nodes[i]) ? a : b);
+        const end = farthest(ids[0]);
+        const contact = ids.length <= 2 ? ids : [end, farthest(end)];
+        touches.set(contact.length === 1 ? String(contact[0]) : edgeKey(...contact), contact);
+        continue;
+      }
+      // A slice exactly on a shared wall can return that same tile from both cells.
+      const tileKey = ids.slice().sort((a, b) => a - b).join(",");
+      if (seenTiles.has(tileKey)) continue;
+      seenTiles.add(tileKey);
+      tiles.push(ids.map(i => nodes[i]));
+      area += tile.area;
+      for (let i = 0; i < ids.length; i++) {
+        const from = ids[i], to = ids[(i + 1) % ids.length];
+        const key = edgeKey(from, to);
+        const other = boundary.get(key);
+        if (!other) boundary.set(key, { from, to });
+        else if (other.from === to) boundary.delete(key);
+      }
+    }
+
+    const edges = [...boundary.values()];
+    const loops = traceSectionLoops(edges, nodes, u, v).map(loop => simplifySectionLoop(loop, n));
+    const covered = contact => tiles.some(tile => contact.every(i => tile.every((p, j) => {
+      const side = sub(tile[(j + 1) % tile.length], p);
+      return dot(cross(side, sub(nodes[i], p)), n) >= -eps * len(side);
+    })));
+    const exposed = [...touches.values()].filter(contact => !covered(contact));
+    const ends = new Set(exposed.filter(contact => contact.length === 2).flat());
+    const contacts = exposed.filter(contact => contact.length === 2 || !ends.has(contact[0]))
+      .map(contact => contact.map(i => nodes[i]));
+    const points = [...new Set((loops.length ? loops : contacts).flat())];
+    const centroid = points.length
+      ? mul(points.reduce((sum, p) => add(sum, p), [0, 0, 0]), 1 / points.length)
+      : mul(n, d);
+    const perimeter = edges.reduce((sum, edge) => sum + dist(nodes[edge.from], nodes[edge.to]), 0) * SOLID.lenScale;
+    const concave = loops.length === 1 && loops[0].some((a, i, loop) => {
+      return sectionTurn(a, loop[(i + 1) % loop.length], loop[(i + 2) % loop.length], n) < -eps;
+    });
+    return { points, n, d, centroid, u, v, area, perimeter, sides: points.length, loops, contacts, concave, curved: false };
   }
 
   function solveCircleLine(A, B, rhs) {
@@ -1710,37 +1837,36 @@
 
   function exactPolyMetrics(poly) {
     if (poly.points.length > 240) return null;
-    const rp = poly.points.map(p => p.map(v => ratOf(v, 80)));
-    if (rp.some(p => p.some(v => !v))) return null;
+    const loops = sectionLoops(poly).map(points => points.map(p => p.map(v => ratOf(v, 80))));
+    if (loops.some(points => points.some(p => p.some(v => !v)))) return null;
     let ax = F(0), ay = F(0), az = F(0);
-    for (let i = 0; i < rp.length; i++) {
-      const p = rp[i], q = rp[(i + 1) % rp.length];
-      const yz = fAdd(fMul(p[1], q[2]), fNeg(fMul(p[2], q[1])));
-      const zx = fAdd(fMul(p[2], q[0]), fNeg(fMul(p[0], q[2])));
-      const xy = fAdd(fMul(p[0], q[1]), fNeg(fMul(p[1], q[0])));
-      ax = fAdd(ax, yz); ay = fAdd(ay, zx); az = fAdd(az, xy);
+    const lSq = ratOf(SOLID.lenSquare ?? (solidKind === "tetra" ? 1 / 8 : 1 / 4));
+    const terms = [];
+    for (const points of loops) {
+      for (let i = 0; i < points.length; i++) {
+        const p = points[i], q = points[(i + 1) % points.length];
+        const yz = fAdd(fMul(p[1], q[2]), fNeg(fMul(p[2], q[1])));
+        const zx = fAdd(fMul(p[2], q[0]), fNeg(fMul(p[0], q[2])));
+        const xy = fAdd(fMul(p[0], q[1]), fNeg(fMul(p[1], q[0])));
+        ax = fAdd(ax, yz); ay = fAdd(ay, zx); az = fAdd(az, xy);
+        let s = F(0);
+        for (let k = 0; k < 3; k++) {
+          const d = fAdd(q[k], fNeg(p[k]));
+          s = fAdd(s, fMul(d, d));
+        }
+        terms.push(sqrtRat(fMul(s, lSq)));
+      }
     }
     const half = F(1, 2);
     ax = fMul(ax, half); ay = fMul(ay, half); az = fMul(az, half);
     const areaSq = fAdd(fAdd(fMul(ax, ax), fMul(ay, ay)), fMul(az, az));
-    const aSq = ratOf(SOLID && SOLID.areaSquare != null ? SOLID.areaSquare : (solidKind === "tetra" ? 1 / 64 : 1 / 16));
-    const lSq = ratOf(SOLID && SOLID.lenSquare != null ? SOLID.lenSquare : (solidKind === "tetra" ? 1 / 8 : 1 / 4));
+    const aSq = ratOf(SOLID.areaSquare ?? (solidKind === "tetra" ? 1 / 64 : 1 / 16));
     const areaT = sqrtRat(fMul(areaSq, aSq));
-    const terms = [];
-    for (let i = 0; i < rp.length; i++) {
-      const p = rp[i], q = rp[(i + 1) % rp.length];
-      let s = F(0);
-      for (let k = 0; k < 3; k++) {
-        const d = fAdd(q[k], fNeg(p[k]));
-        s = fAdd(s, fMul(d, d));
-      }
-      terms.push(sqrtRat(fMul(s, lSq)));
-    }
     return { area: fmtSqrtTerm(areaT), perimeter: fmtSqrtSum(terms) };
   }
 
   function attachExact(poly) {
-    if (poly.points.length < 3) return;
+    if (!sectionLoops(poly).length) return;
     if (poly.shape === "circle" && poly.circle) {
       const r2 = ratOf(poly.circle.r * poly.circle.r, 2000);
       if (r2) {
@@ -1809,8 +1935,13 @@
   function classify(poly) {
     const sides = poly.points.length;
     if (sides === 0) return { family: 0, name: "无截面", en: "NO SECTION", key: "none" };
+    if (poly.loops?.length === 0 && poly.contacts.length > 1) {
+      return { family: 0, name: "多处接触", en: "MULTIPLE CONTACTS", key: "multi-contact" };
+    }
     if (sides === 1) return { family: 0, name: "相切于一点", en: "POINT CONTACT", key: "touch-point" };
     if (sides === 2) return { family: 0, name: "相切于线段", en: "LINE CONTACT", key: "touch-segment" };
+    if (poly.loops?.length > 1) return { family: 6, name: poly.loops.length + " 块截面", en: "MULTIPLE SECTIONS", key: "multi-section" };
+    if (poly.concave) return { family: 6, name: "凹多边形", en: "CONCAVE POLYGON", key: "concave-section" };
     if (poly.shape === "cone-triangle") return { family: 3, name: "三角形", en: "TRIANGLE", key: "cone-tri" };
     if (poly.shape === "cylinder-rectangle") {
       const lengths = poly.points.map((p, i) => dist(p, poly.points[(i + 1) % 4]));
@@ -1921,6 +2052,9 @@
     "frustum-regular": "平行于底面切开，截面是正多边形，边数与上、下底相同。",
     "custom-congruent": "平行于底面切开，截面与下底面全等。",
     "custom-similar": "平行于底面切开，截面与下底面相似。",
+    "concave-section": "截面边界有向内凹的角。",
+    "multi-section": "凹陷可以把截面分成几块。面积和周长是各块的总和。",
+    "multi-contact": "平面只在若干点或线段上接触立体。",
     "curve": "曲面截出来的封闭曲线，观察它的长短轴。",
     "poly-curve": "平面截出了一条封闭曲线。"
   };
@@ -1975,16 +2109,18 @@
     shapeNameEl.textContent = kind.name;
     shapeEnEl.textContent = kind.en;
     const count = poly.points.length;
-    mVertices.textContent = poly.curved ? 1 : count;
-    mLabel1.textContent = poly.curved ? "闭合边界 / 条"
+    const hasArea = sectionLoops(poly).length > 0;
+    const multiContact = kind.key === "multi-contact";
+    mVertices.textContent = poly.curved ? 1 : multiContact ? poly.contacts.length : count;
+    mLabel1.textContent = poly.curved ? "闭合边界 / 条" : multiContact ? "接触 / 处"
       : count === 1 ? "接触点 / 个" : count === 2 ? "端点 / 个" : "顶点 / 个";
-    mArea.innerHTML = count < 3 ? "—" : poly.exactArea || `<span class="approx">≈</span>${poly.area.toFixed(2)}`;
-    mPerimeter.innerHTML = count < 3 ? "—" : poly.exactPerimeter || `<span class="approx">≈</span>${poly.perimeter.toFixed(2)}`;
+    mArea.innerHTML = !hasArea ? "—" : poly.exactArea || `<span class="approx">≈</span>${poly.area.toFixed(2)}`;
+    mPerimeter.innerHTML = !hasArea ? "—" : poly.exactPerimeter || `<span class="approx">≈</span>${poly.perimeter.toFixed(2)}`;
     mArea.classList.toggle("long", (poly.exactArea || "").length > 6 && (poly.exactArea || "").length <= 9);
     mArea.classList.toggle("xlong", (poly.exactArea || "").length > 9);
     mPerimeter.classList.toggle("long", (poly.exactPerimeter || "").length > 6 && (poly.exactPerimeter || "").length <= 9);
     mPerimeter.classList.toggle("xlong", (poly.exactPerimeter || "").length > 9);
-    const horizontalCustom = solidKind === "custom" && count >= 3 && Math.abs(poly.n[1]) >= 1 - SECTION_EPSILON;
+    const horizontalCustom = solidKind === "custom" && hasArea && Math.abs(poly.n[1]) >= 1 - SECTION_EPSILON;
     const bubbleKey = horizontalCustom
       ? (SOLID.mode === "prism" ? "custom-congruent" : "custom-similar")
       : kind.key;
@@ -1999,7 +2135,8 @@
 
   function refreshSection() {
     const n = normal();
-    currentPoly = SOLID && SOLID.curved ? curvedSection(n, state.d) : sectionPolygon(n, state.d);
+    currentPoly = SOLID.curved ? curvedSection(n, state.d)
+      : SOLID.custom ? customSection(n, state.d) : sectionPolygon(n, state.d);
     const kind = classify(currentPoly);
     attachExact(currentPoly);
     currentKind = kind;
@@ -2024,8 +2161,8 @@
         "平行于底面的截面与底面<b>全等</b>；垂直于底面、过轴线的截面是<b>矩形</b>；斜切时边数会随平面位置改变。");
     } else if (kind === "custom") {
       const faceCount = FACES.length || 0;
-      set(String(faceCount), `截面最多 ${faceCount} 条边`, `自绘多面体有 ${faceCount} 个面，${SOLID ? SOLID.sides : 0} 个底面顶点。`,
-        "平面与每个面相交得到一条边；平行底面时截面与底面相似，斜切时边数会改变。");
+      set(String(faceCount), "自绘多面体的面数", `自绘多面体有 ${faceCount} 个面，${SOLID.sides} 个底面顶点。`,
+        "平行于底面时，截面与底面相似。切过凹陷时，截面可能分成几块。");
     } else if (kind === "pyramid") {
       set(String(sides + 1), `截面最多 ${sides + 1} 条边`, `正${sides}棱锥有 ${sides + 1} 个面。`,
         "平行于底面切出与底面<b>相似</b>的正多边形；过顶点切出<b>三角形</b>；斜切还会出现四边形、五边形等。");
@@ -2183,7 +2320,7 @@
   let sketchHistory = [];
   const sketchButtons = [...document.querySelectorAll(".draw-btn[data-tool]")];
   const sketchHints = {
-    vertex: "点空白处加顶点，再用“连线”围成凸多边形。",
+    vertex: "点空白处加顶点，再用“连线”围成多边形。",
     edge: "依次点两个顶点连边。重复点同一对顶点可更新线型。",
     "erase-vertex": "点一个顶点，删除它和相连的边。",
     erase: "点一条边删除它。"
@@ -2461,9 +2598,14 @@
       drawSketchCanvas();
       return;
     }
-    pushSketchHistory();
     const a = Math.min(sketchSelected, hit), b = Math.max(sketchSelected, hit);
     const ex = customSketch.edges.find(e => (e.a === a && e.b === b) || (e.a === b && e.b === a));
+    const points = customSketch.points;
+    if (!ex && customSketch.edges.some(e => sketchEdgesConflict(points[a], points[b], points[e.a], points[e.b]))) {
+      setSketchMessage("这条边会交叉或重叠，请选择其他顶点。", true);
+      return;
+    }
+    pushSketchHistory();
     if (ex) {
       ex.dashed = sketchDashed;
       setSketchMessage("已更新这条边的线型。");
@@ -2486,12 +2628,41 @@
   const orient2D = (a, b, c) => (b.x - a.x) * (c.y - a.y) - (b.y - a.y) * (c.x - a.x);
   const orientationSign = value => Math.abs(value) <= SKETCH_EPSILON ? 0 : Math.sign(value);
 
-  function sketchEdgesIntersect(a, b, c, d) {
+  function sketchEdgesConflict(a, b, c, d) {
+    const shared = a === c || a === d ? a : b === c || b === d ? b : null;
+    if (shared) {
+      const p = a === shared ? b : a;
+      const q = c === shared ? d : c;
+      return orientationSign(orient2D(shared, p, q)) === 0 &&
+        (p.x - shared.x) * (q.x - shared.x) + (p.y - shared.y) * (q.y - shared.y) > 0;
+    }
     const overlap = (a, b, c, d) => Math.max(Math.min(a, b), Math.min(c, d)) <=
       Math.min(Math.max(a, b), Math.max(c, d)) + SKETCH_EPSILON;
     return overlap(a.x, b.x, c.x, d.x) && overlap(a.y, b.y, c.y, d.y) &&
       orientationSign(orient2D(a, b, c)) * orientationSign(orient2D(a, b, d)) <= 0 &&
       orientationSign(orient2D(c, d, a)) * orientationSign(orient2D(c, d, b)) <= 0;
+  }
+
+  function triangulateSketch(points, winding) {
+    const count = points.length;
+    const remaining = points.map((_, i) => i).filter(i => {
+      return orientationSign(orient2D(points[(i + count - 1) % count], points[i], points[(i + 1) % count])) !== 0;
+    });
+    const triangles = [];
+    const onLeft = (a, b, p) => winding * orientationSign(orient2D(points[a], points[b], points[p]));
+    while (remaining.length > 3) {
+      const ear = remaining.findIndex((b, i) => {
+        const a = remaining[(i + remaining.length - 1) % remaining.length], c = remaining[(i + 1) % remaining.length];
+        return onLeft(a, b, c) > 0 && !remaining.some(p => p !== a && p !== b && p !== c &&
+          onLeft(a, b, p) >= 0 && onLeft(b, c, p) >= 0 && onLeft(c, a, p) >= 0);
+      });
+      if (ear < 0) return null;
+      triangles.push([remaining[(ear + remaining.length - 1) % remaining.length], remaining[ear],
+        remaining[(ear + 1) % remaining.length]]);
+      remaining.splice(ear, 1);
+    }
+    if (remaining.length !== 3 || onLeft(...remaining) <= 0) return null;
+    return [...triangles, remaining];
   }
 
   function validateSketch() {
@@ -2520,21 +2691,17 @@
     for (let i = 0; i < n; i++) {
       const a = points[i], b = points[(i + 1) % n];
       areaTwice += a.x * b.y - a.y * b.x;
-      for (let j = i + 2; j < n; j++) {
-        if (i === 0 && j === n - 1) continue;
-        if (sketchEdgesIntersect(a, b, points[j], points[(j + 1) % n])) {
+      for (let j = i + 1; j < n; j++) {
+        if (sketchEdgesConflict(a, b, points[j], points[(j + 1) % n])) {
           return { error: "底面的边不能交叉或重叠，请重新连线。" };
         }
       }
     }
     const winding = orientationSign(areaTwice);
     if (!winding) return { error: "底面面积必须大于 0，请调整顶点。" };
-    for (let i = 0; i < n; i++) {
-      const turn = orientationSign(orient2D(points[i], points[(i + 1) % n], points[(i + 2) % n]));
-      if (turn === 0) return { error: "连续三个顶点不能共线，请删去中间的点。" };
-      if (turn !== winding) return { error: "底面必须是凸多边形，请调整向内凹的顶点。" };
-    }
-    return { cycle, error: "" };
+    const triangles = triangulateSketch(points, winding);
+    if (!triangles) return { error: "无法生成这个底面，请检查顶点和连线。" };
+    return { cycle, winding, triangles, error: "" };
   }
 
   function applySketch() {
@@ -2546,6 +2713,8 @@
     customData = {
       ...cloneSketch(customSketch),
       cycle: v.cycle,
+      winding: v.winding,
+      triangles: v.triangles,
       mode: drawModeOptions.find(option => option.checked).value,
       top: customData?.top || DEFAULT_CUSTOM_TOP
     };
@@ -2616,18 +2785,15 @@
       miniCtx.fillText("平面未切到几何体", w / 2, h / 2);
       return;
     }
-    if (poly.points.length < 3) {
-      const points = poly.points.length === 1 ? [{ x: w / 2, y: h / 2 }]
-        : [{ x: w * .26, y: h / 2 }, { x: w * .74, y: h / 2 }];
-      drawContact(miniCtx, points, accent);
-      return;
-    }
-    const c = poly.centroid;
-    const u = poly.u, v = poly.v;
-    const pts = poly.points.map(p => {
+    const c = poly.centroid || mul(poly.n, poly.d);
+    const { u, v } = poly.u ? poly : planeBasis(poly.n);
+    const toPlane = p => {
       const q = sub(p, c);
       return [dot(q, u), dot(q, v)];
-    });
+    };
+    const loops = sectionLoops(poly).map(loop => loop.map(toPlane));
+    const contacts = sectionContacts(poly).map(contact => contact.map(toPlane));
+    const pts = [...loops, ...contacts].flat();
     let minx = Infinity, maxx = -Infinity, miny = Infinity, maxy = -Infinity;
     pts.forEach(([x, y]) => {
       minx = Math.min(minx, x); maxx = Math.max(maxx, x);
@@ -2635,7 +2801,13 @@
     });
     const scale = Math.min((w - 34) / Math.max(maxx - minx, 1e-4), (h - 26) / Math.max(maxy - miny, 1e-4));
     const cx = w / 2, cy = h / 2;
-    const mapped = pts.map(([x, y]) => [cx + (x - (minx + maxx) / 2) * scale, cy - (y - (miny + maxy) / 2) * scale]);
+    const mapPoint = ([x, y]) => ({
+      x: cx + (x - (minx + maxx) / 2) * scale,
+      y: cy - (y - (miny + maxy) / 2) * scale
+    });
+    for (const contact of contacts) drawContact(miniCtx, contact.map(mapPoint), accent);
+    if (!loops.length) return;
+    const mapped = loops.map(loop => loop.map(mapPoint));
 
     const g = miniCtx.createLinearGradient(0, 8, w, h);
     g.addColorStop(0, "rgba(255,255,255,.96)");
@@ -2643,9 +2815,7 @@
     g.addColorStop(1, "rgba(207,243,255,.95)");
 
     miniCtx.save();
-    miniCtx.beginPath();
-    mapped.forEach(([x, y], i) => i ? miniCtx.lineTo(x, y) : miniCtx.moveTo(x, y));
-    miniCtx.closePath();
+    sectionPath(miniCtx, mapped);
     miniCtx.shadowColor = "rgba(255,110,168,.25)";
     miniCtx.shadowBlur = 9;
     miniCtx.fillStyle = g;
@@ -2661,7 +2831,7 @@
     miniCtx.fillStyle = "#fff";
     miniCtx.strokeStyle = accent;
     miniCtx.lineWidth = 1.6;
-    mapped.forEach(([x, y]) => {
+    mapped.flat().forEach(({x, y}) => {
       miniCtx.beginPath();
       miniCtx.arc(x, y, 2.4, 0, Math.PI * 2);
       miniCtx.fill();
@@ -2728,6 +2898,14 @@
     ctx.beginPath();
     points.forEach((p, i) => i ? ctx.lineTo(p.x, p.y) : ctx.moveTo(p.x, p.y));
     if (close) ctx.closePath();
+  }
+
+  function sectionPath(context, loops) {
+    context.beginPath();
+    for (const points of loops) {
+      points.forEach((p, i) => i ? context.lineTo(p.x, p.y) : context.moveTo(p.x, p.y));
+      context.closePath();
+    }
   }
 
   function drawFloor() {
@@ -3175,9 +3353,9 @@
   }
 
   function drawSectionFill(poly) {
-    if (poly.points.length < 3) return;
-    const pts = poly.points.map(project);
-    if (pts.some(p => !p)) return;
+    const loops = sectionLoops(poly).map(projectedLoop).filter(Boolean);
+    if (!loops.length) return;
+    const pts = loops.flat();
 
     ctx.save();
     const xs = pts.map(p => p.x), ys = pts.map(p => p.y);
@@ -3188,33 +3366,32 @@
     g.addColorStop(1, "rgba(255,255,255,.24)");
     ctx.shadowColor = "rgba(255,86,160,.42)";
     ctx.shadowBlur = 20;
-    roundPolyPath(pts, true);
+    sectionPath(ctx, loops);
     ctx.fillStyle = g;
     ctx.fill();
     ctx.restore();
   }
 
   function drawSectionLine(poly, kind) {
-    if (!poly.points.length) return;
-    const pts = poly.points.map(project);
-    if (pts.some(p => !p)) return;
     const accent = ACCENT[kind.family] || "#8d6bf2";
-    if (pts.length < 3) {
-      drawContact(ctx, pts, accent);
-      return;
+    for (const contact of sectionContacts(poly)) {
+      const points = projectedLoop(contact);
+      if (points) drawContact(ctx, points, accent);
     }
+    const loops = sectionLoops(poly).map(projectedLoop).filter(Boolean);
+    if (!loops.length) return;
+    const pts = poly.points.map(project).filter(Boolean);
 
     ctx.save();
     ctx.lineJoin = "round";
     ctx.strokeStyle = "rgba(255,255,255,.95)";
     ctx.lineWidth = 5.6;
-    roundPolyPath(pts, true);
+    sectionPath(ctx, loops);
     ctx.stroke();
     ctx.shadowColor = "rgba(255,86,160,.34)";
     ctx.shadowBlur = 10;
     ctx.strokeStyle = accent;
     ctx.lineWidth = 2.5;
-    roundPolyPath(pts, true);
     ctx.stroke();
     ctx.shadowBlur = 0;
     ctx.restore();
@@ -3222,9 +3399,7 @@
 
     // sparkle glints at vertices
     const t = state.time;
-    poly.points.forEach((p, i) => {
-      const q = project(p);
-      if (!q) return;
+    pts.forEach((q, i) => {
       const tw = .5 + .5 * Math.sin(t * 2.2 + i * 1.7);
       if (tw < .45) return;
       ctx.save();
