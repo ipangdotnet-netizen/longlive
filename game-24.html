@@ -119,8 +119,6 @@ button{font:inherit;color:inherit;}
   font-variant-numeric:tabular-nums;font-size:13px;min-width:72px;text-align:right;
   letter-spacing:.08em;color:var(--ink-soft);font-family:var(--kai);
 }
-.timer.free .timer-track{display:none;}
-.timer.free .timer-num{text-align:left;}
 .timer.warn .timer-fill{background:linear-gradient(90deg,#7E1F18,#D9564A);}
 .timer.warn .timer-num{color:var(--zhu);animation:pulse 1s ease-in-out infinite;}
 @keyframes pulse{0%,100%{opacity:1;}50%{opacity:.42;}}
@@ -441,11 +439,6 @@ button.chip{padding:0;border:0;background:none;}
 }
 .game-settings{margin-bottom:14px;}
 .game-options{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;}
-.practice-option{
-  display:flex;align-items:center;gap:8px;margin-top:12px;
-  color:var(--ink);font-size:13px;cursor:pointer;
-}
-.practice-option input{width:17px;height:17px;margin:0;accent-color:var(--zhu);}
 .choose-new{
   position:absolute;top:-8px;left:50%;transform:translateX(-50%);
   padding:2px 5px;border-radius:2px;background:var(--xuan-3);color:var(--ink);
@@ -670,9 +663,8 @@ button.chip{padding:0;border:0;background:none;}
           <button type="button" class="diff-card" data-mode="advanced" aria-pressed="true"><b>进阶挑战</b><span>目标 12–40 · 奖励牌与符号库存</span></button>
           <button type="button" class="diff-card" data-mode="classic" aria-pressed="false"><b>经典 24 点</b><span>目标固定为 24 · 四张牌各用一次</span></button>
         </div>
-        <label class="practice-option"><input type="checkbox" id="practiceInput">不限时练习（答错可继续尝试）</label>
       </div>
-      <div class="diff" id="diffSection">
+      <div class="diff">
         <p class="diff-title" id="diffLabel">难度</p>
         <div class="diff-list" role="group" aria-labelledby="diffLabel">
         <button class="diff-card" data-diff="easy"><b>容易</b><span>60 秒 · 符号 8–11 个</span></button>
@@ -691,7 +683,7 @@ button.chip{padding:0;border:0;background:none;}
         <li data-advanced><b>符号库存</b>：每局随机发放 + − × ÷，每种最多 3 个。容易 8–11 个，困难 7–10 个，地狱 6–9 个。括号固定 2 对，从算式里取下符号会退回库存。</li>
         <li data-advanced><b>获得奖励牌</b>：答对发一张 +1、−1 或 WIN，最多存三张。满了时可以弃掉任意一张，包括新抽到的牌。容易、困难每局最多用两张，地狱最多用一张。</li>
         <li data-advanced><b>使用奖励牌</b>：+1、−1 可以直接接在数字或右括号后面，作为加减项。答对后消耗已使用的牌。打出 WIN 直接得一胜，本局不发奖励牌。</li>
-        <li data-advanced id="rulePenalty"></li>
+        <li data-advanced>答错或超时时先扣一张奖励牌，扣到零张仍可进入下一局。此后再次答错或超时且无牌可扣时，游戏结束。</li>
       </ol>
       <p class="note">点击或拖入牌和符号。点击算式零件或把它拖出算式区即可取下。每局亮出的四张牌都保证有解。</p>
     </div>
@@ -961,7 +953,6 @@ const DIFFS = {
 function diffConf() { return DIFFS[state.diff] || DIFFS.hard; }
 function bonusUseMax() { return diffConf().use; }
 function isClassic() { return state.mode === 'classic'; }
-function usesAdvancedSyntax(config = state) { return config.mode === 'advanced' && !config.practice; }
 
 const BONUS_META = {
   plus:  { label: '+1',  value: 1,  cls: 'plus'  },
@@ -1005,15 +996,15 @@ const els = {
   toast: $('#toast'),
   rulesOverlay: $('#rulesOverlay'), rulesBtn: $('#rulesBtn'),
   rulesStart: $('#rulesStartBtn'), rulesSetup: $('#rulesSetupBtn'), rulesBack: $('#rulesBackBtn'),
-  gameSettings: $('#gameSettings'), practiceInput: $('#practiceInput'),
+  gameSettings: $('#gameSettings'),
   diffLabel: $('#diffLabel'), footerRule: $('#footerRule'),
-  ruleGoal: $('#ruleGoal'), ruleSyntax: $('#ruleSyntax'), ruleTime: $('#ruleTime'), rulePenalty: $('#rulePenalty'),
+  ruleGoal: $('#ruleGoal'), ruleSyntax: $('#ruleSyntax'), ruleTime: $('#ruleTime'),
   chooseOverlay: $('#chooseOverlay'), chooseTitle: $('#chooseTitle'),
   chooseHint: $('#chooseHint'), chooseList: $('#chooseList'),
   overOverlay: $('#overOverlay'), overReason: $('#overReason'),
   overRounds: $('#overRounds'), overWins: $('#overWins'),
   overSolution: $('#overSolution'), restart: $('#restartBtn'), changeDiff: $('#changeDiffBtn'),
-  diffSection: $('#diffSection'), rulesTitle: $('#rulesTitle'), symMeta: $('#symMeta'),
+  rulesTitle: $('#rulesTitle'), symMeta: $('#symMeta'),
   rulesToggle: $('#rulesToggle'), rulesDetail: $('#rulesDetail')
 };
 
@@ -1023,7 +1014,6 @@ const state = {
   target: 24,
   diff: 'hard',
   mode: 'advanced',
-  practice: false,
   bonus: [],
   hand: [],
   formula: [],
@@ -1592,12 +1582,12 @@ placeSymbols();
    ============================================================ */
 function startTimer() {
   stopTimer();
-  state.roundTime = state.practice ? 0 : diffConf().time;
+  state.roundTime = diffConf().time;
   state.timeLeft = state.roundTime;
   state.lastTick = performance.now();
   state.paused = false;
   updateTimerUI(state.roundTime);
-  if (!state.practice) state.timerId = setInterval(tick, 100);
+  state.timerId = setInterval(tick, 100);
 }
 function stopTimer() {
   if (state.timerId) clearInterval(state.timerId);
@@ -1616,12 +1606,6 @@ function tick() {
   }
 }
 function updateTimerUI(t) {
-  els.timer.classList.toggle('free', state.practice);
-  if (state.practice) {
-    els.timerNum.textContent = '不限时练习';
-    els.timer.classList.remove('warn');
-    return;
-  }
   const total = state.roundTime || diffConf().time;
   const pct = Math.max(0, (t / total) * 100);
   els.timerFill.style.width = pct.toFixed(2) + '%';
@@ -1667,7 +1651,7 @@ function submit() {
 
   let value = null;
   try {
-    value = evalTokens(tokens, usesAdvancedSyntax());
+    value = evalTokens(tokens, !isClassic());
   } catch (err) {
     toast(err.message);
     return;   /* 语法问题不扣牌 */
@@ -1677,7 +1661,7 @@ function submit() {
     return;
   }
   const reason = '算得 ' + rStr(value) + '，目标是 ' + state.target;
-  if (isClassic() || state.practice) {
+  if (isClassic()) {
     els.feedback.textContent = reason + '。可以修改后重试。';
   } else {
     onSubmitFail(reason, false);
@@ -1912,8 +1896,7 @@ function syncModeUI() {
   els.bonusPill.hidden = classic;
   els.handArea.classList.toggle('classic', classic);
   document.title = classic ? '抢 24 点 · 经典' : '抢 24 点 · 进阶';
-  if (state.practice) els.footerRule.textContent = '不限时，答错可以继续尝试';
-  else if (classic) els.footerRule.textContent = '目标固定为 24，超时后可以查看参考答案';
+  if (classic) els.footerRule.textContent = '目标固定为 24，超时后可以查看参考答案';
   else els.footerRule.textContent = '答错或超时且没有奖励牌可扣时，游戏结束';
 }
 
@@ -1922,19 +1905,14 @@ function syncRulesText(config) {
   els.ruleGoal.textContent = classic
     ? '目标固定为 24。使用四则运算和括号，每种运算符有 3 个，括号有 2 对。'
     : '每局从 12–40 中选一个有解的整数目标，结果须精确等于目标。中间步骤允许使用分数。';
-  els.ruleSyntax.textContent = usesAdvancedSyntax(config)
-    ? '进阶挑战规则允许合并连写符号，例如 ×÷÷ 会并成 ×。'
-    : '按常规四则运算顺序计算。允许负号，例如 5×(−2)。连写的乘除号会提示改正。';
-  if (config.practice) {
-    els.ruleTime.textContent = '练习不限时。算错后可继续修改并重试。';
-  } else if (classic) {
-    els.ruleTime.textContent = '时限按难度分为 60、45 或 30 秒。答错可重试，超时可看参考答案并进入下一局。';
-  } else {
-    els.ruleTime.textContent = '时限按难度分为 60、45 或 30 秒。';
-  }
-  els.rulePenalty.hidden = classic || config.practice;
-  els.rulePenalty.textContent = '答错或超时时先扣一张奖励牌，扣到零张仍可进入下一局。此后再次答错或超时且无牌可扣时，游戏结束。';
-  $$('[data-advanced]').filter(node => node !== els.rulePenalty).forEach(node => { node.hidden = classic; });
+  els.ruleSyntax.textContent = classic
+    ? '按常规四则运算顺序计算。允许负号，例如 5×(−2)。连写的乘除号会提示改正。'
+    : '进阶挑战规则允许合并连写符号，例如 ×÷÷ 会并成 ×。';
+  const timeRule = '时限按难度分为 60、45 或 30 秒。';
+  els.ruleTime.textContent = classic
+    ? timeRule + '答错可重试，超时可看参考答案并进入下一局。'
+    : timeRule;
+  $$('[data-advanced]').forEach(node => { node.hidden = classic; });
 }
 
 function syncDiffUI() {
@@ -1950,15 +1928,13 @@ function syncDiffUI() {
     const on = btn.dataset.diff === config.diff;
     btn.classList.toggle('on', on);
     btn.setAttribute('aria-pressed', on);
-    const details = config.practice ? [] : [difficulty.time + ' 秒'];
+    const details = [difficulty.time + ' 秒'];
     if (!classic) {
       details.push('符号 ' + difficulty.min + '–' + difficulty.max + ' 个');
       if (difficulty.use === 1) details.push('奖励牌限用 1 张');
     }
     btn.querySelector('span').textContent = details.join(' · ');
   });
-  els.practiceInput.checked = config.practice;
-  els.diffSection.hidden = classic && config.practice;
   els.diffLabel.textContent = classic ? '时限难度' : '难度';
   syncRulesText(config);
 
@@ -1969,7 +1945,7 @@ function syncDiffUI() {
       ? '每种运算符 3 个 · 括号 2 对'
       : d.label + ' · 每局 ' + d.min + '–' + d.max + ' 个 · 用一个少一个';
     if (state.phase === 'idle') {
-      state.roundTime = state.practice ? 0 : d.time;
+      state.roundTime = d.time;
       updateTimerUI(state.roundTime);
     }
   }
@@ -1999,8 +1975,8 @@ function openRules() {
 }
 
 function openSettings() {
-  const { mode, diff, practice } = state;
-  settingsDraft = { mode, diff, practice };
+  const { mode, diff } = state;
+  settingsDraft = { mode, diff };
   setRulesPanel(true);
   els.rulesOverlay.querySelector('.modal').scrollTop = 0;
   document.querySelector('[data-mode].on').focus({ preventScroll: true });
@@ -2051,12 +2027,6 @@ $$('[data-mode], [data-diff]').forEach((btn) => {
     syncDiffUI();
   });
 });
-els.practiceInput.addEventListener('change', () => {
-  if (!settingsDraft && state.phase !== 'idle') return;
-  (settingsDraft || state).practice = els.practiceInput.checked;
-  syncDiffUI();
-});
-
 els.rulesToggle.addEventListener('click', () => {
   els.rulesDetail.hidden = !els.rulesDetail.hidden;
   els.rulesToggle.setAttribute('aria-expanded', !els.rulesDetail.hidden);
