@@ -1,0 +1,1737 @@
+<!DOCTYPE html>
+<!-- 石门中学伍岭教练 · wuling.name -->
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>分割实验室 · 分与合</title>
+<style>
+  :root{
+    --ink:#241C3A; --ink2:#5C4F80; --ink3:#9A8EB8;
+    --paper:#FFF8EA; --card:#FFFDF7;
+    --pink:#FF4F97; --cyan:#20C2E8; --lemon:#FFD23F; --mint:#2FD79B; --violet:#7B5CFA;
+    --edge:#E6DCF3;
+  /* © 石门中学伍岭教练 · wuling.name */
+  }
+  *{box-sizing:border-box}
+  html,body{height:100%;margin:0}
+  body{
+    color:var(--ink); background:#FFF8EA; overflow:hidden;
+    font-family:"PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;
+    -webkit-font-smoothing:antialiased;
+  }
+  body::before{
+    content:""; position:fixed; inset:0; z-index:-2;
+    background:
+      radial-gradient(58% 48% at 86% 2%, #FFE2F0 0%, rgba(255,226,240,0) 60%),
+      radial-gradient(52% 52% at 6% 98%, #DCF5FF 0%, rgba(220,245,255,0) 62%),
+      linear-gradient(148deg,#FFFBF1 0%,#FFF2F5 52%,#F2EFFF 100%);
+  }
+  body::after{
+    content:""; position:fixed; inset:0; z-index:-1; pointer-events:none;
+    background-image:radial-gradient(rgba(36,28,58,.13) 1px, transparent 1.15px);
+    background-size:15px 15px; opacity:.4;
+    -webkit-mask-image:radial-gradient(115% 85% at 50% 45%, #000 10%, transparent 92%);
+            mask-image:radial-gradient(115% 85% at 50% 45%, #000 10%, transparent 92%);
+  }
+  .app{height:100%;max-width:1620px;margin:0 auto;padding:14px 20px 16px;display:flex;flex-direction:column;gap:12px}
+  header{display:flex;align-items:center;gap:12px;flex:0 0 auto}
+  .brand-mark{
+    width:46px;height:46px;flex:0 0 46px;border-radius:13px;display:grid;place-items:center;
+    font-size:23px;font-weight:900;color:#fff;
+    background:linear-gradient(160deg,#FF7FB4,#FF4F97 60%,#E8307C);
+    border:2.5px solid var(--ink);box-shadow:3px 3px 0 var(--ink);transform:rotate(-6deg);
+  }
+  h1{margin:0;font-size:22px;font-weight:900;letter-spacing:.5px;line-height:1.1;white-space:nowrap}
+  h1 em{font-style:normal;color:var(--pink)}
+  .sub{margin:3px 0 0;font-size:8.5px;font-weight:800;letter-spacing:2.4px;color:#A196BD}
+  .head-sticker{
+    margin-left:auto;transform:rotate(3deg);background:var(--lemon);
+    border:2.5px solid var(--ink);border-radius:10px;padding:6px 12px;
+    font-size:11px;font-weight:900;letter-spacing:1px;box-shadow:3px 3px 0 var(--ink);
+  }
+
+  .top-right{margin-left:auto;display:flex;align-items:center;gap:10px}
+  .top-actions{display:flex;gap:7px}
+  .top-actions .pill{
+    border:2px solid var(--ink);background:#fff;border-radius:11px;padding:7px 12px;
+    font:inherit;font-size:11.5px;font-weight:900;letter-spacing:.3px;color:var(--ink);
+    cursor:pointer;box-shadow:3px 3px 0 var(--ink);transition:.12s;white-space:nowrap;
+  }
+  .top-actions .pill:hover{background:#FFF3F8}
+  .top-actions .pill:active{transform:translate(3px,3px);box-shadow:none}
+  .hero-card .hero-grid{display:grid;grid-template-columns:70px minmax(0,1fr);gap:9px;align-items:center}
+  .mascot-wrap{width:70px;height:76px;display:grid;place-items:center}
+  .mascot-svg{width:70px;height:76px;overflow:visible}
+  .mascot-float{animation:segBob 3.8s ease-in-out infinite;transform-origin:60px 100px}
+  @keyframes segBob{0%,100%{transform:translateY(0) rotate(-1.5deg)}50%{transform:translateY(-4px) rotate(1.5deg)}}
+  .eyebrow{font-size:8px;font-weight:900;letter-spacing:1.8px;color:#A99BC4}
+  .shape-line{display:flex;align-items:baseline;gap:5px;margin-top:1px}
+  .shape-line b{font-size:30px;font-weight:900;line-height:1.05;color:var(--pink);font-variant-numeric:tabular-nums}
+  .shape-line .unit{font-size:12px;font-weight:900;color:var(--ink2)}
+  .shape-en{font-size:8px;font-weight:900;letter-spacing:1.3px;color:#B4A6CB;margin-top:1px}
+  .hero-card .bubble{
+    margin-top:5px;background:#fff;border:2px solid var(--ink);border-radius:9px;border-top-left-radius:2px;
+    padding:4px 7px;font-size:9.5px;font-weight:700;line-height:1.42;color:var(--ink2);
+  }
+
+  .hero-card .metrics{display:grid;grid-template-columns:repeat(3,1fr);gap:4px;margin-top:3px}
+  .hero-card .metric{text-align:center}
+  .hero-card .metric b{display:block;font-size:19px;font-weight:900;line-height:1.05;color:var(--pink);
+    font-variant-numeric:tabular-nums;letter-spacing:-.2px}
+  .hero-card .metric span{display:block;margin-top:2px;font-size:9px;font-weight:800;letter-spacing:.5px;color:#A99BC4}
+  .hero-card .metric em{font-style:normal}
+  .hero-card .metric i{font-style:normal;font-size:8px;margin-left:4px;opacity:.7}
+  .render-status{
+    margin:7px 0 0;padding:5px 7px;border:1px solid #E4B860;border-radius:8px;
+    background:#FFF4CF;color:#634412;font-size:11px;line-height:1.45;
+  }
+  main{flex:1;min-height:0;display:grid;grid-template-columns:minmax(0,1fr) 356px;gap:14px}
+
+  .stage{
+    position:relative;display:flex;align-items:center;justify-content:center;padding:8px;
+    border:2.5px solid var(--ink);border-radius:22px;background:#FFFDF7;
+    box-shadow:6px 6px 0 var(--ink);overflow:hidden;
+  /* 作者：石门中学伍岭教练（wuling.name） */
+  }
+  canvas{display:block;border-radius:14px;touch-action:none;cursor:crosshair}
+  canvas:focus-visible{outline:3px solid var(--violet);outline-offset:3px}
+
+  .hudtag{
+    position:absolute;left:16px;top:14px;font-size:11px;font-weight:900;letter-spacing:2px;
+    background:var(--lemon);border:2px solid var(--ink);border-radius:9px;padding:4px 11px;
+    box-shadow:2px 2px 0 var(--ink);pointer-events:none;transform:rotate(-2deg);
+  }
+  .counts{position:absolute;left:14px;bottom:14px;display:flex;gap:7px;pointer-events:none}
+  .count{
+    display:flex;align-items:baseline;gap:6px;background:#fffdf7;
+    border:2px solid var(--ink);border-radius:12px;padding:4px 11px 6px;box-shadow:2.5px 2.5px 0 var(--ink);
+  }
+  .count span{font-size:10px;font-weight:800;color:var(--ink2);white-space:nowrap}
+  .count b{font-size:23px;line-height:1;font-weight:900;color:var(--ink);font-variant-numeric:tabular-nums}
+  .count i{font-style:normal;font-size:10px;color:#A99BC4}
+  .count.sec b{color:var(--ink2)}
+  .note{
+    position:absolute;right:16px;top:14px;font-size:10.5px;font-weight:800;color:var(--ink2);
+    background:#fffdf7;border:2px solid var(--ink);border-radius:10px;padding:4px 11px;
+    box-shadow:2px 2px 0 var(--ink);pointer-events:none;max-width:calc(100% - 90px);
+  }
+
+  .panel{min-height:0;overflow-y:auto;display:flex;flex-direction:column;gap:9px;padding:2px 4px 4px 0;scrollbar-width:none}
+  .panel::-webkit-scrollbar{width:0}
+  .panel>div{background:var(--card);border:2.5px solid var(--ink);border-radius:15px;box-shadow:3.5px 3.5px 0 var(--ink);padding:9px 10px}
+  .panel>.acts{border:0;box-shadow:none;background:transparent;padding:0}
+  .lab{font-size:10px;font-weight:900;letter-spacing:1.2px;color:#A99BC4}
+  .seg{display:flex;background:#F3EDFB;border:2px solid var(--ink);border-radius:11px;padding:3px;gap:3px}
+  .seg button{flex:1;border:0;background:transparent;border-radius:8px;padding:6px 0;font:inherit;
+    font-size:12.5px;font-weight:900;color:var(--ink2);cursor:pointer;letter-spacing:.5px;transition:.14s}
+  .seg button.on{background:var(--ink);color:#fff}
+  .row{display:flex;justify-content:space-between;align-items:baseline;gap:8px}
+  .row b{font-size:17px;font-weight:900;color:var(--ink);font-variant-numeric:tabular-nums}
+
+  input[type=range]{-webkit-appearance:none;appearance:none;width:100%;height:18px;background:transparent;cursor:pointer;margin:0}
+  input[type=range]::-webkit-slider-runnable-track{height:6px;border-radius:99px;border:2px solid var(--ink);background:#fff}
+  input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:15px;height:15px;margin-top:-6.5px;border-radius:50%;
+    background:#fff;border:2.5px solid var(--ink);box-shadow:1.5px 1.5px 0 rgba(36,28,58,.55)}
+  input[type=range]::-moz-range-track{height:6px;border-radius:99px;border:2px solid var(--ink);background:#fff}
+  input[type=range]::-moz-range-thumb{width:12px;height:12px;border-radius:50%;background:#fff;border:2.5px solid var(--ink)}
+
+  .chips{display:flex;flex-wrap:wrap;gap:5px;margin-top:6px}
+  .chip{display:flex;align-items:center;gap:5px;border:2px solid var(--ink);background:#fff;border-radius:9px;
+    padding:4px 8px 4px 5px;font:inherit;font-size:11.5px;font-weight:900;color:var(--ink2);cursor:pointer;
+    box-shadow:2px 2px 0 var(--ink);transition:.12s}
+  .chip:active{transform:translate(2px,2px);box-shadow:none}
+  .chip i{font-style:normal;width:15px;height:15px;border-radius:50%;display:grid;place-items:center;
+    background:#EDE5F8;color:var(--ink);font-size:9.5px;font-weight:900}
+  .chip.on{background:var(--ink);color:#fff}
+  .chip.on i{background:var(--lemon);color:var(--ink)}
+
+  .slider{display:flex;flex-direction:column;gap:2px;margin-top:6px}
+  .slider-head{display:flex;justify-content:space-between;align-items:baseline;font-size:10.5px;font-weight:800;color:var(--ink2)}
+  .slider-head b{font-size:11.5px;color:var(--ink);font-weight:900;font-variant-numeric:tabular-nums}
+  .toggles{display:flex;gap:5px;margin-top:5px}
+  .toggles button{border:2px solid var(--ink);background:#fff;border-radius:8px;padding:3px 10px;font:inherit;
+    font-size:11px;font-weight:900;color:var(--ink2);cursor:pointer;transition:.12s}
+  .toggles button.on{background:var(--ink);color:#fff}
+
+  .acts{display:flex;gap:7px}
+  .acts button{flex:1;border:2.5px solid var(--ink);background:#fffdf7;border-radius:11px;padding:8px 0;font:inherit;
+    font-size:12px;font-weight:900;letter-spacing:.6px;color:var(--ink);cursor:pointer;box-shadow:3px 3px 0 var(--ink);transition:.12s}
+  .acts button:active{transform:translate(3px,3px);box-shadow:none}
+  .acts.ext button{background:var(--lemon)}
+  .foot{margin:0;font-size:10px;line-height:1.7;color:#8C7FA8;border-top:2px dashed rgba(36,28,58,.14);padding-top:8px}
+  .foot b{color:var(--ink2);font-weight:900}
+
+  /* 右下角署名：固定小字，不占版面 */
+  .sign-tag{
+    position:fixed;right:14px;bottom:5px;z-index:60;pointer-events:none;
+    font-size:8px;font-weight:800;letter-spacing:.5px;color:rgba(122,104,160,.42);
+    text-shadow:0 1px 0 rgba(255,255,255,.7);
+  }
+  @media (max-width:720px){ .sign-tag{font-size:7px;right:8px;bottom:3px;} }
+
+  @media (max-width:1000px){
+    body{overflow:auto}
+    .app{height:auto;min-height:100%;padding:12px 14px 18px}
+    main{grid-template-columns:minmax(0,1fr);grid-template-rows:auto auto}
+    .stage{height:clamp(230px,70vw,420px)}
+    .panel{overflow:visible}
+    .panel>div{flex-shrink:0}
+    .seg button,.acts button,.chip{min-height:34px}
+    input[type=range]{height:26px}
+    input[type=range]::-webkit-slider-thumb{width:20px;height:20px;margin-top:-9px}
+    .head-sticker{display:none}
+  /* 石门中学伍岭教练 · wuling.name · 保留所有权利 */
+  }
+  @media (min-width:521px) and (max-width:1000px){
+    .panel{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));align-items:start}
+    .panel>.hero-card,.panel>.acts,.panel>.foot{grid-column:1/-1}
+  }
+  @media (max-width:520px){
+    header{display:grid;grid-template-columns:auto minmax(0,1fr);gap:8px 11px}
+    h1{font-size:clamp(17px,5vw,22px);white-space:normal}
+    .sub{font-size:10px;letter-spacing:.3px}
+    .top-right{grid-column:1/-1;margin-left:0;justify-content:flex-end}
+    .top-actions .pill{min-height:34px}
+    .hudtag{left:12px;top:10px}
+    .note{right:12px;top:10px;padding:4px 6px}
+  }
+</style>
+</head>
+<body>
+<div class="app">
+  <header>
+    <div class="brand-mark">割</div>
+    <!-- 石门中学伍岭教练 · wuling.name -->
+    <div>
+      <h1>分割实验室 <em>·</em> 分与合</h1>
+      <p class="sub">线段、圆与球的排列，把平面与空间切成几块？</p>
+    </div>
+    <div class="top-right">
+      <!-- 石门中学伍岭教练 · wuling.name -->
+      <div class="top-actions">
+        <button class="pill" id="btnRandom">⟳ 随机</button>
+        <button class="pill" id="btnReset">↺ 重置</button>
+      </div>
+    </div>
+  </header>
+  <main>
+    <section class="stage" id="stage">
+      <!-- © 石门中学伍岭教练 · wuling.name -->
+      <canvas id="cv" tabindex="0" aria-label="区域分割画布，左右方向键切换元素"></canvas>
+      <div class="hudtag" id="hudMode">平面</div>
+      <div class="note" id="note">—</div>
+    </section>
+    <aside class="panel">
+      <div class="hero-card">
+        <div class="hero-grid">
+          <div class="mascot-wrap">
+            <svg class="mascot-svg" viewBox="0 0 120 132" aria-hidden="true">
+              <defs>
+                <clipPath id="cutTop"><path d="M12 58 A48 48 0 0 1 108 58 Z"/></clipPath>
+                <clipPath id="cutBot"><path d="M12 58 A48 48 0 0 0 108 58 Z"/></clipPath>
+              </defs>
+              <ellipse cx="60" cy="120" rx="27" ry="6" fill="#7c5896" opacity=".14"/>
+              <g class="mascot-float">
+                <circle cx="60" cy="58" r="48" fill="#FFC7DF" stroke="#241C3A" stroke-width="4.6"/>
+                <g clip-path="url(#cutBot)">
+                  <circle cx="60" cy="58" r="48" fill="#B0E8F8"/>
+                </g>
+                <path d="M12 58 L108 58" stroke="#241C3A" stroke-width="4.4" stroke-linecap="round"/>
+                <g clip-path="url(#cutTop)">
+                  <ellipse cx="44" cy="40" rx="5.4" ry="7" fill="#241C3A"/>
+                  <ellipse cx="72" cy="40" rx="5.4" ry="7" fill="#241C3A"/>
+                  <circle cx="45.8" cy="37" r="2" fill="#fff"/>
+                  <circle cx="73.8" cy="37" r="2" fill="#fff"/>
+                  <ellipse cx="30" cy="50" rx="6" ry="3.4" fill="#FF8FB6" opacity=".75"/>
+                  <ellipse cx="88" cy="50" rx="6" ry="3.4" fill="#FF8FB6" opacity=".75"/>
+                </g>
+                <path d="M52 68 q8 8 16 0" fill="none" stroke="#241C3A" stroke-width="3.2" stroke-linecap="round"/>
+                <g transform="translate(96,96)">
+                  <circle r="15" fill="#FFD23F" stroke="#241C3A" stroke-width="3.2"/>
+                  <path d="M-6 -7 L4 3 M6 -7 L-4 3" stroke="#241C3A" stroke-width="2.8" stroke-linecap="round"/>
+                  <circle cx="-4" cy="6" r="3.4" fill="none" stroke="#241C3A" stroke-width="2.4"/>
+                  <circle cx="4" cy="6" r="3.4" fill="none" stroke="#241C3A" stroke-width="2.4"/>
+                </g>
+              </g>
+            </svg>
+          </div>
+          <div class="hero-copy">
+            <div class="eyebrow">COUNTS · 当前读数</div>
+            <!-- 石门中学伍岭教练 · wuling.name -->
+            <div class="metrics">
+              <div class="metric"><b id="hudCount0">–</b><span><em id="hudCount0Label">元素</em><i>个</i></span></div>
+              <div class="metric"><b id="hudCount2">–</b><span><em id="hudCount2Label">交点</em><i id="hudCount2Unit">个</i></span></div>
+              <div class="metric"><b id="hudCount">–</b><span><em>区域数</em><i>块</i></span></div>
+            </div>
+            <div class="bubble" id="heroTip">拖端点、拖圆心，看看区域数会不会变？</div>
+          </div>
+        </div>
+        <p class="render-status" id="renderStatus" hidden></p>
+      </div>
+      <div class="acts ext" id="extremeActions">
+        <button id="btnMin">区域最少</button>
+        <button id="btnMax">区域最多</button>
+      </div>
+      <div id="modeCard">
+        <div class="lab">模式</div>
+        <!-- 石门中学伍岭教练 · wuling.name · 保留所有权利 -->
+        <div class="seg" id="modeSeg" style="margin-top:6px">
+          <button data-mode="2d" class="on">平面</button>
+          <button data-mode="3d">空间</button>
+        </div>
+      </div>
+      <div id="viewOpts" style="display:none">
+        <div class="lab">视图</div>
+        <div class="seg" id="transSeg" style="margin-top:6px">
+          <!-- 石门中学伍岭教练 · wuling.name -->
+          <button data-t="0" class="on">实心</button>
+          <button data-t="1">透视</button>
+        </div>
+      </div>
+      <div id="markOpts" style="display:none">
+        <div class="lab">区域编号</div>
+        <div class="seg" id="markSeg" style="margin-top:6px">
+          <!-- © 石门中学伍岭教练 · wuling.name -->
+          <button data-m="1" class="on">显示</button>
+          <button data-m="0">隐藏</button>
+        </div>
+      </div>
+      <div id="countCard">
+        <div class="row"><label class="lab" for="countRange">元素数量</label><b id="countLabel">3</b></div>
+        <input type="range" id="countRange" min="1" max="8" step="1" value="3">
+        <!-- 作者：石门中学伍岭教练（wuling.name） -->
+        <div class="chips" id="chips" style="margin-top:4px"></div>
+      </div>
+      <div id="detail" style="display:flex;flex-direction:column;gap:10px"></div>
+      <p class="foot">
+        「区域最多/最少」会按当前元素类型自动摆出极值排布，直线总铺满画框。<br>
+        <b>平面·最少</b>（边界互不重合）：圆同心嵌套、直线互相平行且互不相交，共 <b>1 + 直线数 + 圆数</b> 块。重合的边界在区域计数时只计一次。<br>
+        点击元素选中。<b>平面</b>：直线拖线身平移、拖两端转动方向；拖圆的内部平移圆心。<br>
+        <b>空间</b>：拖球平移，拖空白处旋转视角；切到「透视」可看到球内区域。<br>
+        区域数按几何关系计算，着色和编号由像素或体素生成。细小区域可能未能着色，同色的区域可能互不连通。
+      </p>
+    </aside>
+  </main>
+</div>
+<div class="sign-tag">© 石门中学伍岭教练 · wuling.name</div>
+
+<script>
+window.__err=[]; window.onerror=(m)=>{window.__err.push(String(m));};
+
+/* ══════════ 常量 ══════════ */
+const W2=900, H2=620, BACK=2;      // 平面世界尺寸 / 画布倍率
+const B3=6;                        // 空间半边长
+const PAPER=[255,248,234];
+const RAW=[
+  [255,249,240],[255,183,214],[176,232,248],[178,240,217],
+  [255,230,150],[214,203,246],[255,206,180],[186,214,245],
+  [201,236,190],[246,192,206],[226,215,250],[238,226,198]
+];
+const PALETTE=RAW.map(c=>c.map((v,i)=>Math.round(v*0.86+PAPER[i]*0.14)));
+const $=s=>document.querySelector(s);
+const frac=x=>x-Math.floor(x);
+const rgb=c=>`rgb(${c[0]},${c[1]},${c[2]})`;
+const shade=(c,k)=>`rgb(${Math.min(255,Math.round(c[0]*k))},${Math.min(255,Math.round(c[1]*k))},${Math.min(255,Math.round(c[2]*k))})`;
+
+/* ══════════ 状态 ══════════ */
+const state={mode:'2d', n:3, sel:0, yaw:0.62, pitch:0.30, trans:false, marks:true};
+const els2=[], els3=[];
+let reg2=null, reg3=null, spheres3=[];
+
+const cv=$('#cv'), ctx=cv.getContext('2d');
+/* 离屏画布：作者信息贴图（只在内存里，页面上看不到） */
+const SIG_TEX=document.createElement('canvas');
+SIG_TEX.width=1024; SIG_TEX.height=128;
+(()=>{
+  const g=SIG_TEX.getContext('2d');
+  g.fillStyle='#5B4A8A';
+  g.font="900 54px 'PingFang SC','Hiragino Sans GB',sans-serif";
+  g.textBaseline='middle';
+  g.fillText('石门中学伍岭教练 · wuling.name',6,66);
+// 石门中学伍岭教练 · wuling.name
+})();
+function drawSignature(k){
+  ctx.save();
+  ctx.globalAlpha=0.05; ctx.fillStyle='#6B5A9A';
+  ctx.font='700 '+(11*k)+"px 'PingFang SC','Hiragino Sans GB',sans-serif";
+  ctx.textAlign='left'; ctx.textBaseline='alphabetic';
+  ctx.fillText('石门中学伍岭教练 · wuling.name',40*k,(H2-24)*k);
+  ctx.restore();
+  ctx.save();
+  ctx.globalAlpha=0.009;
+  ctx.drawImage(SIG_TEX,16*k,14*k,380*k,48*k);
+  ctx.restore();
+}
+cv.width=W2*BACK; cv.height=H2*BACK;
+
+function activeEls(){ return (state.mode==='2d'?els2:els3).slice(0,state.n); }
+function typeName(e){ return e.type==='seg'?'直线':e.type==='circle'?'圆':'球'; }
+function segEnds(e){
+  const ux=Math.cos(e.ang), uy=Math.sin(e.ang);
+  const [from,to]=clipLineBox(e.x,e.y,ux,uy);
+  const point=t=>[
+    Math.max(0,Math.min(W2,e.x+t*ux)),
+    Math.max(0,Math.min(H2,e.y+t*uy))
+  ];
+  return [...point(from),...point(to)];
+}
+/* ══════════ 边界与默认值 ══════════ */
+function clampEl(e){
+  if(e.type==='seg'){
+    // 直线：只需把中心留在画面内，长度由画框自动裁出
+    e.x=Math.min(Math.max(e.x,8),W2-8);
+    e.y=Math.min(Math.max(e.y,8),H2-8);
+  }else if(e.type==='circle'){
+    e.r=Math.min(Math.max(e.r,18),Math.min(W2,H2)/2-10);
+    e.x=Math.min(Math.max(e.x,e.r+4),W2-e.r-4);
+    e.y=Math.min(Math.max(e.y,e.r+4),H2-e.r-4);
+  }else{
+    e.r=Math.min(Math.max(e.r,0.4),B3-0.6);
+    const lim=B3-e.r-0.08;
+    e.x=Math.min(Math.max(e.x,-lim),lim);
+    e.y=Math.min(Math.max(e.y,-lim),lim);
+    e.z=Math.min(Math.max(e.z,-lim),lim);
+  // © 石门中学伍岭教练 · wuling.name
+  }
+}
+function defaults(){
+  els2[0]={type:'circle', x:300, y:248, r:112};
+  els2[1]={type:'seg', x:460, y:312, ang:0};
+  els2[2]={type:'circle', x:622, y:372, r:104};
+  for(let i=3;i<8;i++){
+    if(i%2===1){
+      els2[i]={type:'circle', x:W2*(0.28+0.40*frac(i*0.37)), y:H2*(0.32+0.36*frac(i*0.61)), r:90+16*(i-3)};
+    }else{
+      els2[i]={type:'seg', x:W2*(0.30+0.38*frac(i*0.53)), y:H2*(0.32+0.36*frac(i*0.79)),
+        ang:((i*61)%180)*Math.PI/180};
+    }
+  }
+  for(let i=0;i<8;i++) clampEl(els2[i]);
+
+  for(let i=0;i<8;i++){
+    const a=-2.2+i*0.62, rr=3.3;
+    els3[i]={type:'sphere',
+      x:rr*Math.cos(a), y:rr*Math.sin(a), z:0.75*Math.sin(i*0.9),
+      r:1.45+0.09*i};
+    clampEl(els3[i]);
+  }
+// 作者：石门中学伍岭教练（wuling.name）
+}
+
+/* ══════════ 极值排布（区域最多 / 最少） ══════════ */
+let vseed=20240101;
+function vrnd(){ vseed=(vseed*1664525+1013904223)>>>0; return vseed/4294967296; }
+function jit(on,amp){ return on? (vrnd()-0.5)*2*amp : 0; }
+
+function clipLineBox(px,py,ux,uy){
+  let tmin=-Infinity, tmax=Infinity;
+  if(Math.abs(ux)>1e-12){
+    const t1=(0-px)/ux, t2=(W2-px)/ux;
+    tmin=Math.max(tmin,Math.min(t1,t2)); tmax=Math.min(tmax,Math.max(t1,t2));
+  }else if(px<0||px>W2) return null;
+  if(Math.abs(uy)>1e-12){
+    const t1=(0-py)/uy, t2=(H2-py)/uy;
+    tmin=Math.max(tmin,Math.min(t1,t2)); tmax=Math.min(tmax,Math.max(t1,t2));
+  }else if(py<0||py>H2) return null;
+  return tmax>tmin ? [tmin,tmax] : null;
+}
+function layoutMax2(els,j){
+  const cx=W2/2, cy=H2/2;
+  const circles=els.filter(e=>e.type==='circle');
+  const segs=els.filter(e=>e.type==='seg');
+  const m=circles.length, p=segs.length;
+  const big=(p===0), mixed=(p>0&&m>0);
+  // 混合：圆加大、圆心理靠近中心，保证每条直线都能穿过每个圆（否则切不“最多”）
+  const rho=(big?100:(mixed?58:85))+jit(j,mixed?5:6), rr=(big?132:(mixed?158:118))+jit(j,mixed?5:6);
+  circles.forEach((e,i)=>{
+    const a=-Math.PI/2 + (m>1? i*2*Math.PI/m + 0.21*(i%2) : 0) + jit(j,0.05);
+    e.x=cx+rho*Math.cos(a)+jit(j,5);
+    e.y=cy+rho*Math.sin(a)+jit(j,5);
+    e.r=rr+jit(j,4);
+  });
+  // 线段最多区域：每条线段 = 贯穿画面的弦（等价一条直线）；
+  // 偏移用"最小交点间距最大化"来选，避免所有交点挤在中心
+  const angs = segs.map((_, i) => (i * Math.PI / p) + (i % 2 ? 0.035 : -0.025));
+  const lineAt = (i, o) => {
+    const a = angs[i];
+    return { px: cx - Math.sin(a) * o, py: cy + Math.cos(a) * o, ux: Math.cos(a), uy: Math.sin(a) };
+  };
+  const cross2 = (A, B) => {
+    const den = A.ux * B.uy - A.uy * B.ux;
+    if (Math.abs(den) < 1e-6) return null;
+    const t = ((B.px - A.px) * B.uy - (B.py - A.py) * B.ux) / den;
+    return [A.px + A.ux * t, A.py + A.uy * t];
+  };
+  let bestOffs = null, bestScore = -1;
+  for (let t = 0; t < 220; t++) {
+    const offs = angs.map(() => (vrnd() - 0.5) * 2 * (mixed ? 84 : 120));
+    const pts2 = [];
+    let ok = true;
+    for (let i = 0; i < p && ok; i++) for (let j = i + 1; j < p; j++) {
+      const c = cross2(lineAt(i, offs[i]), lineAt(j, offs[j]));
+      if (!c) { ok = false; break; }
+      if (c[0] < 46 || c[0] > W2 - 46 || c[1] < 46 || c[1] > H2 - 46) { ok = false; break; }
+      pts2.push(c);
+    }
+    if (!ok) continue;
+    let md = 1e9, x0 = 1e9, x1 = -1e9, y0 = 1e9, y1 = -1e9;
+    for (let i = 0; i < pts2.length; i++) {
+      x0 = Math.min(x0, pts2[i][0]); x1 = Math.max(x1, pts2[i][0]);
+      y0 = Math.min(y0, pts2[i][1]); y1 = Math.max(y1, pts2[i][1]);
+      for (let j = i + 1; j < pts2.length; j++) {
+        const d = Math.hypot(pts2[i][0] - pts2[j][0], pts2[i][1] - pts2[j][1]);
+        if (d < md) md = d;
+      }
+    }
+    // 既拉开最近的两个交点，也让交点云整体铺满画面
+    const sc = md + 0.05 * Math.sqrt((x1 - x0) * (y1 - y0));
+    if (sc > bestScore) { bestScore = sc; bestOffs = offs; }
+  }
+  if (!bestOffs) bestOffs = angs.map((_, i) => (i - (p - 1) / 2) * 30 + jit(j, 3));
+  segs.forEach((e, i) => {
+    const L = lineAt(i, bestOffs[i]);
+    e.ang = angs[i];
+    e.x = L.px;
+    e.y = L.py;
+  });
+}
+
+function layoutMax3(els,j){
+  const n=els.length;
+  if(n===1){ Object.assign(els[0],{x:0,y:0,z:0,r:2.6}); return; }
+  const rho=(n<=2?1.0:(n<=4?1.9:2.3)) + jit(j,0.12);
+  els.forEach((e,i)=>{
+    const ang=2.399963*i + jit(j,0.15);
+    const yy=1-2*(i+0.5)/n;
+    const rad=Math.sqrt(Math.max(0,1-yy*yy));
+    e.x=rho*rad*Math.cos(ang)+jit(j,0.10);
+    e.y=rho*yy+jit(j,0.10);
+    e.z=rho*rad*Math.sin(ang)+jit(j,0.10);
+    e.r=3.0+0.75*(((i*0.618034)%1)-0.5)+jit(j,0.05);
+  });
+// 石门中学伍岭教练 · wuling.name · 保留所有权利
+}
+function meanCount(){
+  const els=activeEls();
+  return state.mode==='2d'? exact2(els).count : sphereArrangement(els).count;
+}
+function doExtreme(kind){
+  const els=activeEls();
+  if(!els.length) return;
+  if(kind==='min'){
+    if(state.mode==='2d'){
+      // 真正的最小值 = 1 + 圆数 + 直线数：要求任意两个元素都不相交。
+      // 圆 → 同心嵌套；直线 → 互相平行、条条铺满画框，且整体从圆的一侧让开。
+      // （直线一旦穿过圆，就会额外切出区域，那就不再是“最少”了。）
+      const circles=els.filter(e=>e.type==='circle');
+      const segs2=els.filter(e=>e.type==='seg');
+      const m=circles.length, p=segs2.length;
+      const cy=H2/2, rMax=210, rMin=60;
+      const cx = p>0 ? 246 : W2/2;          // 有直线时圆靠左，右侧留给直线
+      circles.forEach((e,i)=>{
+        e.x=cx; e.y=cy;
+        e.r = m>1 ? (rMin + i*(rMax-rMin)/(m-1)) : 150;
+      });
+      const circleRight = m>1 ? rMax : (m===1 ? 150 : 0);
+      const lx0 = cx + circleRight + 74;
+      const lstep = (W2 - lx0)/p;            // 右侧等分成 p 条，条条一样宽
+      segs2.forEach((e,i)=>{
+        const x = m>0
+          ? (p>1 ? lx0 + i*lstep : (lx0+W2)/2)
+          : W2*(i+1)/(p+1);                 // 全是直线：等距平行，n 条分成 n+1 块
+        e.ang=Math.PI/2; e.x=x; e.y=cy;
+      });
+    }else{
+      // 约束：球不能重合（这里让它们两两分离），n 个分离的球把空间分成 n+1 块
+      const n=els.length;
+      if(n===1){ Object.assign(els[0],{x:0,y:0,z:0,r:2.2}); }
+      else{
+        const R=2.2+0.25*n;
+        const r=Math.min(1.2, R*Math.sin(Math.PI/n)*0.8);
+        els.forEach((e,i)=>{
+          const a=2*Math.PI*i/n;
+          e.x=R*Math.cos(a); e.z=R*Math.sin(a); e.y=0; e.r=r;
+        });
+      }
+    }
+    refresh(false); renderDetail();
+    return;
+  // 石门中学伍岭教练 · wuling.name
+  }
+  // 最多：固定种子，保证每次点击得到同一构型、同一数值
+  vseed=20240101;
+  const tries=(state.mode==='2d')?34:26;
+  const snaps=els.map(e=>Object.assign({},e));
+  let bestN=-1, bestEnc=null;
+  for(let t=0;t<tries;t++){
+    if(state.mode==='2d') layoutMax2(els, t>0); else layoutMax3(els, t>0);
+    const c=meanCount();
+    if(c>bestN){ bestN=c; bestEnc=els.map(e=>Object.assign({},e)); }
+  }
+  if(bestEnc) bestEnc.forEach((o,i)=>Object.assign(els[i],o));
+  else snaps.forEach((o,i)=>Object.assign(els[i],o));
+  refresh(false); renderDetail();
+}
+
+/* ══════════ 区域计数：几何边界与交点 ══════════ */
+const GEOM2_EPS=1e-6, GEOM3_EPS=1e-8;
+
+function radialIntersection(r1,r2,d,eps){
+  const outer=r1+r2, inner=Math.abs(r1-r2);
+  if(d<=eps||d>outer+eps||d<inner-eps) return null;
+  const along=(r1*r1-r2*r2+d*d)/(2*d);
+  const tangent=Math.abs(d-outer)<=eps||Math.abs(d-inner)<=eps;
+  return {along,r:tangent?0:Math.sqrt(Math.max(0,(r1-along)*(r1+along)))};
+}
+
+function curveInt2(A,B){
+  const eps=GEOM2_EPS;
+  if(A.t==='c'&&B.t==='c'){
+    const dx=B.x-A.x,dy=B.y-A.y,d=Math.hypot(dx,dy);
+    const hit=radialIntersection(A.r,B.r,d,eps);
+    if(!hit) return [];
+    const ux=dx/d,uy=dy/d,mx=A.x+hit.along*ux,my=A.y+hit.along*uy;
+    return hit.r===0 ? [[mx,my]] : [[mx-uy*hit.r,my+ux*hit.r],[mx+uy*hit.r,my-ux*hit.r]];
+  }
+  if(A.t==='c'||B.t==='c'){
+    const C=A.t==='c'?A:B,S=A.t==='s'?A:B;
+    const [ax,ay]=S.a,[bx,by]=S.b,L=Math.hypot(bx-ax,by-ay);
+    if(L<=eps) return [];
+    const ux=(bx-ax)/L,uy=(by-ay)/L,dx=C.x-ax,dy=C.y-ay;
+    const foot=dx*ux+dy*uy,gap=Math.abs(dx*uy-dy*ux);
+    if(gap>C.r+eps) return [];
+    const half=Math.sqrt(Math.max(0,(C.r-gap)*(C.r+gap)));
+    const hits=Math.abs(gap-C.r)<=eps?[foot]:[foot-half,foot+half];
+    return hits.filter(t=>t>=-eps&&t<=L+eps).map(t=>{
+      const s=Math.min(L,Math.max(0,t));
+      return [ax+s*ux,ay+s*uy];
+    });
+  }
+  const [ax,ay]=A.a,[bx,by]=A.b,[cx,cy]=B.a,[dx,dy]=B.b;
+  const L=Math.hypot(bx-ax,by-ay), M=Math.hypot(dx-cx,dy-cy);
+  if(L<=eps||M<=eps) return [];
+  const ux=(bx-ax)/L,uy=(by-ay)/L,vx=(dx-cx)/M,vy=(dy-cy)/M;
+  const den=ux*vy-uy*vx;
+  if(Math.abs(den)<1e-12) return [];
+  const px=cx-ax,py=cy-ay;
+  const t=(px*vy-py*vx)/den, s=(px*uy-py*ux)/den;
+  if(t<-eps||t>L+eps||s<-eps||s>M+eps) return [];
+  const at=Math.min(L,Math.max(0,t));
+  return [[ax+at*ux,ay+at*uy]];
+}
+
+function exact2(els){
+  const eps=GEOM2_EPS, close=(p,q)=>Math.hypot(p[0]-q[0],p[1]-q[1])<=eps;
+  const curves=[];
+  let inf=false;
+  for(const e of els){
+    let curve;
+    if(e.type==='circle') curve={t:'c',x:e.x,y:e.y,r:e.r};
+    else{
+      const [ax,ay,bx,by]=segEnds(e);
+      curve={t:'s',a:[ax,ay],b:[bx,by]};
+    }
+    const same=curves.some(c=>c.t===curve.t&&(c.t==='c'
+      ? close([c.x,c.y],[curve.x,curve.y])&&Math.abs(c.r-curve.r)<=eps
+      : (close(c.a,curve.a)&&close(c.b,curve.b))||(close(c.a,curve.b)&&close(c.b,curve.a))));
+    if(same) inf=true;
+    else curves.push(curve);
+  }
+
+  // The frame is the outer boundary of the planar graph.
+  const elementCount=curves.length, frame=[[0,0],[W2,0],[W2,H2],[0,H2]];
+  for(let i=0;i<frame.length;i++) curves.push({t:'s',a:frame[i],b:frame[(i+1)%frame.length]});
+  const pts=[], crossings=new Set(), on=curves.map(()=>new Set());
+  const vertex=p=>{
+    const i=pts.findIndex(q=>close(p,q));
+    if(i>=0) return i;
+    pts.push(p); return pts.length-1;
+  };
+  for(let i=0;i<curves.length;i++) for(let j=i+1;j<curves.length;j++){
+    for(const p of curveInt2(curves[i],curves[j])){
+      const id=vertex(p);
+      on[i].add(id); on[j].add(id);
+      if(j<elementCount) crossings.add(id);
+    }
+  }
+  curves.forEach((c,i)=>{
+    if(c.t==='s'){ on[i].add(vertex(c.a)); on[i].add(vertex(c.b)); }
+  });
+
+  const parents=pts.map((_,i)=>i);
+  const root=i=>{
+    while(parents[i]!==i){ parents[i]=parents[parents[i]]; i=parents[i]; }
+    return i;
+  };
+  let E=0;
+  curves.forEach((curve,i)=>{
+    const vs=[...on[i]];
+    if(curve.t==='c'&&!vs.length){ parents.push(parents.length); E++; return; }
+    E+=curve.t==='c'?vs.length:vs.length-1;
+    for(let j=1;j<vs.length;j++) parents[root(vs[j])]=root(vs[0]);
+  });
+  const components=new Set(parents.map((_,i)=>root(i))).size;
+  return {count:E-parents.length+components,pts:crossings.size,inf};
+}
+
+const sub3=(a,b)=>a.map((x,i)=>x-b[i]);
+const add3=(a,b)=>a.map((x,i)=>x+b[i]);
+const scale3=(a,k)=>a.map(x=>x*k);
+const dot3=(a,b)=>a[0]*b[0]+a[1]*b[1]+a[2]*b[2];
+const cross3=(a,b)=>[a[1]*b[2]-a[2]*b[1],a[2]*b[0]-a[0]*b[2],a[0]*b[1]-a[1]*b[0]];
+const len3=p=>Math.hypot(...p);
+const unit3=p=>scale3(p,1/len3(p));
+
+function tripleSpherePoints(a,b,c){
+  const u=sub3(b.center,a.center),v=sub3(c.center,a.center);
+  const lu=len3(u),lv=len3(v);
+  if(lu<=GEOM3_EPS||lv<=GEOM3_EPS) return [];
+  const p=scale3(u,1/lu),q=scale3(v,1/lv),axis=cross3(p,q),det=dot3(axis,axis);
+  // Coaxial spheres either have no common circle or share the circle already found by a pair.
+  if(det<1e-16) return [];
+  const s=(a.r*a.r-b.r*b.r+lu*lu)/(2*lu),t=(a.r*a.r-c.r*c.r+lv*lv)/(2*lv);
+  const origin=scale3(add3(scale3(cross3(q,axis),s),scale3(cross3(axis,p),t)),1/det);
+  const heightSq=a.r*a.r-dot3(origin,origin), limit=GEOM3_EPS*Math.max(1,a.r);
+  if(heightSq<-limit) return [];
+  const center=add3(a.center,origin);
+  if(heightSq<=limit) return [center];
+  const delta=scale3(axis,Math.sqrt(heightSq/det));
+  return [sub3(center,delta),add3(center,delta)];
+}
+
+function sphereCycles(edges){
+  const adj=new Map();
+  for(const e of edges){
+    if(!adj.has(e.a)) adj.set(e.a,[]);
+    if(!adj.has(e.b)) adj.set(e.b,[]);
+    adj.get(e.a).push([e.b,e.bit]);
+    adj.get(e.b).push([e.a,e.bit]);
+  }
+  const paths=new Map();
+  for(const start of adj.keys()){
+    if(paths.has(start)) continue;
+    paths.set(start,0n);
+    const stack=[start];
+    while(stack.length){
+      const from=stack.pop(), mask=paths.get(from);
+      for(const [to,bit] of adj.get(from)){
+        if(paths.has(to)) continue;
+        paths.set(to,mask^bit);
+        stack.push(to);
+      }
+    }
+  }
+  return edges.map(e=>paths.get(e.a)^paths.get(e.b)^e.bit).filter(mask=>mask!==0n);
+}
+
+function sphereArrangement(els){
+  const eps=GEOM3_EPS, near=(p,q)=>len3(sub3(p,q))<=eps*8;
+  const spheres=[];
+  for(const {x,y,z,r} of els){
+    const center=[x,y,z];
+    if(!spheres.some(s=>near(center,s.center)&&Math.abs(r-s.r)<=eps)) spheres.push({center,r});
+  }
+  const circles=[],points=[],touches=new Set();
+  const vertex=p=>{
+    const i=points.findIndex(q=>near(p,q));
+    if(i>=0) return i;
+    points.push(p); return points.length-1;
+  };
+  for(let i=0;i<spheres.length;i++) for(let j=i+1;j<spheres.length;j++){
+    const a=spheres[i],b=spheres[j],delta=sub3(b.center,a.center),d=len3(delta);
+    const hit=radialIntersection(a.r,b.r,d,eps);
+    if(!hit) continue;
+    const normal=scale3(delta,1/d),center=add3(a.center,scale3(normal,hit.along));
+    if(hit.r===0){ touches.add(vertex(center)); continue; }
+    let circle=circles.find(c=>near(c.center,center)&&Math.abs(c.r-hit.r)<=eps*8&&len3(cross3(c.normal,normal))<=eps*8);
+    if(!circle){
+      circle={normal,center,r:hit.r,members:new Set()};
+      circles.push(circle);
+    }
+    circle.members.add(i); circle.members.add(j);
+  }
+  if(circles.length){
+    for(let i=0;i<spheres.length;i++) for(let j=i+1;j<spheres.length;j++) for(let k=j+1;k<spheres.length;k++){
+      tripleSpherePoints(spheres[i],spheres[j],spheres[k]).forEach(vertex);
+    }
+  }
+  const bySphere=spheres.map(()=>[]);
+  let edgeCount=0, dummy=points.length;
+  for(const c of circles){
+    const ref=Math.abs(c.normal[0])<.8?[1,0,0]:[0,1,0];
+    const u=unit3(cross3(ref,c.normal)),v=cross3(c.normal,u);
+    const hits=[];
+    points.forEach((p,i)=>{
+      const q=sub3(p,c.center);
+      if(Math.abs(dot3(q,c.normal))<=eps*8&&Math.abs(len3(q)-c.r)<=eps*8){
+        hits.push({id:i,angle:Math.atan2(dot3(q,v),dot3(q,u))});
+      }
+    });
+    hits.sort((a,b)=>a.angle-b.angle);
+    const ids=hits.length?hits.map(p=>p.id):[dummy++];
+    ids.forEach((a,i)=>{
+      const edge={a,b:ids[(i+1)%ids.length],bit:1n<<BigInt(edgeCount++)};
+      for(const member of c.members) bySphere[member].push(edge);
+    });
+  }
+
+  // Each sphere contributes one face plus its circle graph's cycle rank.
+  // Shared edges identify boundary cycles across spheres. Subtract their independent rank
+  // from the face count to obtain the number of bounded complementary regions.
+  let faces=spheres.length, rank=0;
+  const pivots=new Array(edgeCount);
+  bySphere.forEach(edges=>{
+    const cycles=sphereCycles(edges);
+    faces+=cycles.length;
+    for(let mask of cycles){
+      while(mask!==0n){
+        const bit=mask.toString(2).length-1;
+        if(pivots[bit]) mask^=pivots[bit];
+        else{ pivots[bit]=mask; rank++; break; }
+      }
+    }
+  });
+  return {count:1+faces-rank,cross:circles.length,touches:touches.size,coincident:spheres.length<els.length};
+}
+
+/* ══════════ 2D：区域计算 ══════════ */
+function compute2D(scale,noImg){
+  const els=activeEls();
+  const gw=Math.max(20,Math.round(W2*scale)), gh=Math.max(20,Math.round(H2*scale));
+  const h=W2/gw, t=0.75*h, N=gw*gh;
+  const blocked=new Uint8Array(N);
+
+  for(const e of els){
+    if(e.type==='seg'){
+      const [x1,y1,x2,y2]=segEnds(e);
+      const i0=Math.max(0,Math.floor((Math.min(x1,x2)-t)/h)), i1=Math.min(gw-1,Math.ceil((Math.max(x1,x2)+t)/h));
+      const j0=Math.max(0,Math.floor((Math.min(y1,y2)-t)/h)), j1=Math.min(gh-1,Math.ceil((Math.max(y1,y2)+t)/h));
+      const dx=x2-x1, dy=y2-y1, L2=dx*dx+dy*dy||1e-9;
+      for(let j=j0;j<=j1;j++){
+        const wy=(j+0.5)*h;
+        for(let i=i0;i<=i1;i++){
+          const k=j*gw+i; if(blocked[k]) continue;
+          const wx=(i+0.5)*h;
+          let u=((wx-x1)*dx+(wy-y1)*dy)/L2; u=u<0?0:u>1?1:u;
+          const ax=wx-(x1+u*dx), ay=wy-(y1+u*dy);
+          if(ax*ax+ay*ay<=t*t) blocked[k]=1;
+        }
+      // 作者：石门中学伍岭教练（wuling.name）
+      }
+    }else{
+      const i0=Math.max(0,Math.floor((e.x-e.r-t)/h)), i1=Math.min(gw-1,Math.ceil((e.x+e.r+t)/h));
+      const j0=Math.max(0,Math.floor((e.y-e.r-t)/h)), j1=Math.min(gh-1,Math.ceil((e.y+e.r+t)/h));
+      for(let j=j0;j<=j1;j++){
+        const wy=(j+0.5)*h;
+        for(let i=i0;i<=i1;i++){
+          const k=j*gw+i; if(blocked[k]) continue;
+          const wx=(i+0.5)*h;
+          const dd=Math.hypot(wx-e.x,wy-e.y)-e.r;
+          if(dd<=t&&dd>=-t) blocked[k]=1;
+        }
+      }
+    }
+  }
+
+  const lab=new Int32Array(N).fill(-1);
+  for(let k=0;k<N;k++) if(blocked[k]) lab[k]=-2;
+  const q=new Int32Array(N);
+  const sizes=[]; let cnt=0;
+  for(let s=0;s<N;s++){
+    if(lab[s]!==-1) continue;
+    let head=0,tail=0; q[tail++]=s; lab[s]=cnt; let sz=0;
+    while(head<tail){
+      const c=q[head++]; sz++;
+      const i=c%gw, j=(c-i)/gw;
+      if(i>0){const m=c-1; if(lab[m]===-1){lab[m]=cnt;q[tail++]=m;}}
+      if(i<gw-1){const m=c+1; if(lab[m]===-1){lab[m]=cnt;q[tail++]=m;}}
+      if(j>0){const m=c-gw; if(lab[m]===-1){lab[m]=cnt;q[tail++]=m;}}
+      if(j<gh-1){const m=c+gw; if(lab[m]===-1){lab[m]=cnt;q[tail++]=m;}}
+    // 石门中学伍岭教练 · wuling.name · 保留所有权利
+    }
+    sizes.push(sz); cnt++;
+  }
+
+  const minCells=scale<0.8?2:5;
+  const idxOf=new Int32Array(cnt).fill(-1);
+  const keep=[];
+  for(let i=0;i<cnt;i++) if(sizes[i]>=minCells){ idxOf[i]=keep.length; keep.push(sizes[i]); }
+  const K=keep.length;
+
+  // 邻接（跨过 1~3 格边界探测）
+  const adj=Array.from({length:K},()=>new Set());
+  const tmp=new Int32Array(12);
+  for(let c=0;c<N;c++){
+    if(lab[c]!==-2) continue;
+    const i=c%gw, j=(c-i)/gw;
+    let m=0;
+    for(let dj=-3;dj<=3;dj++){
+      const jj=j+dj; if(jj<0||jj>=gh) continue;
+      for(let di=-3;di<=3;di++){
+        if(!di&&!dj) continue;
+        const ii=i+di; if(ii<0||ii>=gw) continue;
+        const l=lab[jj*gw+ii]; if(l<0) continue;
+        const v=idxOf[l]; if(v<0) continue;
+        let dup=false; for(let z=0;z<m;z++) if(tmp[z]===v){dup=true;break;}
+        if(!dup&&m<12) tmp[m++]=v;
+      }
+    }
+    for(let a=0;a<m;a++) for(let b=a+1;b<m;b++){ adj[tmp[a]].add(tmp[b]); adj[tmp[b]].add(tmp[a]); }
+  }
+
+  const colorOf=colorize(keep,adj);
+  const ex2=exact2(els);
+  if(noImg){ reg2={gw,gh,img:null,count:ex2.count,pts:ex2.pts,marks:[],inf:ex2.inf,pix:K}; return; }
+
+  // 生成区域底图
+  const cnv=document.createElement('canvas'); cnv.width=gw; cnv.height=gh;
+  const g2=cnv.getContext('2d');
+  const img=g2.createImageData(gw,gh), d=img.data;
+  const cols=colorOf.map(c=>PALETTE[c%PALETTE.length]);
+  for(let k=0,p=0;k<N;k++,p+=4){
+    const l=lab[k];
+    let c=PAPER;
+    if(l>=0){ const v=idxOf[l]; if(v>=0) c=cols[v]; }
+    d[p]=c[0];d[p+1]=c[1];d[p+2]=c[2];d[p+3]=255;
+  // 石门中学伍岭教练 · wuling.name
+  }
+  g2.putImageData(img,0,0);
+
+  // 每个区域内离边界最远的格 → 区域编号的位置
+  const dist=new Int32Array(N).fill(-1);
+  const qq=new Int32Array(N);
+  let hq=0,tq=0;
+  for(let k=0;k<N;k++) if(lab[k]===-2){ dist[k]=0; qq[tq++]=k; }
+  while(hq<tq){
+    const c=qq[hq++], nd=dist[c]+1;
+    const i=c%gw, j=(c-i)/gw;
+    if(i>0){const m=c-1; if(lab[m]>=0&&dist[m]===-1){dist[m]=nd;qq[tq++]=m;}}
+    if(i<gw-1){const m=c+1; if(lab[m]>=0&&dist[m]===-1){dist[m]=nd;qq[tq++]=m;}}
+    if(j>0){const m=c-gw; if(lab[m]>=0&&dist[m]===-1){dist[m]=nd;qq[tq++]=m;}}
+    if(j<gh-1){const m=c+gw; if(lab[m]>=0&&dist[m]===-1){dist[m]=nd;qq[tq++]=m;}}
+  }
+  const bestCell=new Int32Array(cnt).fill(-1), bestD=new Int32Array(cnt), bestDepth=new Int32Array(cnt);
+  for(let k=0;k<N;k++){
+    const l=lab[k];
+    if(l<0||idxOf[l]<0) continue;
+    const i0=k%gw, j0=(k-i0)/gw;
+    const px=(i0+0.5)*h, py=(j0+0.5)*h;
+    const edge=Math.min(i0,gw-1-i0,j0,gh-1-j0);   // 距画布边的格数
+    const pen=(px<180&&py>H2-86)?300:0;           // 避开左下角“区域数”角标
+    const sc=Math.min(dist[k],edge)-pen;
+    if(sc>bestD[l]){ bestD[l]=sc; bestCell[l]=k; bestDepth[l]=dist[k]; }
+  }
+  const marks=[];
+  for(let l=0;l<cnt;l++){
+    if(idxOf[l]<0||bestCell[l]<0) continue;
+    const k=bestCell[l], i=k%gw, j=(k-i)/gw;
+    marks.push({
+      x:Math.min(Math.max((i+0.5)*h,12),W2-12),
+      y:Math.min(Math.max((j+0.5)*h,12),H2-12),
+      depth:bestDepth[l]
+    });
+  }
+  marks.sort((a,b)=>(a.y-b.y)||(a.x-b.x));
+  marks.forEach((m,idx)=>{ m.num=idx+1; });
+
+  reg2={gw,gh,img:cnv,count:ex2.count,pts:ex2.pts,marks,inf:ex2.inf,pix:K};
+}
+
+function colorize(sizes,adj){
+  const K=sizes.length, out=new Array(K).fill(-1);
+  const order=[...Array(K).keys()].sort((a,b)=>sizes[b]-sizes[a]);
+  for(const r of order){
+    let mask=0;
+    for(const nb of adj[r]) if(out[nb]>=0) mask|=1<<out[nb];
+    let c=0; while(c<PALETTE.length&&((mask>>c)&1)) c++;
+    if(c>=PALETTE.length) c=r%PALETTE.length;
+    out[r]=c;
+  // © 石门中学伍岭教练 · wuling.name
+  }
+  return out;
+}
+
+/* 交点（返回点坐标）*/
+/* ══════════ 2D：绘制 ══════════ */
+function pathEl(c,e){
+  if(e.type==='seg'){ const [x1,y1,x2,y2]=segEnds(e); c.moveTo(x1,y1); c.lineTo(x2,y2); }
+  else c.arc(e.x,e.y,e.r,0,Math.PI*2);
+}
+function roundRectPath(c,x,y,w,h,r){
+  c.beginPath();
+  c.moveTo(x+r,y);
+  c.arcTo(x+w,y,x+w,y+h,r);
+  c.arcTo(x+w,y+h,x,y+h,r);
+  c.arcTo(x,y+h,x,y,r);
+  c.arcTo(x,y,x+w,y,r);
+  c.closePath();
+}
+function drawRegionMarks(){
+  if(!state.marks) return;
+  if(!reg2||!reg2.marks||!reg2.marks.length) return;
+  const M=reg2.marks;
+  if(M.length>160) return;
+  ctx.textAlign='center'; ctx.textBaseline='middle';
+  const placed=[];
+  for(const m of M){
+    const d=m.depth||2;
+    const sc=Math.max(0.5, Math.min(1, d/7));      // 区域越细，编号越小
+    if(d<1.5&&M.length>26) continue;               // 极细的区域不硬塞
+    if(placed.some(p=>Math.hypot(p[0]-m.x,p[1]-m.y)<26)) continue;   // 和已标编号太近就跳过，避免叠字
+    const s=String(m.num), two=s.length>1;
+    const w=(two?17:13)*sc, hh=12.5*sc;
+    ctx.font='600 '+Math.max(6,Math.round(10.5*sc))+'px ui-sans-serif,system-ui,sans-serif';
+    roundRectPath(ctx,m.x-w/2,m.y-hh/2,w,hh,4.2*sc);
+    ctx.fillStyle='rgba(36,28,58,.8)';
+    ctx.fill();
+    ctx.fillStyle='#fff8ea';
+    ctx.fillText(s,m.x,m.y+0.5);
+    placed.push([m.x,m.y]);
+  }
+// © 石门中学伍岭教练 · wuling.name
+}
+function draw2D(){
+  ctx.setTransform(BACK,0,0,BACK,0,0);
+  ctx.clearRect(0,0,W2,H2);
+  ctx.fillStyle='#fff8ea'; ctx.fillRect(0,0,W2,H2);
+  if(reg2&&reg2.img){
+    ctx.imageSmoothingEnabled=true;
+    ctx.imageSmoothingQuality='high';
+    ctx.drawImage(reg2.img,0,0,reg2.gw,reg2.gh,0,0,W2,H2);
+  }
+  const els=activeEls();
+  ctx.lineJoin='round'; ctx.lineCap='round';
+
+  // 选中光晕
+  if(els[state.sel]){
+    ctx.beginPath(); pathEl(ctx,els[state.sel]);
+    ctx.strokeStyle='rgba(255,79,151,.35)'; ctx.lineWidth=9; ctx.stroke();
+  }
+  for(let i=0;i<els.length;i++){
+    const e=els[i];
+    ctx.beginPath(); pathEl(ctx,e);
+    ctx.strokeStyle= i===state.sel?'#241c3a':'rgba(36,28,58,.9)';
+    ctx.lineWidth= i===state.sel?2.8:2.3;
+    ctx.stroke();
+  }
+  // 区域编号
+  drawRegionMarks();
+  // 端点 / 圆心把手
+  for(let i=0;i<els.length;i++){
+    const e=els[i], on=i===state.sel;
+    if(e.type==='seg'){
+      const [x1,y1,x2,y2]=segEnds(e);
+      for(const [px,py] of [[x1,y1],[x2,y2]]){
+        ctx.beginPath(); ctx.arc(px,py, on?5.5:3.6, 0,7);
+        ctx.fillStyle='#fff8ea'; ctx.fill();
+        ctx.strokeStyle= on? '#ff4f97':'rgba(36,28,58,.45)';
+        ctx.lineWidth= on?2:1.3; ctx.stroke();
+      }
+    // 作者：石门中学伍岭教练（wuling.name）
+    }else if(on){
+      ctx.beginPath(); ctx.arc(e.x,e.y,5.5,0,7);
+      ctx.fillStyle='#fff8ea'; ctx.fill();
+      ctx.strokeStyle='#ff4f97'; ctx.lineWidth=2; ctx.stroke();
+    }
+  }
+  // 编号
+  for(let i=0;i<els.length;i++) drawBadge2(els[i],i);
+  drawSignature(1);
+}
+function drawBadge2(e,i){
+  let x,y;
+  if(e.type==='seg'){
+    const [x1,y1,x2,y2]=segEnds(e);
+    const L=Math.hypot(x2-x1,y2-y1)||1;
+    x=(x1+x2)/2-(y2-y1)/L*17; y=(y1+y2)/2+(x2-x1)/L*17;
+  }else{ x=e.x; y=e.y-e.r-15; }
+  x=Math.min(Math.max(x,14),W2-14); y=Math.min(Math.max(y,14),H2-14);
+  ctx.beginPath(); ctx.arc(x,y,9,0,7);
+  ctx.fillStyle='rgba(248,243,233,.94)'; ctx.fill();
+  ctx.strokeStyle= i===state.sel?'#ff4f97':'rgba(36,28,58,.32)'; ctx.lineWidth=1.3; ctx.stroke();
+  ctx.fillStyle= i===state.sel?'#ff4f97':'#241c3a';
+  ctx.font='600 11px "Songti SC",serif'; ctx.textAlign='center'; ctx.textBaseline='middle';
+  ctx.fillText(String(i+1),x,y+0.5);
+}
+
+/* ══════════ 3D：区域计算 ══════════ */
+function compute3D(quick,NV){
+  const N=NV||(quick?42:68), h=(2*B3)/N, tot=N*N*N, th=0.85*h;
+  const els=activeEls();
+  const blocked=new Uint8Array(tot);
+  for(const e of els){
+    const i0=Math.max(0,Math.floor((e.x-e.r-th+B3)/h)), i1=Math.min(N-1,Math.ceil((e.x+e.r+th+B3)/h));
+    const j0=Math.max(0,Math.floor((e.y-e.r-th+B3)/h)), j1=Math.min(N-1,Math.ceil((e.y+e.r+th+B3)/h));
+    const k0=Math.max(0,Math.floor((e.z-e.r-th+B3)/h)), k1=Math.min(N-1,Math.ceil((e.z+e.r+th+B3)/h));
+    for(let k=k0;k<=k1;k++){
+      const wz=-B3+(k+0.5)*h;
+      for(let j=j0;j<=j1;j++){
+        const wy=-B3+(j+0.5)*h;
+        for(let i=i0;i<=i1;i++){
+          const idx=(k*N+j)*N+i; if(blocked[idx]) continue;
+          const wx=-B3+(i+0.5)*h;
+          const dx=wx-e.x, dy=wy-e.y, dz=wz-e.z;
+          if(Math.abs(Math.sqrt(dx*dx+dy*dy+dz*dz)-e.r)<=th) blocked[idx]=1;
+        // 石门中学伍岭教练 · wuling.name · 保留所有权利
+        }
+      }
+    }
+  }
+  const lab=new Int32Array(tot).fill(-1);
+  for(let t=0;t<tot;t++) if(blocked[t]) lab[t]=-2;
+  const q=new Int32Array(tot);
+  const sizes=[]; let cnt=0;
+  for(let s=0;s<tot;s++){
+    if(lab[s]!==-1) continue;
+    let head=0,tail=0; q[tail++]=s; lab[s]=cnt; let sz=0;
+    while(head<tail){
+      const c=q[head++]; sz++;
+      const i=c%N, r2=(c-i)/N, j=r2%N, k=(r2-j)/N;
+      if(i>0){const m=c-1; if(lab[m]===-1){lab[m]=cnt;q[tail++]=m;}}
+      if(i<N-1){const m=c+1; if(lab[m]===-1){lab[m]=cnt;q[tail++]=m;}}
+      if(j>0){const m=c-N; if(lab[m]===-1){lab[m]=cnt;q[tail++]=m;}}
+      if(j<N-1){const m=c+N; if(lab[m]===-1){lab[m]=cnt;q[tail++]=m;}}
+      if(k>0){const m=c-N*N; if(lab[m]===-1){lab[m]=cnt;q[tail++]=m;}}
+      if(k<N-1){const m=c+N*N; if(lab[m]===-1){lab[m]=cnt;q[tail++]=m;}}
+    }
+    sizes.push(sz); cnt++;
+  // 石门中学伍岭教练 · wuling.name
+  }
+  const minVol=quick?4:10;
+  const idxOf=new Int32Array(cnt).fill(-1);
+  const keep=[];
+  for(let i=0;i<cnt;i++) if(sizes[i]>=minVol){ idxOf[i]=keep.length; keep.push(sizes[i]); }
+  const K=keep.length;
+
+  const adj=Array.from({length:K},()=>new Set());
+  const tmp=new Int32Array(12);
+  for(let c=0;c<tot;c++){
+    if(lab[c]!==-2) continue;
+    const i=c%N, r2=(c-i)/N, j=r2%N, k=(r2-j)/N;
+    let m=0;
+    for(let dz=-2;dz<=2;dz+=2) for(let dy=-2;dy<=2;dy+=2) for(let dx=-2;dx<=2;dx+=2){
+      if(!dx&&!dy&&!dz) continue;
+      const ii=i+dx, jj=j+dy, kk=k+dz;
+      if(ii<0||jj<0||kk<0||ii>=N||jj>=N||kk>=N) continue;
+      const l=lab[(kk*N+jj)*N+ii]; if(l<0) continue;
+      const v=idxOf[l]; if(v<0) continue;
+      let dup=false; for(let z=0;z<m;z++) if(tmp[z]===v){dup=true;break;}
+      if(!dup&&m<12) tmp[m++]=v;
+    }
+    for(let a=0;a<m;a++) for(let b=a+1;b<m;b++){ adj[tmp[a]].add(tmp[b]); adj[tmp[b]].add(tmp[a]); }
+  }
+  const colorOf=colorize(keep,adj);
+  let fb=0; for(let i=1;i<K;i++) if(keep[i]>keep[fb]) fb=i;
+
+  reg3={N,h,lab,idxOf,colorOf:colorOf.map(c=>RAW[c%RAW.length]),pix:K,fallback:fb,...sphereArrangement(els)};
+}
+
+function sampleLabel3(p){
+  const N=reg3.N, h=reg3.h;
+  const i=Math.floor((p[0]+B3)/h), j=Math.floor((p[1]+B3)/h), k=Math.floor((p[2]+B3)/h);
+  if(i<0||j<0||k<0||i>=N||j>=N||k>=N) return -1;
+  return reg3.lab[(k*N+j)*N+i];
+// © 石门中学伍岭教练 · wuling.name
+}
+// 3x3x3 邻域投票，降低体素噪声
+function voteRegion3(p){
+  const N=reg3.N, h=reg3.h;
+  const ci=Math.floor((p[0]+B3)/h), cj=Math.floor((p[1]+B3)/h), ck=Math.floor((p[2]+B3)/h);
+  const tally={}; let best=-1, bestN=0;
+  for(let dk=-1;dk<=1;dk++){
+    const k=ck+dk; if(k<0||k>=N) continue;
+    for(let dj=-1;dj<=1;dj++){
+      const j=cj+dj; if(j<0||j>=N) continue;
+      for(let di=-1;di<=1;di++){
+        const i=ci+di; if(i<0||i>=N) continue;
+        const l=reg3.lab[(k*N+j)*N+i];
+        if(l<0) continue;
+        const v=reg3.idxOf[l];
+        if(v<0) continue;
+        const n=(tally[v]||0)+1; tally[v]=n;
+        if(n>bestN){ bestN=n; best=v; }
+      }
+    }
+  }
+  return best;
+}
+
+/* ══════════ 3D：几何与绘制 ══════════ */
+function buildSpheres(){
+  const els=activeEls();
+  spheres3=els.map(e=>{
+    const RINGS=18, SEC=26, rows=[];
+    for(let i=0;i<=RINGS;i++){
+      const phi=Math.PI*i/RINGS, cp=Math.cos(phi), sp=Math.sin(phi), row=[];
+      for(let j=0;j<=SEC;j++){
+        const th=2*Math.PI*j/SEC;
+        row.push([e.x+e.r*sp*Math.cos(th), e.y+e.r*cp, e.z+e.r*sp*Math.sin(th)]);
+      }
+      rows.push(row);
+    // 作者：石门中学伍岭教练（wuling.name）
+    }
+    const quads=[];
+    for(let i=0;i<RINGS;i++) for(let j=0;j<SEC;j++){
+      const a=rows[i][j], b=rows[i][j+1], c=rows[i+1][j+1], d=rows[i+1][j];
+      const g=[(a[0]+b[0]+c[0]+d[0])/4,(a[1]+b[1]+c[1]+d[1])/4,(a[2]+b[2]+c[2]+d[2])/4];
+      const n=[(g[0]-e.x)/e.r,(g[1]-e.y)/e.r,(g[2]-e.z)/e.r];
+      quads.push({v:[a,b,c,d],g,n,col:[200,200,200]});
+    }
+    return {el:e,quads};
+  });
+}
+function applyVoxelColors(){
+  if(!reg3){ return; }
+  const fbCol=reg3.colorOf[reg3.fallback]||[228,222,210];
+  const pick=(q,sgn)=>{
+    for(const off of [1.5,2.4,3.4,4.6]){
+      const p=[q.g[0]+q.n[0]*reg3.h*off*sgn, q.g[1]+q.n[1]*reg3.h*off*sgn, q.g[2]+q.n[2]*reg3.h*off*sgn];
+      const v=voteRegion3(p);
+      if(v>=0) return reg3.colorOf[v];
+    }
+    return null;
+  // 石门中学伍岭教练 · wuling.name · 保留所有权利
+  };
+  for(const s of spheres3){
+    for(const q of s.quads){
+      q.col=pick(q,1)||fbCol;
+      q.colIn=pick(q,-1)||fbCol;
+    }
+  }
+}
+function camRot(yaw,pitch){
+  const cy=Math.cos(yaw), sy=Math.sin(yaw), cp=Math.cos(pitch), sp=Math.sin(pitch);
+  return p=>{
+    const x=p[0]*cy+p[2]*sy, z=-p[0]*sy+p[2]*cy, y=p[1];
+    return [x, y*cp-z*sp, y*sp+z*cp];
+  };
+// 石门中学伍岭教练 · wuling.name
+}
+let frozenP=null;
+function camParams(){
+  if(frozenP) return frozenP;
+  const els=activeEls();
+  const mn=[1e9,1e9,1e9], mx=[-1e9,-1e9,-1e9];
+  for(const e of els){
+    const c=[e.x,e.y,e.z];
+    for(let a=0;a<3;a++){ mn[a]=Math.min(mn[a],c[a]-e.r); mx[a]=Math.max(mx[a],c[a]+e.r); }
+  }
+  let ctr=[0,0,0], R=1.6;
+  if(els.length){
+    ctr=[(mn[0]+mx[0])/2,(mn[1]+mx[1])/2,(mn[2]+mx[2])/2];
+    for(const e of els){
+      const d=Math.hypot(e.x-ctr[0],e.y-ctr[1],e.z-ctr[2])+e.r;
+      if(d>R) R=d;
+    }
+  }
+  const S=0.42*Math.min(cv.width,cv.height)/R;
+  const D=4.2*R+6;
+  return {D,F:S*D,ox:cv.width/2,oy:cv.height/2,ctr,R};
+}
+function projectFaces(s,mode,rot,cam,P){
+  const out=[];
+  for(const q of s.quads){
+    const nv=rot(q.n);
+    const front=nv[2]>0.02;
+    if(mode==='front'&&!front) continue;
+    if(mode==='back'&&front) continue;
+    const pts=[]; let depth=0;
+    for(const p of q.v){
+      const v=cam(p), k=P.F/(P.D-v[2]);
+      pts.push([P.ox+v[0]*k, P.oy-v[1]*k]);
+      depth+=P.D-v[2];
+    }
+    out.push({pts, depth:depth/4, col:(mode==='back'?q.colIn:q.col)||q.col});
+  // © 石门中学伍岭教练 · wuling.name
+  }
+  return out;
+}
+function paintFaces(faces){
+  faces.sort((a,b)=>b.depth-a.depth);
+  for(const f of faces){
+    const c=f.col;
+    ctx.fillStyle=`rgb(${c[0]},${c[1]},${c[2]})`;
+    let mx=0,my=0;
+    for(const p of f.pts){ mx+=p[0]; my+=p[1]; }
+    mx/=4; my/=4;
+    ctx.beginPath();
+    for(let i=0;i<4;i++){
+      const p=f.pts[i];
+      const dx=p[0]-mx, dy=p[1]-my, d=Math.hypot(dx,dy)||1;
+      const e=(d+0.9)/d;
+      const x=mx+dx*e, y=my+dy*e;
+      if(i===0) ctx.moveTo(x,y); else ctx.lineTo(x,y);
+    }
+    ctx.closePath(); ctx.fill();
+  }
+}
+function draw3D(){
+  const W=cv.width, H=cv.height;
+  ctx.setTransform(1,0,0,1,0,0);
+  ctx.fillStyle='#fff8ea'; ctx.fillRect(0,0,W,H);
+  const rot=camRot(state.yaw,state.pitch);
+  const P=camParams();
+  const ox=P.ox, oy=P.oy;
+  const cam=p=>rot([p[0]-P.ctr[0],p[1]-P.ctr[1],p[2]-P.ctr[2]]);
+
+  const order=spheres3.map((s,i)=>{
+    const v=cam([s.el.x,s.el.y,s.el.z]);
+    return {s,i,depth:P.D-v[2],v};
+  // 作者：石门中学伍岭教练（wuling.name）
+  }).sort((a,b)=>b.depth-a.depth);
+
+  for(const it of order){
+    const s=it.s, k=P.F/(P.D-it.v[2]);
+    const sx=ox+it.v[0]*k, sy=oy-it.v[1]*k, rr=s.el.r*k;
+    ctx.save();
+    ctx.beginPath(); ctx.arc(sx,sy,rr+1,0,7); ctx.clip();
+    if(state.trans){
+      ctx.globalAlpha=1;
+      paintFaces(projectFaces(s,'back',rot,cam,P));
+      ctx.globalAlpha=0.38;
+      paintFaces(projectFaces(s,'front',rot,cam,P));
+      ctx.globalAlpha=1;
+    }else{
+      paintFaces(projectFaces(s,'front',rot,cam,P));
+    }
+    // 球面明暗
+    const lx=sx-rr*0.36, ly=sy-rr*0.40;
+    const g=ctx.createRadialGradient(lx,ly,rr*0.04,sx,sy,rr*1.04);
+    g.addColorStop(0,'rgba(255,255,255,0.34)');
+    g.addColorStop(0.42,'rgba(255,255,255,0.03)');
+    g.addColorStop(0.82,'rgba(36,28,58,0.16)');
+    g.addColorStop(1,'rgba(36,28,58,0.38)');
+    ctx.fillStyle=g;
+    ctx.beginPath(); ctx.arc(sx,sy,rr+1,0,7); ctx.fill();
+    ctx.restore();
+
+    ctx.strokeStyle='rgba(36,28,58,.30)'; ctx.lineWidth=2.2;
+    ctx.beginPath(); ctx.arc(sx,sy,rr,0,7); ctx.stroke();
+  }
+
+  // 选中环 + 编号
+  spheres3.forEach((s,i)=>{
+    const v=cam([s.el.x,s.el.y,s.el.z]), k=P.F/(P.D-v[2]);
+    const sx=ox+v[0]*k, sy=oy-v[1]*k, rr=s.el.r*k;
+    if(i===state.sel){
+      ctx.setLineDash([11,9]); ctx.strokeStyle='#ff4f97'; ctx.lineWidth=3.4;
+      ctx.beginPath(); ctx.arc(sx,sy,rr+9,0,7); ctx.stroke(); ctx.setLineDash([]);
+    }
+    ctx.beginPath(); ctx.arc(sx,sy,15,0,7);
+    ctx.fillStyle='rgba(248,243,233,.92)'; ctx.fill();
+    ctx.strokeStyle= i===state.sel?'#ff4f97':'rgba(36,28,58,.32)'; ctx.lineWidth=1.8; ctx.stroke();
+    ctx.fillStyle= i===state.sel?'#ff4f97':'#241c3a';
+    ctx.font='600 17px "Songti SC",serif'; ctx.textAlign='center'; ctx.textBaseline='middle';
+    ctx.fillText(String(i+1),sx,sy+0.5);
+  // 石门中学伍岭教练 · wuling.name · 保留所有权利
+  });
+  drawSignature(2);
+}
+
+/* ══════════ 统一刷新 ══════════ */
+function refresh(quick){
+  const els=activeEls();
+  if(!els.length) return;
+  if(state.sel>=els.length) state.sel=els.length-1;
+  if(state.mode==='2d'){
+    compute2D(quick?0.5:2);
+    draw2D();
+    $('#hudMode').textContent='平面';
+    $('#hudCount').textContent=reg2.count;
+    $('#hudCount0Label').textContent='元素';
+    $('#hudCount0').textContent=els.length;
+    $('#hudCount2Label').textContent='交点';
+    $('#hudCount2Unit').textContent=(reg2&&reg2.inf)?'':'个';
+    $('#hudCount2').textContent = (reg2&&reg2.inf) ? '∞' : (reg2?reg2.pts:0);
+  }else{
+    if(quick===undefined) quick=false;
+    buildSpheres();
+    compute3D(!!quick);
+    applyVoxelColors();
+    draw3D();
+    $('#hudMode').textContent='空间';
+    $('#hudCount').textContent=reg3.count;
+    $('#hudCount0Label').textContent='球';
+    $('#hudCount0').textContent=els.length;
+    $('#hudCount2Label').textContent='交圆';
+    $('#hudCount2Unit').textContent='条';
+    $('#hudCount2').textContent=reg3.cross;
+  }
+  updateNote();
+  const heroTip = $('#heroTip');
+  if(heroTip) heroTip.textContent = state.mode==='2d'
+    ? '拖端点、拖圆心，看看区域数会不会变？'
+    : '拖球、转视角；切到透视能看到球里的区域。';
+  cv.style.cursor = state.mode==='2d' ? 'crosshair' : 'grab';
+}
+function updateNote(){
+  const is2D=state.mode==='2d', regions=is2D?reg2:reg3;
+  const parts=[];
+  if(is2D){
+    if(regions.inf) parts.push('有重合元素');
+    parts.push(state.marks?'同号表示同一区域':'区域编号已隐藏');
+  }else{
+    if(regions.coincident) parts.push('有重合球面');
+    if(regions.touches) parts.push(`球面相切 ${regions.touches} 处`);
+    if(!parts.length) parts.push('同色不一定连通');
+  }
+  $('#note').textContent=parts.join(' · ');
+  const status=$('#renderStatus');
+  status.hidden=regions.pix===regions.count;
+  if(!status.hidden){
+    status.textContent=`几何计数 ${regions.count} 块，着色识别 ${regions.pix} 块。细小区域的颜色可能并在一起或未显示。`;
+  }
+  $('#viewOpts').style.display=is2D?'none':'';
+  $('#markOpts').style.display=is2D?'':'none';
+}
+
+/* ══════════ 布局 ══════════ */
+let cssW=W2, cssH=H2;
+const singleColumn=matchMedia('(max-width:1000px)');
+function placeQuickControls(){
+  const hero=$('.hero-card'), mode=$('#modeCard'), count=$('#countCard'), extremes=$('#extremeActions');
+  if(singleColumn.matches) hero.after(mode,count,extremes);
+  else{
+    hero.after(extremes,mode);
+    $('#markOpts').after(count);
+  }
+}
+singleColumn.addEventListener('change',placeQuickControls);
+
+function layout(){
+  const stage=$('#stage');
+  const avW=stage.clientWidth-16, avH=stage.clientHeight-16;
+  const ar=W2/H2;
+  let w=avW, h=w/ar;
+  if(h>avH){ h=avH; w=h*ar; }
+  w=Math.max(160,w); h=Math.max(120,h);
+  if(Math.abs(w-cssW)<0.5&&Math.abs(h-cssH)<0.5) return false;
+  cssW=w; cssH=h;
+  cv.style.width=w+'px'; cv.style.height=h+'px';
+  return true;
+}
+
+/* ══════════ 控件 ══════════ */
+function mkSlider(host,o){
+  const wrap=document.createElement('div'); wrap.className='slider';
+  const head=document.createElement('div'); head.className='slider-head';
+  const nm=document.createElement('span'); nm.textContent=o.label;
+  const vl=document.createElement('b');
+  const disp=v=>o.display?o.display(v):v;
+  vl.textContent=disp(o.value);
+  head.append(nm,vl);
+  const inp=document.createElement('input');
+  inp.type='range'; inp.min=o.min; inp.max=o.max; inp.step=o.step; inp.value=o.value;
+  inp.setAttribute('aria-label',o.label);
+  inp.addEventListener('input',()=>{
+    const given=parseFloat(inp.value);
+    const out=o.onInput(given);
+    const eff=(typeof out==='number'&&isFinite(out))?out:given;
+    if(Math.abs(eff-parseFloat(inp.value))>1e-9) inp.value=eff;
+    vl.textContent=disp(eff);
+    refresh(true);
+  });
+  inp.addEventListener('change',()=>refresh(false));
+  wrap.append(head,inp); host.append(wrap);
+  return {set(v){ inp.value=v; vl.textContent=disp(v); }};
+}
+function mkToggles(host,items,value,onPick){
+  const box=document.createElement('div'); box.className='toggles';
+  for(const [v,label] of items){
+    const b=document.createElement('button');
+    b.textContent=label;
+    if(v===value) b.className='on';
+    b.onclick=()=>onPick(v);
+    box.append(b);
+  // © 石门中学伍岭教练 · wuling.name
+  }
+  host.append(box);
+  return box;
+}
+
+function renderChips(){
+  const host=$('#chips'); host.innerHTML='';
+  const els=activeEls();
+  for(let i=0;i<state.n;i++){
+    const b=document.createElement('button');
+    b.className='chip'+(i===state.sel?' on':'');
+    b.innerHTML=`<i>${i+1}</i><span>${typeName(els[i])}</span>`;
+    b.onclick=()=>{ state.sel=i; renderChips(); renderDetail(); refresh(false); };
+    host.append(b);
+  }
+  $('#countLabel').textContent=state.n;
+  $('#countRange').value=state.n;
+}
+
+function renderDetail(){
+  const host=$('#detail'); host.innerHTML='';
+  const els=activeEls();
+  if(!els.length) return;
+  if(state.sel>=els.length) state.sel=els.length-1;
+  const e=els[state.sel];
+
+  const hd=document.createElement('div'); hd.className='row';
+  hd.innerHTML=`<span class="lab">元素 ${state.sel+1} · ${typeName(e)}</span>`;
+  host.append(hd);
+
+  if(state.mode==='2d'){
+    mkToggles(host,[['seg','直线'],['circle','圆']],e.type,t=>{
+      if(t===e.type) return;
+      if(t==='circle'){
+        const [x1,y1,x2,y2]=segEnds(e);
+        e.type='circle'; e.r=Math.min(250,Math.max(40,Math.hypot(x2-x1,y2-y1)/2));
+      }else{
+        e.type='seg'; e.ang=e.ang??0;
+      }
+      clampEl(e); renderDetail(); refresh(false);
+    });
+  // 作者：石门中学伍岭教练（wuling.name）
+  }
+
+  const S=(label,min,max,step,value,get,set,display)=>{
+    mkSlider(host,{label,min,max,step,value,display,
+      onInput:v=>{ set(v); clampEl(e); return get(); }});
+  };
+
+  if(e.type==='seg'){
+    S('方向',0,180,1,Math.round(e.ang*180/Math.PI),()=>Math.round(e.ang*180/Math.PI),v=>e.ang=v*Math.PI/180,v=>v+'°');
+    S('横向位置',0,W2,1,Math.round(e.x),()=>Math.round(e.x),v=>e.x=v);
+    S('纵向位置',0,H2,1,Math.round(e.y),()=>Math.round(e.y),v=>e.y=v);
+  }else if(e.type==='circle'){
+    S('半径',18,300,1,Math.round(e.r),()=>Math.round(e.r),v=>e.r=v);
+    S('圆心 x',0,W2,1,Math.round(e.x),()=>Math.round(e.x),v=>e.x=v);
+    S('圆心 y',0,H2,1,Math.round(e.y),()=>Math.round(e.y),v=>e.y=v);
+  }else{
+    S('半径',0.4,5,0.02,e.r,()=>+e.r.toFixed(2),v=>e.r=v,v=>(+v).toFixed(2));
+    S('球心 x',-6,6,0.02,e.x,()=>+e.x.toFixed(2),v=>e.x=v,v=>(+v).toFixed(2));
+    S('球心 y',-6,6,0.02,e.y,()=>+e.y.toFixed(2),v=>e.y=v,v=>(+v).toFixed(2));
+    S('球心 z',-6,6,0.02,e.z,()=>+e.z.toFixed(2),v=>e.z=v,v=>(+v).toFixed(2));
+  }
+}
+
+/* ══════════ 交互 ══════════ */
+function distSeg(px,py,e){
+  const [x1,y1,x2,y2]=segEnds(e);
+  const dx=x2-x1, dy=y2-y1, L2=dx*dx+dy*dy||1e-9;
+  let t=((px-x1)*dx+(py-y1)*dy)/L2; t=t<0?0:t>1?1:t;
+  return Math.hypot(px-(x1+t*dx),py-(y1+t*dy));
+// 石门中学伍岭教练 · wuling.name · 保留所有权利
+}
+function hitTest2(x,y){
+  const els=activeEls(); let best=-1, bs=1e9;
+  els.forEach((e,i)=>{
+    let s=1e9;
+    if(e.type==='seg'){ const d=distSeg(x,y,e); if(d<=11) s=d; }
+    else{ const d=Math.hypot(x-e.x,y-e.y); if(d<=e.r+11) s=Math.abs(d-e.r)*0.6; }
+    if(s<bs-1e-6||(Math.abs(s-bs)<1e-6&&i>best)){ bs=s; best=i; }
+  });
+  return best;
+}
+function hitTest3(clientX,clientY){
+  const rect=cv.getBoundingClientRect();
+  const px=(clientX-rect.left)/rect.width*cv.width;
+  const py=(clientY-rect.top)/rect.height*cv.height;
+  const rot=camRot(state.yaw,state.pitch);
+  const P=camParams();
+  const ox=P.ox, oy=P.oy;
+  const cam=p=>rot([p[0]-P.ctr[0],p[1]-P.ctr[1],p[2]-P.ctr[2]]);
+  let best=-1, bd=1e9;
+  spheres3.forEach((s,i)=>{
+    const v=cam([s.el.x,s.el.y,s.el.z]), k=P.F/(P.D-v[2]);
+    const d=Math.hypot(px-(ox+v[0]*k), py-(oy-v[1]*k));
+    const dep=P.D-v[2];
+    if(d<=s.el.r*k&&dep<bd){ bd=dep; best=i; }
+  });
+  return best;
+}
+
+let drag=null;
+function hitEndpoint2(x,y){
+  const els=activeEls(); let best=null, bd=13;
+  els.forEach((e,i)=>{
+    if(e.type!=='seg') return;
+    const [x1,y1,x2,y2]=segEnds(e);
+    const d0=Math.hypot(x-x1,y-y1), d1=Math.hypot(x-x2,y-y2);
+    if(d0<bd){ bd=d0; best={i,which:0}; }
+    if(d1<bd){ bd=d1; best={i,which:1}; }
+  // 石门中学伍岭教练 · wuling.name
+  });
+  return best;
+}
+cv.addEventListener('pointerdown',ev=>{
+  ev.preventDefault();
+  cv.focus({preventScroll:true});
+  try{ cv.setPointerCapture(ev.pointerId); }catch(e){}
+  const rect=cv.getBoundingClientRect();
+  if(state.mode==='2d'){
+    const x=(ev.clientX-rect.left)/rect.width*W2;
+    const y=(ev.clientY-rect.top)/rect.height*H2;
+    const ep=hitEndpoint2(x,y);
+    if(ep){
+      if(ep.i!==state.sel){ state.sel=ep.i; renderChips(); renderDetail(); }
+      drag={mode:'end', e:activeEls()[ep.i], which:ep.which, ends:segEnds(activeEls()[ep.i]), p0:{x,y}};
+      draw2D();
+      return;
+    }
+    const hit=hitTest2(x,y);
+    if(hit>=0){
+      if(hit!==state.sel){ state.sel=hit; renderChips(); renderDetail(); }
+      const e=activeEls()[hit];
+      drag={mode:'move',e,ox:e.x-x,oy:e.y-y};
+      draw2D();
+    }else drag={mode:'none'};
+  }else{
+    const hit=hitTest3(ev.clientX,ev.clientY);
+    if(hit>=0){
+      if(hit!==state.sel){ state.sel=hit; renderChips(); renderDetail(); }
+      const e=activeEls()[hit];
+      const P=camParams(), rot=camRot(state.yaw,state.pitch);
+      const v=rot([e.x-P.ctr[0],e.y-P.ctr[1],e.z-P.ctr[2]]);
+      drag={mode:'sph', e, x0:e.x, y0:e.y, z0:e.z,
+        sx:ev.clientX, sy:ev.clientY,
+        scale:cv.width/rect.width,
+        kpx:(P.D-v[2])/P.F};
+      frozenP=P;
+      draw3D();
+    // © 石门中学伍岭教练 · wuling.name
+    }else{
+      drag={mode:'rot',x:ev.clientX,y:ev.clientY,yaw:state.yaw,pitch:state.pitch,sx:ev.clientX,sy:ev.clientY,moved:0};
+    }
+  }
+});
+cv.addEventListener('pointermove',ev=>{
+  if(!drag) return;
+  const rect=cv.getBoundingClientRect();
+  if(drag.mode==='move'){
+    const x=(ev.clientX-rect.left)/rect.width*W2;
+    const y=(ev.clientY-rect.top)/rect.height*H2;
+    drag.e.x=x+drag.ox; drag.e.y=y+drag.oy; clampEl(drag.e);
+    refresh(true);
+  }else if(drag.mode==='end'){
+    // 固定另一端，用鼠标位置定长短与方向
+    const e=drag.e;
+    const x=(ev.clientX-rect.left)/rect.width*W2;
+    const y=(ev.clientY-rect.top)/rect.height*H2;
+    // 直线：拖端点 = 绕中心转动（长度始终铺满画框）
+    const dx = x-drag.e.x, dy = y-drag.e.y;
+    if(Math.hypot(dx,dy) > 8){
+      e.ang = Math.atan2(dy,dx);
+    }
+    refresh(true);
+  }else if(drag.mode==='sph'){
+    // 在平行于屏幕的平面内平移球心
+    const dx=(ev.clientX-drag.sx)*drag.scale, dy=(ev.clientY-drag.sy)*drag.scale;
+    const dvx=dx*drag.kpx, dvy=-dy*drag.kpx;
+    const cyw=Math.cos(state.yaw), syw=Math.sin(state.yaw);
+    const cp=Math.cos(state.pitch), sp=Math.sin(state.pitch);
+    const e=drag.e;
+    e.x=drag.x0 + cyw*dvx + sp*syw*dvy;
+    e.y=drag.y0 + cp*dvy;
+    e.z=drag.z0 + syw*dvx - sp*cyw*dvy;
+    clampEl(e);
+    refresh(true);
+  // 作者：石门中学伍岭教练（wuling.name）
+  }else if(drag.mode==='rot'){
+    const dx=ev.clientX-drag.x, dy=ev.clientY-drag.y;
+    state.yaw=drag.yaw+dx*0.0075;
+    state.pitch=Math.max(-1.25,Math.min(1.25,drag.pitch+dy*0.0075));
+    drag.moved=Math.max(drag.moved,Math.hypot(ev.clientX-drag.sx,ev.clientY-drag.sy));
+    draw3D();
+  }
+});
+cv.addEventListener('pointerup',ev=>{
+  if(!drag) return;
+  const wasFrozen=!!frozenP;
+  frozenP=null;
+  if(drag.mode==='move'||drag.mode==='end'||drag.mode==='sph'){ refresh(false); renderDetail(); }
+  else if(drag.mode==='rot'&&drag.moved<6){
+    const hit=hitTest3(ev.clientX,ev.clientY);
+    if(hit>=0){ state.sel=hit; renderChips(); renderDetail(); }
+    draw3D();
+  }
+  if(wasFrozen&&state.mode==='3d') draw3D();
+  drag=null;
+});
+cv.addEventListener('keydown',ev=>{
+  if(ev.key==='ArrowRight'||ev.key==='ArrowLeft'){
+    const d=ev.key==='ArrowRight'?1:-1;
+    state.sel=(state.sel+d+state.n)%state.n;
+    renderChips(); renderDetail(); refresh(false);
+    ev.preventDefault();
+  // 石门中学伍岭教练 · wuling.name · 保留所有权利
+  }
+});
+
+/* ══════════ 顶部控件 ══════════ */
+document.querySelectorAll('#modeSeg button').forEach(b=>{
+  b.onclick=()=>{
+    const m=b.dataset.mode;
+    if(m===state.mode) return;
+    state.mode=m;
+    document.querySelectorAll('#modeSeg button').forEach(x=>x.classList.toggle('on',x.dataset.mode===m));
+    if(state.sel>=state.n) state.sel=0;
+    renderChips(); renderDetail(); refresh(false);
+  };
+});
+document.querySelectorAll('#transSeg button').forEach(b=>{
+  b.onclick=()=>{
+    state.trans = b.dataset.t==='1';
+    document.querySelectorAll('#transSeg button').forEach(x=>x.classList.toggle('on',(x.dataset.t==='1')===state.trans));
+    if(state.mode==='3d') draw3D();
+  };
+// 石门中学伍岭教练 · wuling.name
+});
+document.querySelectorAll('#markSeg button').forEach(b=>{
+  b.onclick=()=>{
+    state.marks = b.dataset.m==='1';
+    document.querySelectorAll('#markSeg button').forEach(x=>x.classList.toggle('on',(x.dataset.m==='1')===state.marks));
+    if(state.mode==='2d'){ draw2D(); updateNote(); }
+  };
+});
+$('#countRange').addEventListener('input',ev=>{
+  state.n=parseInt(ev.target.value,10);
+  if(state.sel>=state.n) state.sel=state.n-1;
+  $('#countLabel').textContent=state.n;
+  renderChips(); refresh(true);
+});
+$('#countRange').addEventListener('change',()=>{ renderDetail(); refresh(false); });
+$('#btnMin').onclick=()=>doExtreme('min');
+$('#btnMax').onclick=()=>doExtreme('max');
+$('#btnRandom').onclick=()=>{
+  for(const e of activeEls()){
+    if(e.type==='seg'){
+      e.ang=Math.random()*Math.PI;
+      e.x=W2*(0.15+0.7*Math.random()); e.y=H2*(0.15+0.7*Math.random());
+    }else if(e.type==='circle'){
+      e.r=60+Math.random()*180;
+      e.x=W2*(0.15+0.7*Math.random()); e.y=H2*(0.15+0.7*Math.random());
+    }else{
+      e.r=0.9+Math.random()*1.8;
+      e.x=(Math.random()-0.5)*4.5; e.y=(Math.random()-0.5)*3.5; e.z=(Math.random()-0.5)*4.5;
+    // © 石门中学伍岭教练 · wuling.name
+    }
+    clampEl(e);
+  }
+  renderDetail(); refresh(false);
+};
+$('#btnReset').onclick=()=>{
+  defaults(); state.n=3; state.sel=0;
+  state.yaw=0.62; state.pitch=0.30;
+  renderChips(); renderDetail(); refresh(false);
+};
+
+/* ══════════ 启动 ══════════ */
+placeQuickControls();
+layout();
+defaults();
+renderChips();
+renderDetail();
+refresh(false);
+window.addEventListener('resize',()=>{ if(layout()){ if(state.mode==='2d') draw2D(); else draw3D(); } });
+if(window.ResizeObserver){
+  new ResizeObserver(()=>{ if(layout()){ if(state.mode==='2d') draw2D(); else draw3D(); } }).observe($('#stage'));
+}
+</script>
+</body>
+</html>
