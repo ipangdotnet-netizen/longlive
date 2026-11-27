@@ -1,0 +1,2472 @@
+<!DOCTYPE html>
+<!-- 石门中学伍岭教练 · wuling.name -->
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>投影实验室 · 光与影</title>
+<style>
+  :root{
+    --ink:#241C3A;
+    --ink-2:#5C4F80;
+    --ink-3:#9A8EB8;
+    --paper:#FFF8EA;
+    --pink:#FF4F97;
+    --pink-soft:#FFD7E7;
+    --cyan:#20C2E8;
+    --cyan-soft:#D5F4FD;
+    --lemon:#FFD23F;
+    --mint:#2FD79B;
+    --violet:#7B5CFA;
+    --shadow:#2B2350;
+    --card:#FFFDF7;
+  }
+  *{box-sizing:border-box;}
+  html,body{height:100%;}
+  body{
+    margin:0;overflow:hidden;color:var(--ink);background:var(--paper);
+    font-family:"PingFang SC","Hiragino Sans GB","Microsoft YaHei",system-ui,sans-serif;
+    -webkit-font-smoothing:antialiased;
+  }
+  button,select{font-family:inherit;color:inherit;}
+  .bg{
+    position:fixed;inset:0;z-index:-3;
+    background:
+      radial-gradient(58% 48% at 86% 4%, #FFE2F0 0%, rgba(255,226,240,0) 62%),
+      radial-gradient(52% 52% at 8% 98%, #DCF5FF 0%, rgba(220,245,255,0) 64%),
+      linear-gradient(148deg,#FFFBF0 0%,#FFF3E4 52%,#F3F0FF 100%);
+  }
+  .bg::after{
+    content:"";position:absolute;inset:0;
+    background-image:radial-gradient(rgba(36,28,58,.17) 1px, transparent 1.15px);
+    background-size:15px 15px;opacity:.34;
+    -webkit-mask-image:radial-gradient(118% 88% at 50% 42%, #000 8%, rgba(0,0,0,.2) 66%, transparent 100%);
+            mask-image:radial-gradient(118% 88% at 50% 42%, #000 8%, rgba(0,0,0,.2) 66%, transparent 100%);
+  /* © 石门中学伍岭教练 · wuling.name */
+  }
+  .rays{
+    position:fixed;inset:-10%;z-index:-2;pointer-events:none;opacity:.5;
+    background:repeating-linear-gradient(116deg, rgba(255,79,151,.055) 0 2px, transparent 2px 30px);
+  }
+
+  .app{position:relative;height:100%;display:flex;flex-direction:column;padding:0 22px 14px;}
+
+  /* ---------- topbar ---------- */
+  .topbar{height:74px;flex:0 0 74px;display:flex;align-items:center;justify-content:space-between;gap:18px;}
+  .brand{display:flex;align-items:center;gap:12px;min-width:0;}
+  .brand-mark{
+    width:46px;height:46px;flex:0 0 46px;border-radius:13px;
+    display:grid;place-items:center;font-size:24px;font-weight:900;color:#fff;
+    background:linear-gradient(160deg,#FF7FB4,#FF4F97 60%,#E8307C);
+    border:2.5px solid var(--ink);
+    box-shadow:3px 3px 0 var(--ink);
+    transform:rotate(-6deg);
+  }
+  .brand h1{margin:0;font-size:22px;line-height:1.1;font-weight:900;letter-spacing:.5px;white-space:nowrap;}
+  .brand h1 em{font-style:normal;color:var(--pink);}
+  .brand p{margin:3px 0 0;font-size:8.5px;font-weight:800;letter-spacing:2.6px;color:#A196BD;}
+  .top-actions{display:flex;gap:8px;}
+
+  .chip{
+    border:2px solid var(--ink);background:#fff;border-radius:11px;
+    padding:7px 13px;font-size:11.5px;font-weight:900;letter-spacing:.3px;cursor:pointer;
+    box-shadow:3px 3px 0 var(--ink);transition:transform .12s,box-shadow .12s,background .16s;
+  }
+  .chip:hover{background:#FFF3F8;}
+  .chip:active{transform:translate(3px,3px);box-shadow:0 0 0 var(--ink);}
+  .chip.on{background:var(--lemon);}
+
+  /* ---------- layout ---------- */
+  .layout{flex:1 1 auto;min-height:0;display:grid;grid-template-columns:minmax(0,1fr) 372px;gap:16px;}
+
+  /* ---------- stage ---------- */
+  .stage{
+    position:relative;min-height:0;border:2.5px solid var(--ink);border-radius:22px;
+    background:
+      radial-gradient(70% 62% at 50% 34%, #ffffff 0%, #FFFDF6 60%, #FFF6E6 100%);
+    box-shadow:6px 6px 0 var(--ink);overflow:hidden;
+  }
+  .stage::after{
+    content:"";position:absolute;inset:0;pointer-events:none;
+    background-image:radial-gradient(rgba(36,28,58,.10) 1px, transparent 1.1px);
+    background-size:13px 13px;opacity:.35;
+    -webkit-mask-image:radial-gradient(90% 70% at 50% 50%, transparent 40%, #000 100%);
+            mask-image:radial-gradient(90% 70% at 50% 50%, transparent 40%, #000 100%);
+  }
+  #scene{position:absolute;inset:0;width:100%;height:100%;display:block;z-index:1;touch-action:pan-y pinch-zoom;cursor:grab;outline:none;}
+  #scene.dragging{cursor:grabbing;}
+  #scene.touch-enabled{touch-action:none;}
+  .touch-controls{
+    position:absolute;left:10px;top:10px;z-index:4;display:none;
+  }
+  .touch-controls button{padding:5px 8px;font-size:10.5px;min-height:32px;touch-action:manipulation;}
+  @media (any-pointer:coarse){
+    .touch-controls{display:block;}
+    .stage .stage-tip{display:none;}
+  }
+
+  .stage-tip{
+    position:absolute;left:16px;top:15px;z-index:4;
+    display:flex;align-items:center;gap:8px;height:34px;padding:0 12px;
+    border:2px solid var(--ink);border-radius:10px;background:#FFFDF7;
+    box-shadow:2.5px 2.5px 0 var(--ink);
+    font-size:10.5px;font-weight:800;color:var(--ink-2);
+  }
+  .stage-tip b{color:var(--pink);}
+
+  .mode-tag{
+    position:absolute;left:16px;bottom:15px;z-index:4;
+    padding:6px 13px;border:2px solid var(--ink);border-radius:9px;
+    background:var(--lemon);box-shadow:2.5px 2.5px 0 var(--ink);
+    font-size:11.5px;font-weight:900;letter-spacing:1px;transform:rotate(-2deg);
+  /* 作者：石门中学伍岭教练（wuling.name） */
+  }
+
+  .view-switch{
+    position:absolute;right:16px;top:15px;z-index:4;display:flex;gap:5px;padding:4px;
+    border:2px solid var(--ink);border-radius:12px;background:#FFFDF7;box-shadow:2.5px 2.5px 0 var(--ink);
+  }
+  .view-switch button{
+    border:0;background:transparent;border-radius:8px;padding:5px 10px;
+    font-size:10.5px;font-weight:900;color:var(--ink-3);cursor:pointer;transition:.15s;
+  }
+  .view-switch button.active{background:var(--ink);color:#fff;}
+
+  .mini-card{
+    position:absolute;right:16px;bottom:15px;z-index:4;width:212px;
+    border:2px solid var(--ink);border-radius:14px;background:#FFFDF7;
+    box-shadow:3px 3px 0 var(--ink);padding:7px 8px 5px;
+  }
+  .mini-head{font-size:10px;font-weight:900;cursor:pointer;}
+  .mini-body{margin-top:3px;}
+  #miniCanvas{display:block;width:100%;height:auto;}
+  .mini-legend{margin:0 0 3px;font-size:9px;font-weight:800;color:var(--ink-2);text-align:center;}
+  .mini-legend::before{content:"";display:inline-block;width:12px;margin:0 4px 2px 0;border-top:2px dashed var(--ink-2);}
+
+  /* ---------- panel ---------- */
+  .panel{
+    min-height:0;display:flex;flex-direction:column;gap:9px;
+    overflow-y:auto;overscroll-behavior:contain;padding:2px 4px 4px 0;
+    scrollbar-width:none;
+  }
+  .panel::-webkit-scrollbar{width:0;height:0;}
+
+  .card{
+    position:relative;flex:0 0 auto;background:var(--card);
+    border:2.5px solid var(--ink);border-radius:16px;
+    box-shadow:4px 4px 0 var(--ink);padding:11px 12px;
+  }
+  .card-head{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:8px;}
+  .card-title{display:flex;align-items:center;gap:7px;font-size:11.5px;font-weight:900;letter-spacing:.4px;}
+  .card-title .ico{
+    width:19px;height:19px;border-radius:6px;display:grid;place-items:center;
+    font-size:10px;background:var(--pink-soft);border:1.5px solid var(--ink);font-weight:900;
+  }
+  .kicker{font-size:7px;font-weight:900;letter-spacing:1.8px;color:#A99BC4;text-transform:uppercase;}
+
+  /* hero */
+  .hero{padding:10px 12px;}
+  .hero-grid{display:grid;grid-template-columns:78px minmax(0,1fr);gap:9px;align-items:center;}
+  .mascot-wrap{width:78px;height:92px;display:grid;place-items:center;}
+  .mascot-svg{width:78px;height:92px;overflow:visible;}
+  .mascot-float{animation:bob 3.6s ease-in-out infinite;transform-origin:60px 90px;}
+  @keyframes bob{0%,100%{transform:translateY(0) rotate(-2deg);}50%{transform:translateY(-5px) rotate(2deg);}}
+  .eyebrow{font-size:7.5px;font-weight:900;letter-spacing:1.9px;color:#A99BC4;}
+  .shape-name{font-size:25px;line-height:1.12;font-weight:900;letter-spacing:.5px;color:var(--pink);margin-top:1px;}
+  .shape-en{font-size:7.5px;font-weight:900;letter-spacing:1.2px;color:#B4A6CB;margin-top:2px;}
+  .bubble{
+    position:relative;margin-top:6px;background:#fff;border:2px solid var(--ink);
+    border-radius:10px;border-top-left-radius:2px;padding:5px 7px;
+    font-size:9.5px;line-height:1.45;font-weight:700;color:var(--ink-2);
+  }
+  .bubble.pop{animation:pop .3s ease;}
+  @keyframes pop{0%{transform:scale(.94);}65%{transform:scale(1.02);}100%{transform:scale(1);}}
+  .metrics,.dual-metrics{margin-top:8px;padding-top:7px;border-top:2px dashed rgba(36,28,58,.14);}
+  .metrics{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:5px;}
+  .metrics[hidden]{display:none;}
+  .dual-metrics table{width:100%;border-collapse:collapse;font-size:10.5px;font-variant-numeric:tabular-nums;}
+  .dual-metrics th,.dual-metrics td{padding:2px 3px;text-align:center;}
+  .dual-metrics tbody th{text-align:left;color:var(--ink-2);}
+  .dual-metrics td{font-weight:900;}
+  .dual-metrics .lamp-a{color:#9d2459;}
+  .dual-metrics .lamp-b{color:#4c2ba4;}
+  .metric{text-align:center;}
+  .metric b{display:block;font-size:15px;font-weight:900;font-variant-numeric:tabular-nums;letter-spacing:-.3px;}
+  .metric b.small{font-size:11.5px;letter-spacing:0;}
+  .metric span{display:block;margin-top:2px;font-size:7.5px;font-weight:800;letter-spacing:.6px;color:var(--ink-2);}
+
+  .light-tabs{display:flex;gap:5px;margin-bottom:6px;}
+  .ltab{
+    flex:1 1 auto;min-width:0;display:flex;align-items:center;justify-content:center;gap:4px;
+    border:2px solid var(--ink);border-radius:9px;background:#fff;padding:4px 5px;
+    font-size:9px;font-weight:900;cursor:pointer;box-shadow:2px 2px 0 var(--ink);
+    transition:.14s;white-space:nowrap;overflow:hidden;
+  /* 石门中学伍岭教练 · wuling.name · 保留所有权利 */
+  }
+  .ltab b{font-size:10px;line-height:1;}
+  .ltab.on{background:var(--ink);color:#fff;}
+  .ltab.empty{background:#FFF6DC;border-style:dashed;box-shadow:none;color:var(--ink-2);}
+  .ltab:active{transform:translate(1px,1px);}
+  .ltab-x{
+    width:24px;flex:0 0 24px;border:2px solid var(--ink);border-radius:9px;background:#fff;
+    font-size:9px;font-weight:900;cursor:pointer;box-shadow:2px 2px 0 var(--ink);padding:0;
+  }
+  .ltab-x[hidden]{display:none;}
+
+  /* light card */
+  .mode-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px;}
+  .mode-btn{
+    display:flex;align-items:center;gap:7px;justify-content:center;
+    border:2px solid var(--ink);border-radius:11px;background:#fff;
+    padding:7px 6px;font-size:11px;font-weight:900;cursor:pointer;
+    box-shadow:2.5px 2.5px 0 var(--ink);transition:.14s;
+  }
+  .mode-btn svg{width:16px;height:16px;flex:0 0 16px;}
+  .mode-btn:active{transform:translate(2px,2px);box-shadow:0 0 0 var(--ink);}
+  .mode-btn.on{background:var(--lemon);box-shadow:2.5px 2.5px 0 var(--ink);}
+  .mode-btn.on.point{background:var(--cyan-soft);}
+
+  .ctl{display:grid;grid-template-columns:50px minmax(0,1fr) 46px;align-items:center;gap:8px;margin-top:7px;}
+  .ctl[hidden]{display:none;}
+  .height-note{margin:4px 0 0;font-size:10px;line-height:1.4;font-weight:700;color:var(--ink-2);}
+  .height-note.at-min{color:#9d2459;}
+  .ctl-lab{font-size:10px;font-weight:900;color:var(--ink-2);}
+  .ctl-val{
+    font-size:9.5px;font-weight:900;text-align:center;padding:3px 2px;
+    border:1.5px solid rgba(36,28,58,.16);border-radius:7px;background:#F6F1FF;
+    font-variant-numeric:tabular-nums;
+  }
+  input[type=range]{
+    -webkit-appearance:none;appearance:none;width:100%;height:16px;margin:0;background:transparent;cursor:pointer;
+    --fill:50%;--thumb:var(--pink);
+  }
+  input[type=range]:focus{outline:none;}
+  input[type=range]::-webkit-slider-runnable-track{
+    height:6px;border-radius:99px;border:1.5px solid var(--ink);
+    background:linear-gradient(90deg,var(--thumb) 0%,var(--thumb) var(--fill),#fff var(--fill),#fff 100%);
+  }
+  input[type=range]::-webkit-slider-thumb{
+    -webkit-appearance:none;width:16px;height:16px;border-radius:50%;
+    background:#fff;border:2.5px solid var(--ink);margin-top:-7px;
+    box-shadow:1.5px 1.5px 0 rgba(36,28,58,.55);
+  }
+  input[type=range]::-moz-range-track{height:6px;border-radius:99px;border:1.5px solid var(--ink);background:#fff;}
+  input[type=range]::-moz-range-progress{height:6px;border-radius:99px;background:var(--thumb);}
+  input[type=range]::-moz-range-thumb{width:11px;height:11px;border:2.5px solid var(--ink);background:#fff;border-radius:50%;}
+
+  /* solids */
+  .solid-grid{display:grid;grid-template-columns:1fr 1fr;gap:5px;}
+  .solid-btn{
+    border:2px solid var(--ink);background:#fff;border-radius:10px;
+    padding:6px 4px;font-size:10.5px;font-weight:900;cursor:pointer;
+    box-shadow:2px 2px 0 var(--ink);transition:.13s;
+  /* 石门中学伍岭教练 · wuling.name */
+  }
+  .solid-btn:active{transform:translate(2px,2px);box-shadow:0 0 0 var(--ink);}
+  .solid-btn.on{background:var(--violet);color:#fff;}
+
+  /* solid params */
+  .solid-grid{grid-template-columns:repeat(4,1fr);}
+  .param-row{
+    display:flex;align-items:center;gap:7px;margin-top:7px;
+    border-top:2px dashed rgba(36,28,58,.12);padding-top:7px;
+  }
+  .param-row[hidden]{display:none;}
+  .param-lab{font-size:9.5px;font-weight:900;color:var(--ink-2);}
+  .param-in{
+    width:52px;padding:4px 6px;text-align:center;font-family:inherit;
+    font-size:11px;font-weight:900;color:var(--ink);
+    border:2px solid var(--ink);border-radius:8px;background:#fff;
+    box-shadow:2px 2px 0 var(--ink);
+  }
+  .param-in:focus{outline:none;background:#FFFAE8;}
+  .param-hint{font-size:8px;font-weight:800;color:#A99BC4;letter-spacing:.4px;}
+
+  /* presets */
+  .preset-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px;}
+  .preset{
+    display:flex;align-items:center;gap:6px;
+    border:2px solid var(--ink);background:#fff;border-radius:10px;
+    padding:7px 6px;font-size:10.5px;font-weight:900;cursor:pointer;text-align:left;
+    box-shadow:2px 2px 0 var(--ink);transition:.13s;
+  }
+  .preset:hover{background:#FFFAE8;}
+  .preset:active{transform:translate(2px,2px);box-shadow:0 0 0 var(--ink);}
+  .preset .gly{font-size:12px;line-height:1;color:var(--pink);}
+  .preset.wide{grid-column:1 / -1;}
+
+  /* knowledge */
+  .know-line{display:flex;gap:7px;align-items:flex-start;margin-top:6px;}
+  .know-dot{width:7px;height:7px;border-radius:50%;background:var(--pink);flex:0 0 7px;margin-top:4px;}
+  .know-line p{margin:0;font-size:9px;line-height:1.5;font-weight:700;color:var(--ink-2);}
+  .know-line b{color:var(--pink);font-weight:900;}
+
+  .page-foot{
+    flex:0 0 auto;text-align:center;padding-top:7px;
+    font-size:8px;font-weight:900;letter-spacing:1.8px;color:#B2A5C9;
+  }
+  .page-foot b{color:var(--violet);}
+  
+
+  .toast{
+    position:fixed;left:50%;top:84px;z-index:40;transform:translate(-50%,-10px);opacity:0;
+    pointer-events:none;background:var(--ink);color:#fff;padding:8px 15px;border-radius:9px;
+    font-size:11px;font-weight:800;box-shadow:3px 3px 0 rgba(36,28,58,.4);transition:.28s;
+  }
+  .toast.show{transform:translate(-50%,0);opacity:1;}
+
+  @media (max-width:1040px){
+    body{overflow:auto;}
+    .app{height:auto;min-height:100%;padding-bottom:16px;}
+    .layout{grid-template-columns:minmax(0,1fr);grid-template-rows:minmax(420px,52vh) auto;}
+    .panel{overflow:visible;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));align-items:start;padding:0;}
+    .hero,.mini-card{grid-column:1 / -1;}
+    .page-foot,.stage-tip{display:none;}
+    .touch-controls{display:block;}
+    .mini-card{position:static;width:auto;padding:10px 12px;}
+    .mini-head{font-size:12px;}
+    .mini-body{max-width:380px;margin-inline:auto;}
+    .mini-legend{font-size:10px;}
+  }
+  @media (max-height:900px) and (min-width:1041px){
+    .panel{gap:7px;}
+    .card{padding:7px 9px;}
+    .solid-btn{padding:4px 3px;}
+    .preset.wide{grid-column:auto;}
+    .preset-grid{gap:5px;}
+    .know-line.alt{display:none;}
+    .ltab{padding:3px 5px;}
+    .ctl{margin-top:4px;}
+    .bubble{margin-top:4px;}
+    .hero{padding:8px 10px;}
+    .hero-grid{grid-template-columns:64px minmax(0,1fr);gap:8px;}
+    .mascot-wrap{width:64px;height:78px;}
+    .mascot-svg{width:64px;height:78px;}
+    .shape-name{font-size:22px;}
+    .bubble{font-size:9px;padding:4px 6px;}
+    .metrics{margin-top:6px;padding-top:5px;}
+    .metric b{font-size:13.5px;}
+    .ctl{margin-top:5px;}
+    .solid-btn{padding:5px 4px;font-size:10px;}
+    .preset{padding:5px 5px;font-size:10px;}
+    .know-line p{font-size:8.6px;line-height:1.45;}
+    .stage-tip{height:31px;font-size:10px;}
+  }
+  @media (max-height:790px) and (min-width:1041px){
+    .app{padding:0 18px 10px;}
+    .topbar{height:58px;flex:0 0 58px;}
+    .brand-mark{width:38px;height:38px;flex:0 0 38px;font-size:20px;border-radius:11px;}
+    .brand h1{font-size:18px;}
+    .brand p{font-size:7.5px;letter-spacing:2px;}
+    .chip{padding:5px 10px;font-size:10.5px;}
+    .panel{gap:6px;}
+    .card{padding:7px 9px;border-radius:13px;}
+    .hero{padding:6px 9px;}
+    .hero-grid{grid-template-columns:52px minmax(0,1fr);gap:7px;}
+    .mascot-wrap{width:52px;height:62px;}
+    .mascot-svg{width:52px;height:62px;}
+    .eyebrow{font-size:6.5px;}
+    .shape-name{font-size:18px;}
+    .shape-en{font-size:6.5px;margin-top:1px;}
+    .bubble{margin-top:4px;font-size:8.4px;line-height:1.4;}
+    .metrics{margin-top:4px;padding-top:4px;gap:3px;}
+    .metric b{font-size:12px;}
+    .metric b.small{font-size:9.5px;}
+    .metric span{font-size:6.5px;}
+    .card-head{margin-bottom:5px;}
+    .card-title{font-size:10.5px;}
+    .card-title .ico{width:16px;height:16px;font-size:8.5px;}
+    .mode-btn{padding:5px 4px;font-size:10px;}
+    .ctl{margin-top:4px;grid-template-columns:44px minmax(0,1fr) 42px;gap:6px;}
+    .ctl-lab{font-size:9px;}
+    .ctl-val{font-size:8.5px;padding:2px;}
+    .solid-grid{gap:4px;}
+    .solid-btn{padding:4px 3px;font-size:9.2px;}
+    .preset-grid{gap:4px;}
+    .preset{padding:4px 5px;font-size:9.2px;}
+    .know-line{margin-top:4px;}
+    .know-line p{font-size:8px;line-height:1.4;}
+    .page-foot{padding-top:3px;font-size:7px;}
+    .mini-card{width:190px;}
+    .stage-tip{display:none;}
+  /* © 石门中学伍岭教练 · wuling.name */
+  }
+  @media (max-width:720px){
+    .app{padding:0 12px 12px;}
+    .topbar{height:58px;flex:0 0 58px;}
+    .brand-mark{width:36px;height:36px;flex:0 0 36px;font-size:19px;border-radius:10px;}
+    .brand > div:last-child{min-width:0;}
+    .brand h1{font-size:16.5px;overflow:hidden;text-overflow:ellipsis;}
+    .brand p{display:none;}
+    .chip{padding:5px 10px;font-size:10.5px;}
+    .layout{grid-template-rows:minmax(260px,38vh) auto;gap:12px;}
+    .panel{grid-template-columns:minmax(0,1fr);gap:10px;}
+    .top-actions .chip{white-space:nowrap;}
+    .ltab,.ltab-x,.mode-btn,.preset{min-height:36px;}
+    .preset.wide{grid-column:auto;}
+    .ctl input[type=range]{height:28px;}
+    .stage-tip{display:none;}
+    .view-switch{right:10px;top:10px;padding:3px;}
+    .view-switch button{padding:4px 8px;font-size:9.5px;}
+    .mode-tag{left:10px;bottom:10px;font-size:10px;padding:4px 9px;}
+    .card{padding:9px 10px;}
+    .shape-name{font-size:20px;}
+    .metrics .metric b{font-size:13px;}
+  }
+
+
+  @media (max-height:740px) and (min-width:1041px){
+    .know-line.alt{display:none;}
+    .card{padding:5px 8px;}
+    .panel{gap:4px;}
+    .ctl{margin-top:2px;}
+    .ltab{padding:2px 4px;font-size:8.5px;}
+    .metrics{margin-top:2px;padding-top:2px;}
+    .page-foot{display:none;}
+    .hero{padding:5px 8px;}
+    .metrics{margin-top:3px;padding-top:3px;}
+    .bubble{margin-top:3px;}
+    .stage-tip{display:none;}
+  }
+
+  /* 页脚署名：固定在右下角的小字，不占版面 */
+  .sign-tag{
+    position:fixed;right:14px;bottom:5px;z-index:60;pointer-events:none;
+    font-size:8px;font-weight:800;letter-spacing:.5px;
+    color:rgba(122,104,160,.42);text-shadow:0 1px 0 rgba(255,255,255,.7);
+  }
+  @media (max-width:720px){ .sign-tag{font-size:7px;right:8px;bottom:3px;color:rgba(122,104,160,.4);} }
+
+</style>
+</head>
+<body>
+<div class="bg"></div>
+<div class="rays"></div>
+
+<div class="app">
+  <header class="topbar">
+    <!-- 作者：石门中学伍岭教练（wuling.name） -->
+    <div class="brand">
+      <div class="brand-mark">影</div>
+      <div>
+        <h1>投影实验室 <em>·</em> <span id="brandSolid">正方体</span></h1>
+        <p id="brandSub">PARALLEL LIGHT · 平行投影</p>
+      </div>
+    </div>
+    <div class="top-actions">
+      <button class="chip" id="resetBtn">↺ 重置</button>
+    </div>
+  </header>
+
+  <!-- 石门中学伍岭教练 · wuling.name · 保留所有权利 -->
+  <main class="layout">
+    <section class="stage" id="stage">
+      <canvas id="scene" tabindex="0" aria-label="可交互的三维投影演示"></canvas>
+
+      <div class="stage-tip"><span>✥</span>拖空白换视角 · 拖 <b id="tipLight">光源</b> 移灯 · 拖物体转动</div>
+
+      <div class="view-switch" role="group" aria-label="切换观察角度">
+        <button type="button" data-view="iso" class="active" aria-pressed="true">立体</button>
+        <button type="button" data-view="top" aria-pressed="false">俯视</button>
+        <button type="button" data-view="front" aria-pressed="false">正视</button>
+      </div>
+
+      <!-- 石门中学伍岭教练 · wuling.name -->
+      <div class="mode-tag" id="modeTag">正投影</div>
+
+      <div class="touch-controls">
+        <button type="button" class="chip" id="canvasMode" aria-pressed="false">操作画布</button>
+      </div>
+      <details class="mini-card" id="miniCard" open>
+        <summary class="mini-head">影子真实形状</summary>
+        <div class="mini-body">
+          <canvas id="miniCanvas" width="400" height="240" role="img" aria-label="完整影子的俯视图"></canvas>
+          <p class="mini-legend" id="miniLegend" hidden>虚线是投影板边界，浅色为板外影子</p>
+        </div>
+      </details>
+    </section>
+
+    <aside class="panel">
+      <section class="card hero" id="readoutCard">
+        <div class="hero-grid">
+          <!-- © 石门中学伍岭教练 · wuling.name -->
+          <div class="mascot-wrap">
+            <svg class="mascot-svg" viewBox="0 0 120 140" aria-hidden="true">
+              <defs>
+                <radialGradient id="bulbG" cx="40%" cy="34%" r="72%">
+                  <stop offset="0" stop-color="#FFFDF0"/><stop offset="52%" stop-color="#FFE9A0"/><stop offset="1" stop-color="#FFCB4E"/>
+                </radialGradient>
+                <linearGradient id="capG" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0" stop-color="#EFF3FF"/><stop offset="1" stop-color="#C3CCE8"/>
+                </linearGradient>
+              </defs>
+              <ellipse cx="60" cy="129" rx="25" ry="5.5" fill="#241C3A" opacity=".13"/>
+              <!-- 作者：石门中学伍岭教练（wuling.name） -->
+              <g class="mascot-float">
+                <g stroke="#FFB01F" stroke-width="4.5" stroke-linecap="round">
+                  <path d="M17 44 l-9 -6"/><path d="M103 44 l9 -6"/>
+                  <path d="M9 66 l-10 1"/><path d="M111 66 l10 1"/>
+                </g>
+                <circle cx="60" cy="58" r="34" fill="url(#bulbG)" stroke="#241C3A" stroke-width="3.4"/>
+                <path d="M40 40 q8 -9 20 -9" fill="none" stroke="#fff" stroke-width="5" stroke-linecap="round" opacity=".85"/>
+                <ellipse cx="49" cy="60" rx="4.6" ry="6.2" fill="#241C3A"/>
+                <ellipse cx="72" cy="60" rx="4.6" ry="6.2" fill="#241C3A"/>
+                <!-- 石门中学伍岭教练 · wuling.name · 保留所有权利 -->
+                <circle cx="50.6" cy="57.4" r="1.7" fill="#fff"/><circle cx="73.6" cy="57.4" r="1.7" fill="#fff"/>
+                <ellipse cx="38" cy="71" rx="5.6" ry="3" fill="#FF8FB6" opacity=".7"/>
+                <ellipse cx="83" cy="71" rx="5.6" ry="3" fill="#FF8FB6" opacity=".7"/>
+                <path d="M54 71 q6 6 12 0" fill="none" stroke="#241C3A" stroke-width="2.4" stroke-linecap="round"/>
+                <rect x="45" y="90" width="30" height="9" rx="4" fill="url(#capG)" stroke="#241C3A" stroke-width="2.8"/>
+                <rect x="48" y="99" width="24" height="8" rx="3.4" fill="#AEBBDB" stroke="#241C3A" stroke-width="2.8"/>
+                <rect x="46" y="107" width="28" height="7" rx="3.4" fill="#C6CFEA" stroke="#241C3A" stroke-width="2.8"/>
+                <!-- 石门中学伍岭教练 · wuling.name -->
+                <ellipse cx="43" cy="117" rx="7" ry="4.6" fill="#FFD23F" stroke="#241C3A" stroke-width="2.6"/>
+                <ellipse cx="77" cy="117" rx="7" ry="4.6" fill="#FFD23F" stroke="#241C3A" stroke-width="2.6"/>
+                <path d="M100 24 l2.4 6 6.4.6-4.9 4.2 1.4 6.3-5.3-3.3-5.3 3.3 1.4-6.3-4.9-4.2 6.4-.6Z" fill="#20C2E8" stroke="#241C3A" stroke-width="1.8" stroke-linejoin="round"/>
+              </g>
+            </svg>
+          </div>
+          <div class="hero-copy">
+            <div class="eyebrow">SHADOW SHAPE · 影子形状</div>
+            <div class="shape-name" id="shapeName">正方形</div>
+            <div class="shape-en" id="shapeEn">SQUARE</div>
+            <div class="bubble" id="bubble">光线垂直照下来，完整影子和几何体的俯视轮廓一样大。</div>
+          </div>
+        </div>
+        <!-- © 石门中学伍岭教练 · wuling.name -->
+        <div class="metrics" id="singleMetrics">
+          <div class="metric"><b id="mArea">1.04</b><span>完整影子面积</span></div>
+          <div class="metric"><b id="mBoard">1.04</b><span>板内面积</span></div>
+          <div class="metric"><b id="mRatio">1.00×</b><span>相对正投影</span></div>
+          <div class="metric"><b id="mType" class="small">正投影</b><span>投影方式</span></div>
+        </div>
+        <div class="dual-metrics" id="dualMetrics" hidden>
+          <table aria-label="双光源影子面积">
+            <thead>
+              <tr><td></td><th scope="col" class="lamp-a">A 主光源</th><th scope="col" class="lamp-b">B 副光源</th></tr>
+            </thead>
+            <tbody>
+              <tr><th scope="row">完整影子面积</th><td id="mFullA"></td><td id="mFullB"></td></tr>
+              <tr><th scope="row">板内面积</th><td id="mBoardA"></td><td id="mBoardB"></td></tr>
+              <tr><th scope="row">板内重叠面积</th><td colspan="2" id="mOverlap"></td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <section class="card" id="lightCard">
+        <div class="card-head">
+          <div class="card-title"><span class="ico">☀</span>光源</div>
+          <!-- 作者：石门中学伍岭教练（wuling.name） -->
+          <span class="kicker">LIGHT</span>
+        </div>
+        <div class="light-tabs">
+          <button class="ltab on" id="tabA"><b>①</b> 主光源</button>
+          <button class="ltab empty" id="tabB"><b>＋</b> 加一盏副光源</button>
+          <button class="ltab-x" id="removeLightBtn" hidden title="收起副光源" aria-label="收起副光源">✕</button>
+        </div>
+        <div class="mode-grid">
+          <button class="mode-btn on" id="modeParallel">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><circle cx="12" cy="12" r="4.2" fill="#FFD23F"/><path d="M12 2.6v2.4M12 19v2.4M2.6 12h2.4M19 12h2.4M5.4 5.4l1.7 1.7M16.9 16.9l1.7 1.7M18.6 5.4l-1.7 1.7M7.1 16.9l-1.7 1.7"/></svg>
+            平行光
+          </button>
+          <!-- 石门中学伍岭教练 · wuling.name · 保留所有权利 -->
+          <button class="mode-btn point" id="modePoint">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 3.4a5.6 5.6 0 0 0-3.2 10.2v1.6h6.4v-1.6A5.6 5.6 0 0 0 12 3.4Z" fill="#7BE3F7"/><path d="M9 19h6M10 21.4h4"/></svg>
+            点光源
+          </button>
+        </div>
+        <div class="ctl">
+          <label class="ctl-lab" for="azRange">方位角</label>
+          <input id="azRange" type="range" min="0" max="360" step="1" value="18" style="--thumb:#FF4F97">
+          <span class="ctl-val" id="azVal">18°</span>
+        </div>
+        <div class="ctl" id="elRow">
+          <label class="ctl-lab" for="elRange">仰角</label>
+          <!-- 石门中学伍岭教练 · wuling.name -->
+          <input id="elRange" type="range" min="16" max="90" step="1" value="90" style="--thumb:#20C2E8">
+          <span class="ctl-val" id="elVal">90°</span>
+        </div>
+        <div class="ctl" id="hRow" hidden>
+          <label class="ctl-lab" for="hRange">高度</label>
+          <input id="hRange" type="range" min="2.6" max="10" step="0.1" value="3.2" style="--thumb:#20C2E8" aria-describedby="heightNote">
+          <span class="ctl-val" id="hVal">2.6</span>
+        </div>
+        <p class="height-note" id="heightNote" hidden></p>
+        <div class="ctl" id="rRow" hidden>
+          <!-- © 石门中学伍岭教练 · wuling.name -->
+          <label class="ctl-lab" for="rRange">偏移</label>
+          <input id="rRange" type="range" min="0" max="2.4" step="0.05" value="0.5" style="--thumb:#7B5CFA">
+          <span class="ctl-val" id="rVal">0.50</span>
+        </div>
+      </section>
+
+      <section class="card" id="solidCard">
+        <div class="card-head">
+          <div class="card-title"><span class="ico">◇</span>几何体</div>
+          <span class="kicker">SOLID</span>
+        </div>
+        <div class="solid-grid" id="solidGrid">
+          <!-- 作者：石门中学伍岭教练（wuling.name） -->
+          <button class="solid-btn on" data-kind="prism">正棱柱</button>
+          <button class="solid-btn" data-kind="pyramid">正棱锥</button>
+          <button class="solid-btn" data-kind="frustum">正棱台</button>
+          <button class="solid-btn" data-kind="poly">正多面体</button>
+          <button class="solid-btn" data-kind="cylinder">圆柱</button>
+          <button class="solid-btn" data-kind="cone">圆锥</button>
+          <button class="solid-btn" data-kind="sphere">球</button>
+        </div>
+        <!-- 石门中学伍岭教练 · wuling.name · 保留所有权利 -->
+        <div class="param-row" id="sidesRow">
+          <span class="param-lab">底面边数</span>
+          <input class="param-in" id="sidesInput" type="number" min="3" max="8" step="1" value="4">
+          <span class="param-hint">3 – 8</span>
+        </div>
+        <div class="param-row" id="facesRow" hidden>
+          <span class="param-lab">面数</span>
+          <input class="param-in" id="facesInput" type="number" min="4" max="20" step="1" value="6">
+          <span class="param-hint">4·6·8·12·20</span>
+        </div>
+        <!-- 石门中学伍岭教练 · wuling.name -->
+        <div class="ctl">
+          <label class="ctl-lab" for="rotRange">自转</label>
+          <input id="rotRange" type="range" min="0" max="360" step="1" value="0" style="--thumb:#FF4F97">
+          <span class="ctl-val" id="rotVal">0°</span>
+        </div>
+        <div class="ctl">
+          <label class="ctl-lab" for="tiltRange">俯仰</label>
+          <input id="tiltRange" type="range" min="-85" max="85" step="1" value="0" style="--thumb:#20C2E8">
+          <span class="ctl-val" id="tiltVal">0°</span>
+        </div>
+        <!-- © 石门中学伍岭教练 · wuling.name -->
+        <div class="ctl">
+          <label class="ctl-lab" for="liftRange">离地</label>
+          <input id="liftRange" type="range" min="0.15" max="1.15" step="0.05" value="0.75" style="--thumb:#2FD79B">
+          <span class="ctl-val" id="liftVal">0.75</span>
+        </div>
+      </section>
+
+      <section class="card" id="presetCard">
+        <div class="card-head">
+          <div class="card-title"><span class="ico">✦</span>一键演示</div>
+          <!-- 作者：石门中学伍岭教练（wuling.name） -->
+          <span class="kicker">TRY</span>
+        </div>
+        <div class="preset-grid" id="presetGrid">
+          <button class="preset wide" data-preset="ortho"><span class="gly">☀</span>平行光 · 正投影</button>
+          <button class="preset" data-preset="oblique"><span class="gly">↘</span>平行光 · 斜射</button>
+          <button class="preset" data-preset="near"><span class="gly">💡</span>点光源 · 近</button>
+          <button class="preset" data-preset="far"><span class="gly">✧</span>点光源 · 高</button>
+        </div>
+      </section>
+
+      <section class="card">
+        <div class="card-head">
+          <!-- 石门中学伍岭教练 · wuling.name · 保留所有权利 -->
+          <div class="card-title"><span class="ico">!</span>小知识</div>
+          <span class="kicker">WHY</span>
+        </div>
+        <div class="know-line">
+          <span class="know-dot"></span>
+          <p id="fact1"><b>平行投影</b>：光线互相平行，影子只跟照射方向有关——把物体升高，完整影子只会平移，大小不变。</p>
+        </div>
+        <div class="know-line alt">
+          <span class="know-dot" style="background:#20C2E8"></span>
+          <!-- 石门中学伍岭教练 · wuling.name -->
+          <p id="fact2"><b>中心投影</b>：光线从一点发散，当光源保持在几何体上方时，升高几何体，完整影子会变大。</p>
+        </div>
+      </section>
+    </aside>
+  </main>
+
+  <div class="page-foot">DRAG · LIGHT · SHADOW &nbsp;·&nbsp; <b>抓住光，看清影</b></div>
+</div>
+
+<div class="toast" id="toast">已恢复初始设置</div>
+
+<div class="sign-tag">© 石门中学伍岭教练 · wuling.name</div>
+
+<script>
+(() => {
+  "use strict";
+
+  /* ============================== 0. math kit ============================== */
+  const add = (a, b) => [a[0] + b[0], a[1] + b[1], a[2] + b[2]];
+  const sub = (a, b) => [a[0] - b[0], a[1] - b[1], a[2] - b[2]];
+  const mul = (a, s) => [a[0] * s, a[1] * s, a[2] * s];
+  const dot = (a, b) => a[0] * b[0] + a[1] * b[1] + a[2] * b[2];
+  const cross = (a, b) => [a[1] * b[2] - a[2] * b[1], a[2] * b[0] - a[0] * b[2], a[0] * b[1] - a[1] * b[0]];
+  const len = a => Math.hypot(a[0], a[1], a[2]);
+  const norm = a => { const l = len(a) || 1; return [a[0] / l, a[1] / l, a[2] / l]; };
+  const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+  const lerp = (a, b, t) => a + (b - a) * t;
+  const deg = d => d * Math.PI / 180;
+
+  const d2 = (a, b) => Math.hypot(a[0] - b[0], a[1] - b[1]);
+  const area2 = poly => {
+    let s = 0;
+    for (let i = 0; i < poly.length; i++) {
+      const p = poly[i], q = poly[(i + 1) % poly.length];
+      s += p[0] * q[1] - q[0] * p[1];
+    }
+    return Math.abs(s) / 2;
+  };
+  const perim2 = poly => {
+    let s = 0;
+    for (let i = 0; i < poly.length; i++) s += d2(poly[i], poly[(i + 1) % poly.length]);
+    return s;
+  };
+  const centroid2 = poly => {
+    const c = poly.reduce((a, p) => [a[0] + p[0], a[1] + p[1]], [0, 0]);
+    return [c[0] / poly.length, c[1] / poly.length];
+  };
+
+  function convexHull(pts) {
+    if (pts.length < 3) return pts.slice();
+    const p = pts.slice().sort((a, b) => a[0] - b[0] || a[1] - b[1]);
+    const cr = (o, a, b) => (a[0] - o[0]) * (b[1] - o[1]) - (a[1] - o[1]) * (b[0] - o[0]);
+    const lo = [];
+    for (const q of p) {
+      while (lo.length >= 2 && cr(lo[lo.length - 2], lo[lo.length - 1], q) <= 0) lo.pop();
+      lo.push(q);
+    }
+    const up = [];
+    for (let i = p.length - 1; i >= 0; i--) {
+      const q = p[i];
+      while (up.length >= 2 && cr(up[up.length - 2], up[up.length - 1], q) <= 0) up.pop();
+      up.push(q);
+    // © 石门中学伍岭教练 · wuling.name
+    }
+    lo.pop(); up.pop();
+    const h = lo.concat(up);
+    return h.length >= 3 ? h : pts.slice();
+  }
+
+  // clip convex polygon to square [-B,B]^2 (Sutherland-Hodgman)
+  function clipSquare(poly, B) {
+    const clipEdge = (pts, inside, intersect) => {
+      const out = [];
+      for (let i = 0; i < pts.length; i++) {
+        const a = pts[i], b = pts[(i + 1) % pts.length];
+        const ia = inside(a), ib = inside(b);
+        if (ia) out.push(a);
+        if (ia !== ib) out.push(intersect(a, b));
+      }
+      return out;
+    };
+    let out = poly.slice();
+    const ax = [
+      { inside: p => p[0] >= -B, cut: (a, b) => { const t = (-B - a[0]) / (b[0] - a[0]); return [-B, a[1] + t * (b[1] - a[1])]; } },
+      { inside: p => p[0] <= B, cut: (a, b) => { const t = (B - a[0]) / (b[0] - a[0]); return [B, a[1] + t * (b[1] - a[1])]; } },
+      { inside: p => p[1] >= -B, cut: (a, b) => { const t = (-B - a[1]) / (b[1] - a[1]); return [a[0] + t * (b[0] - a[0]), -B]; } },
+      { inside: p => p[1] <= B, cut: (a, b) => { const t = (B - a[1]) / (b[1] - a[1]); return [a[0] + t * (b[0] - a[0]), B]; } }
+    ];
+    for (const e of ax) {
+      if (!out.length) break;
+      out = clipEdge(out, e.inside, e.cut);
+    }
+    return out;
+  }
+
+  /* ============================== 1. state ============================== */
+  const BOARD = 3.15;
+
+  const state = {
+    kind: "prism",
+    sides: 4,
+    faces: 6,
+    rot: 0,
+    tilt: 0,
+    lift: 0.75,
+    view: "iso",
+    yaw: -0.62,
+    pitch: 0.66,
+    dist: 10.6,
+    yawG: -0.62,
+    pitchG: 0.6,
+    distG: 10.6,
+    drag: null,
+    hover: false,
+    t: 0,
+    lightAnim: null
+  };
+
+  // 两盏灯：A 常开，B 可选
+  const LIGHTS = {
+    A: { mode: "parallel", az: 18, el: 90, h: 3.2, r: 0.5 },
+    B: { mode: "point", az: 152, el: 52, h: 4.6, r: 1.5 }
+  };
+  let lightBOn = false;
+  let activeLight = "A";
+  const lightOf = k => LIGHTS[k];
+
+  const DEFAULT = { rot: 0, tilt: 0, lift: 0.75 };
+
+  /* ============================== 2. solids ============================== */
+  function polyFromVerts(verts, faces, meta) {
+    const center = verts.reduce((a, p) => add(a, p), [0, 0, 0]).map(v => v / verts.length);
+    const fcs = faces.map(idx => {
+      const pts = idx.map(i => verts[i]);
+      const c = pts.reduce((a, p) => add(a, p), [0, 0, 0]).map(v => v / pts.length);
+      let n = norm(cross(sub(pts[1], pts[0]), sub(pts[2], pts[1])));
+      if (dot(n, sub(c, center)) < 0) { n = mul(n, -1); }
+      return { idx, pts, c, n };
+    // 作者：石门中学伍岭教练（wuling.name）
+    });
+    return Object.assign({ type: "poly", verts, faces: fcs, samples: verts.slice() }, meta);
+  }
+
+  /* ---- 几何体参数化构建 ---- */
+  const CN = ["", "一", "二", "三", "四", "五", "六", "七", "八", "九", "十", "十一", "十二"];
+
+  function ring(n, R, y, phase) {
+    phase = phase === undefined ? Math.PI / 2 : phase;
+    const out = [];
+    for (let i = 0; i < n; i++) {
+      const a = phase + i * Math.PI * 2 / n;
+      out.push([R * Math.cos(a), y, R * Math.sin(a)]);
+    }
+    return out;
+  }
+  const seq = n => Array.from({ length: n }, (_, i) => i);
+
+  // 由顶点自动识别所有支撑平面，得到多面体各面（用于正多面体）
+  function facesFromVerts(verts) {
+    const planes = [];
+    const n = verts.length;
+    for (let i = 0; i < n; i++) for (let j = i + 1; j < n; j++) for (let k = j + 1; k < n; k++) {
+      let nor = cross(sub(verts[j], verts[i]), sub(verts[k], verts[i]));
+      const L = len(nor);
+      if (L < 1e-9) continue;
+      nor = mul(nor, 1 / L);
+      let d = dot(nor, verts[i]);
+      let maxd = -Infinity, mind = Infinity;
+      for (const p of verts) { const t = dot(nor, p); maxd = Math.max(maxd, t); mind = Math.min(mind, t); }
+      if (Math.abs(maxd - d) > 1e-6) {
+        if (Math.abs(mind - d) > 1e-6) continue;
+        nor = mul(nor, -1); d = -d;
+      }
+      if (planes.some(pl => Math.abs(pl.d - d) < 1e-6 && dot(pl.n, nor) > 0.9999)) continue;
+      const idx = [];
+      verts.forEach((p, ii) => { if (Math.abs(dot(nor, p) - d) < 1e-6) idx.push(ii); });
+      if (idx.length < 3) continue;
+      planes.push({ n: nor, d, idx });
+    }
+    return planes.map(pl => {
+      const c = pl.idx.reduce((a, ii) => add(a, verts[ii]), [0, 0, 0]).map(v => v / pl.idx.length);
+      const u = norm(sub(verts[pl.idx[0]], c));
+      const v = cross(pl.n, u);
+      return pl.idx.slice().sort((p1, p2) => {
+        const a1 = sub(verts[p1], c), a2 = sub(verts[p2], c);
+        return Math.atan2(dot(a1, v), dot(a1, u)) - Math.atan2(dot(a2, v), dot(a2, u));
+      });
+    // 石门中学伍岭教练 · wuling.name · 保留所有权利
+    });
+  }
+
+  function rotateAxis(p, k, ang) {
+    const cp = Math.cos(ang), sp = Math.sin(ang);
+    const kv = cross(k, p), kd = dot(k, p);
+    return [
+      p[0] * cp + kv[0] * sp + k[0] * kd * (1 - cp),
+      p[1] * cp + kv[1] * sp + k[1] * kd * (1 - cp),
+      p[2] * cp + kv[2] * sp + k[2] * kd * (1 - cp)
+    ];
+  }
+
+  // 让最朝下的一面贴住水平面，返回点变换函数
+  function settleXform(verts, facesRaw, height) {
+    let best = -2, bestN = null;
+    for (const f of facesRaw) {
+      const a = verts[f[0]], b = verts[f[1]], c = verts[f[2]];
+      let nor = norm(cross(sub(b, a), sub(c, a)));
+      const fc = f.reduce((acc, i) => add(acc, verts[i]), [0, 0, 0]).map(v => v / f.length);
+      if (dot(nor, fc) < 0) nor = mul(nor, -1);
+      if (-nor[1] > best) { best = -nor[1]; bestN = nor; }
+    }
+    let axis = null, ang = 0;
+    if (bestN && bestN[1] > -0.9999) {
+      const target = [0, -1, 0];
+      const ax = cross(bestN, target);
+      const sn = len(ax), cs = dot(bestN, target);
+      if (sn > 1e-8) { axis = mul(ax, 1 / sn); ang = Math.atan2(sn, cs); }
+    }
+    const rot = p => axis ? rotateAxis(p, axis, ang) : p.slice();
+    const minY = Math.min(...verts.map(p => rot(p)[1]));
+    return p => { const q = rot(p); return [q[0], q[1] - minY + height, q[2]]; };
+  }
+
+  const centroid3 = pts => pts.reduce((a, p) => add(a, p), [0, 0, 0]).map(v => v / pts.length);
+
+  const RAW_CACHE = new Map();
+
+  function rawGeom(key, maker) {
+    if (!RAW_CACHE.has(key)) RAW_CACHE.set(key, maker());
+    return RAW_CACHE.get(key);
+  }
+
+  function platonicVerts(fc) {
+    const P = [1, 1, 1];
+    if (fc === 4) return [[1, 1, 1], [1, -1, -1], [-1, 1, -1], [-1, -1, 1]];
+    if (fc === 6) {
+      const v = [];
+      for (const x of [-1, 1]) for (const y of [-1, 1]) for (const z of [-1, 1]) v.push([x, y, z]);
+      return v;
+    }
+    if (fc === 8) return [[1, 0, 0], [-1, 0, 0], [0, 1, 0], [0, -1, 0], [0, 0, 1], [0, 0, -1]];
+    const ph = (1 + Math.sqrt(5)) / 2;
+    if (fc === 12) {
+      const v = [];
+      for (const x of [-1, 1]) for (const y of [-1, 1]) for (const z of [-1, 1]) v.push([x, y, z]);
+      for (const y of [-1, 1]) for (const z of [-1, 1]) v.push([0, y / ph, z * ph]);
+      for (const x of [-1, 1]) for (const y of [-1, 1]) v.push([x / ph, y * ph, 0]);
+      for (const x of [-1, 1]) for (const z of [-1, 1]) v.push([x * ph, 0, z / ph]);
+      return v;
+    // 石门中学伍岭教练 · wuling.name
+    }
+    // 20
+    const v = [];
+    for (const y of [-1, 1]) for (const z of [-1, 1]) v.push([0, y, z * ph]);
+    for (const x of [-1, 1]) for (const y of [-1, 1]) v.push([x, y * ph, 0]);
+    for (const x of [-1, 1]) for (const z of [-1, 1]) v.push([x * ph, 0, z]);
+    return v;
+  }
+
+  const PLATONIC_NAME = { 4: ["正四面体", "TETRAHEDRON"], 6: ["正方体", "CUBE"], 8: ["正八面体", "OCTAHEDRON"], 12: ["正十二面体", "DODECAHEDRON"], 20: ["正二十面体", "ICOSAHEDRON"] };
+
+  // 生成"底面在 y = 0"的原始几何
+  function buildRaw(cfg) {
+    const kind = cfg.kind;
+    if (kind === "prism" || kind === "pyramid" || kind === "frustum") {
+      const n = clamp(Math.round(cfg.sides), 3, 8);
+      const R = 0.72;
+      const side = 2 * R * Math.sin(Math.PI / n);
+      const H = clamp(side * (kind === "pyramid" ? 1.1 : 1), 0.75, 1.3);
+      let verts = [], faces = [];
+      if (kind === "prism") {
+        verts = ring(n, R, 0).concat(ring(n, R, H));
+        faces.push(seq(n));
+        faces.push(seq(n).map(i => i + n));
+        for (let i = 0; i < n; i++) {
+          const j = (i + 1) % n;
+          faces.push([i, j, j + n, i + n]);
+        }
+      } else if (kind === "pyramid") {
+        verts = ring(n, R, 0).concat([[0, H, 0]]);
+        faces.push(seq(n));
+        for (let i = 0; i < n; i++) faces.push([i, (i + 1) % n, n]);
+      } else {
+        const R2 = R * 0.5;
+        verts = ring(n, R, 0).concat(ring(n, R2, H));
+        faces.push(seq(n));
+        faces.push(seq(n).map(i => i + n));
+        for (let i = 0; i < n; i++) {
+          const j = (i + 1) % n;
+          faces.push([i, j, j + n, i + n]);
+        }
+      }
+      const name = "正" + CN[n] + (kind === "prism" ? "棱柱" : kind === "pyramid" ? "棱锥" : "棱台");
+      const en = "REGULAR " + n + "-" + (kind === "prism" ? "PRISM" : kind === "pyramid" ? "PYRAMID" : "FRUSTUM");
+      return { type: "poly", verts, faceIdx: faces, name, en, family: kind, n };
+    // © 石门中学伍岭教练 · wuling.name
+    }
+    if (kind === "poly") {
+      const fc = cfg.faces;
+      const base = platonicVerts(fc);
+      const R0 = Math.hypot(...base[0]);
+      const k = 0.78 / R0;
+      let verts = base.map(v => mul(v, k));
+      let faces = rawGeom("poly" + fc, () => facesFromVerts(verts));
+      const nm = PLATONIC_NAME[fc] || ["正多面体", "PLATONIC"];
+      return { type: "poly", verts, faceIdx: faces, name: nm[0], en: nm[1], family: "poly", faces: fc };
+    }
+    if (kind === "cylinder") {
+      const r = 0.66, H = 1.28, samples = [];
+      for (let k2 = 0; k2 <= 5; k2++) {
+        const y = H * k2 / 5;
+        for (let i = 0; i < 72; i++) {
+          const a = i / 72 * Math.PI * 2;
+          samples.push([r * Math.cos(a), y, r * Math.sin(a)]);
+        }
+      }
+      return { type: "cylinder", r, H, samples, name: "圆柱", en: "CYLINDER" };
+    }
+    if (kind === "cone") {
+      const r = 0.7, H = 1.34, samples = [];
+      for (let k2 = 0; k2 <= 5; k2++) {
+        const t = k2 / 5, y = H * t, rr = r * (1 - t);
+        for (let i = 0; i < 72; i++) {
+          const a = i / 72 * Math.PI * 2;
+          samples.push([rr * Math.cos(a), y, rr * Math.sin(a)]);
+        }
+      }
+      samples.push([0, H, 0]);
+      return { type: "cone", r, H, samples, name: "圆锥", en: "CONE" };
+    }
+    const R = 0.66, cy = R, samples = [];
+    for (let i = 1; i < 18; i++) {
+      const phi = -Math.PI / 2 + i / 18 * Math.PI;
+      for (let k2 = 0; k2 < 40; k2++) {
+        const th = k2 / 40 * Math.PI * 2;
+        samples.push([R * Math.cos(phi) * Math.cos(th), cy + R * Math.sin(phi), R * Math.cos(phi) * Math.sin(th)]);
+      // 作者：石门中学伍岭教练（wuling.name）
+      }
+    }
+    return { type: "sphere", R, cy, samples, name: "球", en: "SPHERE" };
+  }
+
+  function buildSolid(cfg) {
+    const raw = buildRaw(cfg);
+    const lift = cfg.lift;
+    const yawA = (cfg.rot || 0) * Math.PI / 180;
+    const tiltA = (cfg.tilt || 0) * Math.PI / 180;
+    const cyw = Math.cos(yawA), syw = Math.sin(yawA);
+    const ctl = Math.cos(tiltA), stl = Math.sin(tiltA);
+
+    const settle = raw.type === "poly" ? settleXform(raw.verts, raw.faceIdx, 0) : (p => p.slice());
+    const srcPts = raw.type === "poly" ? raw.verts : raw.samples;
+    const pts1 = srcPts.map(settle);
+    const c1 = centroid3(pts1);
+
+    // 绕重心：先俯仰（绕 X 轴），再自转（绕 Y 轴）
+    const rotAbout = p => {
+      let q = sub(p, c1);
+      q = [q[0], q[1] * ctl - q[2] * stl, q[1] * stl + q[2] * ctl];
+      q = [q[0] * cyw + q[2] * syw, q[1], -q[0] * syw + q[2] * cyw];
+      return add(q, c1);
+    };
+    const pts2 = pts1.map(rotAbout);
+    const minY = Math.min(...pts2.map(p => p[1]));
+    const dy = lift - minY;
+    const xform = p => { const q = rotAbout(settle(p)); return [q[0], q[1] + dy, q[2]]; };
+
+    let s;
+    if (raw.type === "poly") {
+      const verts = raw.verts.map(xform);
+      const cc = centroid3(verts);
+      const faces = raw.faceIdx.map(idx => {
+        const pts = idx.map(i => verts[i]);
+        const c = centroid3(pts);
+        let nrm = norm(cross(sub(pts[1], pts[0]), sub(pts[2], pts[1])));
+        if (dot(nrm, sub(c, cc)) < 0) nrm = mul(nrm, -1);
+        return { idx, pts, c, n: nrm };
+      });
+      s = { type: "poly", verts, faces, samples: verts.slice(), name: raw.name, en: raw.en, family: raw.family };
+    } else if (raw.type === "sphere") {
+      const samples = raw.samples.map(xform);
+      s = { type: "sphere", R: raw.R, samples, name: raw.name, en: raw.en };
+    } else {
+      s = {
+        type: raw.type, r: raw.r, H: raw.H, samples: raw.samples.map(xform),
+        name: raw.name, en: raw.en
+      };
+    // 石门中学伍岭教练 · wuling.name · 保留所有权利
+    }
+    s.xform = xform;
+    s.topY = Math.max(...s.samples.map(p => p[1]));
+    s.baseY = Math.min(...s.samples.map(p => p[1]));
+    // 相对正投影的参照面积：竖直投影的凸包
+    s.base = area2(convexHull(s.samples.map(p => [p[0], p[2]])));
+    return s;
+  }
+
+  let SOLID = buildSolid({ kind: "prism", sides: 4, faces: 6, rot: 0, tilt: 0, lift: 0.75 });
+
+  /* ============================== 3. camera ============================== */
+  const canvas = document.getElementById("scene");
+  const ctx = canvas.getContext("2d");
+  /* 离屏画布：作者信息贴图（只在内存里，页面上看不到） */
+  const SIG_TEX = document.createElement("canvas");
+  SIG_TEX.width = 1024; SIG_TEX.height = 128;
+  (() => {
+    const g = SIG_TEX.getContext("2d");
+    g.fillStyle = "#5B4A8A";
+    g.font = "900 54px 'PingFang SC','Hiragino Sans GB',sans-serif";
+    g.textBaseline = "middle";
+    g.fillText("石门中学伍岭教练 · wuling.name", 6, 66);
+  })();
+
+  /* 场景水印：一行贴在三维地面上的极小字 + 一张极淡的离屏贴图 */
+  function drawSignature() {
+    const p3 = project([-2.25, 0.004, 2.15]);
+    if (p3) {
+      ctx.save();
+      ctx.translate(p3.x, p3.y);
+      ctx.rotate(-0.28);
+      ctx.globalAlpha = 0.085;
+      ctx.fillStyle = "#6B5A9A";
+      ctx.font = "700 7px 'PingFang SC','Hiragino Sans GB',sans-serif";
+      ctx.textAlign = "left";
+      ctx.fillText("石门中学伍岭教练 · wuling.name", 0, 0);
+      ctx.restore();
+    }
+    ctx.save();
+    ctx.globalAlpha = 0.018;
+    ctx.drawImage(SIG_TEX, W * 0.06, H * 0.10, W * 0.52, W * 0.52 * 128 / 1024);
+    ctx.restore();
+  }
+
+  const miniCanvas = document.getElementById("miniCanvas");
+  const mctx = miniCanvas.getContext("2d");
+  const stage = document.getElementById("stage");
+
+  let W = 0, H = 0, DPR = 1;
+  const cam = {};
+
+  function resize() {
+    const r = stage.getBoundingClientRect();
+    W = Math.max(1, r.width);
+    H = Math.max(1, r.height);
+    DPR = Math.min(window.devicePixelRatio || 1, 2);
+    canvas.width = Math.round(W * DPR);
+    canvas.height = Math.round(H * DPR);
+    ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+  }
+  if (window.ResizeObserver) new ResizeObserver(resize).observe(stage);
+  window.addEventListener("resize", resize);
+  resize();
+
+  function updateCamera() {
+    const target = [0, 0.82, 0];
+    const cp = state.view === "top" ? 0 : Math.cos(state.pitch);
+    const pos = [
+      target[0] + state.dist * Math.sin(state.yaw) * cp,
+      target[1] + state.dist * Math.sin(state.pitch),
+      target[2] + state.dist * Math.cos(state.yaw) * cp
+    ];
+    const fwd = norm(sub(target, pos));
+    const right = [Math.cos(state.yaw), 0, -Math.sin(state.yaw)];
+    const up = norm(cross(right, fwd));
+    cam.pos = pos; cam.fwd = fwd; cam.right = right; cam.up = up;
+    cam.focal = Math.min(W, H) * 1.62;
+    cam.orthoScale = state.view === "iso" ? 0 : cam.focal / state.dist;
+    cam.cx = W / 2;
+    cam.cy = H / 2 + Math.min(W, H) * 0.022;
+  }
+
+  function project(p) {
+    const dx = p[0] - cam.pos[0], dy = p[1] - cam.pos[1], dz = p[2] - cam.pos[2];
+    const z = dx * cam.fwd[0] + dy * cam.fwd[1] + dz * cam.fwd[2];
+    if (!cam.orthoScale && z <= 0.12) return null;
+    const x = dx * cam.right[0] + dy * cam.right[1] + dz * cam.right[2];
+    const y = dx * cam.up[0] + dy * cam.up[1] + dz * cam.up[2];
+    const s = cam.orthoScale || cam.focal / z;
+    return { x: cam.cx + x * s, y: cam.cy - y * s, z, s };
+  }
+
+  /* ============================== 4. lights ============================== */
+  function sunDirOf(L) {
+    if (L.el === 90) return [0, 1, 0];
+    const e = deg(L.el), a = deg(L.az);
+    return norm([Math.cos(e) * Math.sin(a), Math.sin(e), Math.cos(e) * Math.cos(a)]);
+  }
+  function pointPosOf(L) {
+    const a = deg(L.az);
+    return [L.r * Math.sin(a), L.h, L.r * Math.cos(a)];
+  }
+  function lightPosOf(L) {
+    return L.mode === "parallel" ? add([0, 0.9, 0], mul(sunDirOf(L), 4.2)) : pointPosOf(L);
+  // 石门中学伍岭教练 · wuling.name
+  }
+
+  // 把一个世界点投到投影面 y = 0
+  function castToFloor(L, p) {
+    if (L.mode === "parallel") {
+      const u = sunDirOf(L);
+      if (u[1] < 0.02) return null;
+      return [p[0] - u[0] * (p[1] / u[1]), 0, p[2] - u[2] * (p[1] / u[1])];
+    }
+    const P = pointPosOf(L);
+    if (P[1] <= p[1] + 1e-3) return null;
+    const k = P[1] / (P[1] - p[1]);
+    return [P[0] + (p[0] - P[0]) * k, 0, P[2] + (p[2] - P[2]) * k];
+  }
+
+  function cleanPoly(poly) {
+    const out = [];
+    for (const p of poly) if (!out.length || d2(p, out[out.length - 1]) > 1e-6) out.push(p);
+    if (out.length > 1 && d2(out[0], out[out.length - 1]) < 1e-6) out.pop();
+    const res = [];
+    for (let i = 0; i < out.length; i++) {
+      const a = out[(i - 1 + out.length) % out.length], b = out[i], c = out[(i + 1) % out.length];
+      const u = [b[0] - a[0], b[1] - a[1]], v = [c[0] - b[0], c[1] - b[1]];
+      const lu = Math.hypot(u[0], u[1]), lv = Math.hypot(v[0], v[1]);
+      if (lu < 1e-9 || lv < 1e-9) continue;
+      const cosT = clamp((u[0] * v[0] + u[1] * v[1]) / (lu * lv), -1, 1);
+      if (Math.acos(cosT) < 0.02) continue;
+      res.push(b);
+    }
+    return res.length >= 3 ? res : out;
+  }
+
+  function computeShadowFor(L) {
+    const pts = [];
+    for (const p of SOLID.samples) {
+      const c = castToFloor(L, p);
+      if (c) pts.push([c[0], c[2]]);
+    }
+    const raw = convexHull(pts);
+    const poly = clipSquare(raw, BOARD);
+    return {
+      raw,
+      poly,
+      fullArea: area2(raw),
+      boardArea: area2(poly),
+      clipped: raw.some(([x, z]) => Math.abs(x) > BOARD + 1e-7 || Math.abs(z) > BOARD + 1e-7)
+    };
+  }
+
+  // 两个凸多边形的交集（Sutherland–Hodgman）
+  function polyIntersect(a, b) {
+    if (!a.length || !b.length) return [];
+    const ccw = p => {
+      let ssum = 0;
+      for (let i = 0; i < p.length; i++) { const q = p[(i + 1) % p.length]; ssum += p[i][0] * q[1] - q[0] * p[i][1]; }
+      return ssum > 0;
+    };
+    let A = ccw(a) ? a.slice() : a.slice().reverse();
+    const B = ccw(b) ? b : b.slice().reverse();
+    for (let i = 0; i < B.length && A.length; i++) {
+      const p1 = B[i], p2 = B[(i + 1) % B.length];
+      const side = p => (p2[0] - p1[0]) * (p[1] - p1[1]) - (p2[1] - p1[1]) * (p[0] - p1[0]);
+      const inter = (p, q) => {
+        const t = side(p) / (side(p) - side(q));
+        return [p[0] + (q[0] - p[0]) * t, p[1] + (q[1] - p[1]) * t];
+      // © 石门中学伍岭教练 · wuling.name
+      };
+      const next = [];
+      for (let j = 0; j < A.length; j++) {
+        const cur = A[j], prev = A[(j - 1 + A.length) % A.length];
+        const ci = side(cur) >= -1e-12, pi = side(prev) >= -1e-12;
+        if (ci) { if (!pi) next.push(inter(prev, cur)); next.push(cur); }
+        else if (pi) next.push(inter(prev, cur));
+      }
+      A = next;
+    }
+    return A.length >= 3 ? A : [];
+  }
+
+  /* ============================== 5. shape naming ============================== */
+  function classify(poly) {
+    if (!poly || poly.length < 3) return { name: "—", en: "NONE", tip: "fail" };
+    const pts = poly.slice();
+    const n = pts.length;
+    const sides = [], dirs = [];
+    for (let i = 0; i < n; i++) {
+      const a = pts[i], b = pts[(i + 1) % n];
+      sides.push(d2(a, b));
+      dirs.push([b[0] - a[0], b[1] - a[1]]);
+    }
+    const near = (x, y, tol) => Math.abs(x - y) <= tol * Math.max(Math.abs(x), Math.abs(y), 1e-6);
+    const parallel = (u, v) => {
+      const l1 = Math.hypot(u[0], u[1]), l2 = Math.hypot(v[0], v[1]);
+      return Math.abs(u[0] * v[1] - u[1] * v[0]) <= 0.075 * l1 * l2;
+    };
+    const perp = (u, v) => {
+      const l1 = Math.hypot(u[0], u[1]), l2 = Math.hypot(v[0], v[1]);
+      return Math.abs(u[0] * v[0] + u[1] * v[1]) <= 0.075 * l1 * l2;
+    };
+    const allEq = arr => arr.every(s => near(s, arr[0], 0.045));
+
+    if (n <= 12) {
+      if (n === 3) {
+        if (allEq(sides)) return { name: "等边三角形", en: "EQUILATERAL", tip: "poly" };
+        return { name: "三角形", en: "TRIANGLE", tip: "poly" };
+      // 作者：石门中学伍岭教练（wuling.name）
+      }
+      if (n === 4) {
+        const par = parallel(dirs[0], dirs[2]) && parallel(dirs[1], dirs[3]);
+        const rect = perp(dirs[0], dirs[1]);
+        const eq2 = near(sides[0], sides[2], 0.05) && near(sides[1], sides[3], 0.05) && near(sides[0], sides[1], 0.05);
+        if (par && rect && eq2) return { name: "正方形", en: "SQUARE", tip: "poly" };
+        if (par && rect) return { name: "长方形", en: "RECTANGLE", tip: "poly" };
+        if (par && eq2) return { name: "菱形", en: "RHOMBUS", tip: "poly" };
+        if (par) return { name: "平行四边形", en: "PARALLELOGRAM", tip: "poly" };
+        if (parallel(dirs[0], dirs[2]) !== parallel(dirs[1], dirs[3])) return { name: "梯形", en: "TRAPEZOID", tip: "poly" };
+        return { name: "四边形", en: "QUADRILATERAL", tip: "poly" };
+      }
+      if (n === 5) return { name: allEq(sides) ? "正五边形" : "五边形", en: "PENTAGON", tip: "poly" };
+      if (n === 6) return { name: allEq(sides) ? "正六边形" : "六边形", en: "HEXAGON", tip: "poly" };
+      const cn = CN[n] || n;
+      return { name: (allEq(sides) ? "正" : "") + cn + "边形", en: n + "-GON", tip: "poly" };
+    }
+
+    // curved branch: fit an ellipse with principal axes
+    const c = centroid2(pts);
+    let sxx = 0, sxz = 0, szz = 0;
+    for (const p of pts) {
+      const dx = p[0] - c[0], dz = p[1] - c[1];
+      sxx += dx * dx; sxz += dx * dz; szz += dz * dz;
+    }
+    const th = 0.5 * Math.atan2(2 * sxz, sxx - szz);
+    const e1 = [Math.cos(th), Math.sin(th)], e2 = [-Math.sin(th), Math.cos(th)];
+    let a = 0, b = 0;
+    for (const p of pts) {
+      const dx = p[0] - c[0], dz = p[1] - c[1];
+      a = Math.max(a, Math.abs(dx * e1[0] + dz * e1[1]));
+      b = Math.max(b, Math.abs(dx * e2[0] + dz * e2[1]));
+    }
+    // compare the outline with the best fitting ellipse (mean-scaled)
+    const rhoOf = (ang) => (a * b) / Math.sqrt(b * b * Math.cos(ang) * Math.cos(ang) + a * a * Math.sin(ang) * Math.sin(ang));
+    const ratios = [];
+    for (const p of pts) {
+      const dx = p[0] - c[0], dz = p[1] - c[1];
+      const ang = Math.atan2(dx * e2[0] + dz * e2[1], dx * e1[0] + dz * e1[1]);
+      const rho = rhoOf(ang);
+      if (rho > 1e-6) ratios.push(Math.hypot(dx, dz) / rho);
+    }
+    const kFit = ratios.reduce((x, y) => x + y, 0) / Math.max(1, ratios.length) || 1;
+    let devOut = 0, devIn = 0;
+    for (const p of pts) {
+      const dx = p[0] - c[0], dz = p[1] - c[1];
+      const ang = Math.atan2(dx * e2[0] + dz * e2[1], dx * e1[0] + dz * e1[1]);
+      const rho = rhoOf(ang) * kFit;
+      const r = Math.hypot(dx, dz);
+      if (rho > 1e-6) {
+        devOut = Math.max(devOut, r / rho - 1);
+        devIn = Math.max(devIn, 1 - r / rho);
+      }
+    }
+    const ratio = a / Math.max(b, 1e-6);
+
+    // a real corner? (sharp turn with two sizeable sides)
+    const per = perim2(pts);
+    const turns = [];
+    for (let i = 0; i < pts.length; i++) {
+      const p0 = pts[(i - 1 + pts.length) % pts.length], p1 = pts[i], p2 = pts[(i + 1) % pts.length];
+      const u = [p1[0] - p0[0], p1[1] - p0[1]], v = [p2[0] - p1[0], p2[1] - p1[1]];
+      const lu = Math.hypot(u[0], u[1]), lv = Math.hypot(v[0], v[1]);
+      if (lu < per * 0.02 || lv < per * 0.02) { turns.push(0); continue; }
+      const cosT = clamp((u[0] * v[0] + u[1] * v[1]) / (lu * lv), -1, 1);
+      turns.push(Math.acos(cosT));
+    // 石门中学伍岭教练 · wuling.name · 保留所有权利
+    }
+    const sorted = turns.slice().sort((x, y) => x - y);
+    const med = sorted[Math.floor(sorted.length / 2)] || 0;
+    const sharp = turns.some(t => t > Math.max(0.38, med * 2.6));
+
+    if (sharp) return { name: "椭圆＋尖角", en: "TEARDROP", tip: "tip" };
+    if (ratio < 1.045) return { name: "圆", en: "CIRCLE", tip: "curve" };
+    let longest = 0;
+    for (const s2 of sides) longest = Math.max(longest, s2);
+    if (longest > per * 0.12) return { name: "长圆形", en: "CAPSULE", tip: "curve" };
+    return { name: "椭圆", en: "ELLIPSE", tip: "curve" };
+  }
+
+  /* ============================== 6. drawing ============================== */
+  const INK = "#241C3A";
+  const SHADOW_C = "#2E2657";
+
+  function line(a, b) {
+    if (!a || !b) return;
+    ctx.beginPath(); ctx.moveTo(a.x, a.y); ctx.lineTo(b.x, b.y); ctx.stroke();
+  }
+
+  function drawBoard() {
+    const corners = [
+      [-BOARD, 0, -BOARD], [BOARD, 0, -BOARD], [BOARD, 0, BOARD], [-BOARD, 0, BOARD]
+    ].map(project);
+    if (corners.some(p => !p)) return;
+    ctx.save();
+    ctx.beginPath();
+    ctx.moveTo(corners[0].x, corners[0].y);
+    for (let i = 1; i < 4; i++) ctx.lineTo(corners[i].x, corners[i].y);
+    ctx.closePath();
+    ctx.fillStyle = "#FFFDF6";
+    ctx.fill();
+
+    // grid
+    ctx.save();
+    ctx.clip();
+    ctx.lineWidth = 1;
+    for (let v = -3; v <= 3; v += 0.5) {
+      if (Math.abs(v) < 0.01) continue;
+      ctx.strokeStyle = Math.abs(v % 1) < 0.01 ? "rgba(36,28,58,.14)" : "rgba(36,28,58,.07)";
+      line(project([v, 0, -BOARD]), project([v, 0, BOARD]));
+      line(project([-BOARD, 0, v]), project([BOARD, 0, v]));
+    }
+    ctx.strokeStyle = "rgba(36,28,58,.20)";
+    line(project([0, 0, -BOARD]), project([0, 0, BOARD]));
+    line(project([-BOARD, 0, 0]), project([BOARD, 0, 0]));
+    ctx.restore();
+
+    // ink border
+    ctx.lineWidth = 2.6;
+    ctx.strokeStyle = INK;
+    ctx.beginPath();
+    ctx.moveTo(corners[0].x, corners[0].y);
+    for (let i = 1; i < 4; i++) ctx.lineTo(corners[i].x, corners[i].y);
+    ctx.closePath();
+    ctx.stroke();
+    ctx.restore();
+  }
+
+  function drawShadow(sh, opt) {
+    if (!sh.poly.length) return;
+    const scrub = sh.poly.map(p => project([p[0], 0.004, p[1]]));
+    if (scrub.some(p => !p)) return;
+    const o = opt || {};
+    const fill = o.fill || "rgba(46,38,87,.90)";
+    const strokeW = o.strokeW == null ? 2.6 : o.strokeW;
+
+    ctx.save();
+    ctx.beginPath();
+    ctx.moveTo(scrub[0].x, scrub[0].y);
+    for (let i = 1; i < scrub.length; i++) ctx.lineTo(scrub[i].x, scrub[i].y);
+    ctx.closePath();
+    ctx.fillStyle = fill;
+    ctx.fill();
+
+    if (o.hatch !== false) {
+      ctx.save();
+      ctx.clip();
+      let bxs = 1e9, bxe = -1e9, bys = 1e9, bye = -1e9;
+      for (const q of scrub) { bxs = Math.min(bxs, q.x); bxe = Math.max(bxe, q.x); bys = Math.min(bys, q.y); bye = Math.max(bye, q.y); }
+      ctx.strokeStyle = "rgba(255,255,255,.11)";
+      ctx.lineWidth = 1.8;
+      const span = bye - bys;
+      for (let k = bxs - span; k < bxe; k += 11) {
+        ctx.beginPath();
+        ctx.moveTo(k, bye);
+        ctx.lineTo(k + span, bys);
+        ctx.stroke();
+      }
+      ctx.restore();
+    }
+
+    if (strokeW > 0) {
+      ctx.lineWidth = strokeW;
+      ctx.strokeStyle = o.stroke || INK;
+      ctx.lineJoin = "round";
+      ctx.beginPath();
+      ctx.moveTo(scrub[0].x, scrub[0].y);
+      for (let i = 1; i < scrub.length; i++) ctx.lineTo(scrub[i].x, scrub[i].y);
+      ctx.closePath();
+      ctx.stroke();
+    }
+    ctx.restore();
+  // 石门中学伍岭教练 · wuling.name
+  }
+
+  // 两个影子重叠的区域：画得更深，代表两盏灯都照不到
+  function drawOverlap(inter) {
+    if (inter.length < 3) return;
+    const scrub = inter.map(p => project([p[0], 0.006, p[1]]));
+    if (scrub.some(p => !p)) return;
+    ctx.save();
+    ctx.beginPath();
+    ctx.moveTo(scrub[0].x, scrub[0].y);
+    for (let i = 1; i < scrub.length; i++) ctx.lineTo(scrub[i].x, scrub[i].y);
+    ctx.closePath();
+    ctx.fillStyle = "rgba(26,20,52,.55)";
+    ctx.fill();
+    ctx.restore();
+  }
+
+  function keySamples() {
+    const arr = SOLID.samples;
+    let top = arr[0], lx = arr[0], rx = arr[0];
+    for (const p of arr) {
+      if (p[1] > top[1]) top = p;
+      if (p[0] + p[2] < lx[0] + lx[2]) lx = p;
+      if (p[0] + p[2] > rx[0] + rx[2]) rx = p;
+    }
+    return [top, lx, rx];
+  }
+
+  function drawRays(L, color) {
+    ctx.save();
+    ctx.setLineDash([5, 5]);
+    ctx.lineWidth = 1.4;
+    ctx.strokeStyle = color;
+    const isPoint = L.mode === "point";
+    const u = sunDirOf(L);
+    const P = pointPosOf(L);
+    for (const p of keySamples()) {
+      const end = castToFloor(L, p);
+      if (!end) continue;
+      const e = project([end[0], 0.004, end[2]]);
+      const s = isPoint ? project(P) : project(add(p, mul(u, 4.4)));
+      if (!s || !e) continue;
+      ctx.beginPath(); ctx.moveTo(s.x, s.y); ctx.lineTo(e.x, e.y); ctx.stroke();
+    }
+    ctx.restore();
+  }
+
+  function shadeOf(n) {
+    const LA = lightOf("A");
+    const L = LA.mode === "parallel" ? sunDirOf(LA) : norm(sub(pointPosOf(LA), [0, SOLID.topY * 0.5, 0]));
+    const k = dot(n, L);
+    if (k > 0.55) return { fill: "#FFFFFF", lit: true };
+    if (k > -0.05) return { fill: "#D5CBF3" };
+    return { fill: "#A493D2" };
+  }
+
+  function drawPolySolid() {
+    const faces = SOLID.faces.map(f => ({ f, d: project(f.c) ? project(f.c).z : 0 }));
+    faces.sort((a, b) => b.d - a.d);
+    for (const { f } of faces) {
+      const pts = f.pts.map(project);
+      if (pts.some(p => !p)) continue;
+      const sh = shadeOf(f.n);
+      ctx.beginPath();
+      ctx.moveTo(pts[0].x, pts[0].y);
+      for (let i = 1; i < pts.length; i++) ctx.lineTo(pts[i].x, pts[i].y);
+      ctx.closePath();
+      ctx.fillStyle = sh.fill;
+      ctx.fill();
+      ctx.lineJoin = "round";
+      ctx.lineWidth = 2.2;
+      ctx.strokeStyle = INK;
+      ctx.stroke();
+    // © 石门中学伍岭教练 · wuling.name
+    }
+  }
+
+  function ringScreen(r, y, n = 48) {
+    const out = [];
+    for (let i = 0; i <= n; i++) {
+      const a = i / n * Math.PI * 2;
+      const local = [r * Math.cos(a), y, r * Math.sin(a)];
+      const p = project(SOLID.xform ? SOLID.xform(local) : local);
+      if (!p) return null;
+      out.push(p);
+    }
+    return out;
+  }
+
+  function tracePath(pts) {
+    ctx.beginPath();
+    ctx.moveTo(pts[0].x, pts[0].y);
+    for (let i = 1; i < pts.length; i++) ctx.lineTo(pts[i].x, pts[i].y);
+    ctx.closePath();
+  }
+
+  // fill the half plane {p : (p - c)·d >= off}
+  function fillHalf(cx, cy, dx, dy, off, color) {
+    const R = 5000;
+    const nx = -dy, ny = dx;
+    ctx.beginPath();
+    ctx.moveTo(cx + dx * off + nx * R, cy + dy * off + ny * R);
+    ctx.lineTo(cx + dx * off - nx * R, cy + dy * off - ny * R);
+    ctx.lineTo(cx + dx * (off + R) - nx * R, cy + dy * (off + R) - ny * R);
+    ctx.lineTo(cx + dx * (off + R) + nx * R, cy + dy * (off + R) + ny * R);
+    ctx.closePath();
+    ctx.fillStyle = color;
+    ctx.fill();
+  }
+
+  function drawBaseRim(ring) {
+    if (!ring || ring.length < 2) return;
+    const cz = ring.reduce((a, p) => a + p.z, 0) / ring.length;
+    ctx.save();
+    ctx.lineCap = "round";
+    for (let i = 0; i < ring.length - 1; i++) {
+      const a = ring[i], b = ring[i + 1];
+      const near = (a.z + b.z) / 2 < cz;
+      ctx.setLineDash(near ? [] : [5, 5]);
+      ctx.lineWidth = near ? 2 : 1.5;
+      ctx.strokeStyle = near ? INK : "rgba(36,28,58,.38)";
+      ctx.beginPath(); ctx.moveTo(a.x, a.y); ctx.lineTo(b.x, b.y); ctx.stroke();
+    }
+    ctx.restore();
+  }
+
+  function drawCurvedSolid() {
+    const scr = SOLID.samples.map(project);
+    if (scr.some(p => !p)) return;
+    const hullPts = convexHull(scr.map(p => [p.x, p.y]));
+    if (hullPts.length < 3) return;
+    const c = centroid2(hullPts);
+    let rad = 0;
+    for (const p of hullPts) rad = Math.max(rad, Math.hypot(p[0] - c[0], p[1] - c[1]));
+
+    // shading direction: horizontal light azimuth, in screen space
+    const c3 = [0, SOLID.topY * 0.5, 0];
+    const p1 = project(c3);
+    const azNow = deg(LIGHTS.A.az);
+    const p2 = project([Math.sin(azNow) * 0.5, c3[1], Math.cos(azNow) * 0.5]);
+    let lx = 0.4, ly = 0;
+    if (p1 && p2) {
+      lx = p2.x - p1.x; ly = p2.y - p1.y;
+      const l = Math.hypot(lx, ly) || 1;
+      lx /= l; ly /= l;
+    // 作者：石门中学伍岭教练（wuling.name）
+    }
+
+    ctx.save();
+    ctx.lineJoin = "round";
+
+    // 1. 曲面明暗：沿光照方向分带的柱面光，亮→暗
+    const hp = hullPts.map(p => ({ x: p[0], y: p[1] }));
+    tracePath(hp);
+    ctx.save();
+    tracePath(hp);
+    ctx.clip();
+    if (SOLID.type === "sphere") {
+      const g = ctx.createRadialGradient(
+        c[0] - lx * rad * 0.42, c[1] - ly * rad * 0.42, rad * 0.05,
+        c[0] - lx * rad * 0.10, c[1] - ly * rad * 0.10, rad * 1.22
+      );
+      g.addColorStop(0.00, "#FFFFFF");
+      g.addColorStop(0.42, "#FFFFFF");
+      g.addColorStop(0.44, "#EFE9FC");
+      g.addColorStop(0.70, "#D8CDF5");
+      g.addColorStop(0.72, "#C0B1E6");
+      g.addColorStop(1.00, "#A08FD0");
+      ctx.fillStyle = g;
+    } else {
+      const g = ctx.createLinearGradient(
+        c[0] - lx * rad * 1.06, c[1] - ly * rad * 1.06,
+        c[0] + lx * rad * 1.06, c[1] + ly * rad * 1.06
+      );
+      g.addColorStop(0.00, "#FFFFFF");
+      g.addColorStop(0.20, "#FFFFFF");
+      g.addColorStop(0.21, "#F2EDFD");
+      g.addColorStop(0.48, "#E6DEF9");
+      g.addColorStop(0.49, "#D5CAF2");
+      g.addColorStop(0.74, "#C5B6E8");
+      g.addColorStop(0.75, "#AE9DD7");
+      g.addColorStop(1.00, "#A392D2");
+      ctx.fillStyle = g;
+    }
+    ctx.fillRect(c[0] - rad * 2, c[1] - rad * 2, rad * 4, rad * 4);
+    ctx.restore();
+
+    // 边缘补一圈淡淡的反射光，让柱体更"圆"
+    ctx.save();
+    tracePath(hp);
+    ctx.clip();
+    ctx.lineWidth = rad * 0.10;
+    ctx.strokeStyle = "rgba(255,255,255,.55)";
+    tracePath(hp);
+    ctx.stroke();
+    ctx.restore();
+
+    // 2. solid specific details
+    if (SOLID.type === "cylinder") {
+      const top = ringScreen(SOLID.r, SOLID.H);
+      if (top) {
+        const tc = centroid2(top.map(p => [p.x, p.y]));
+        const tg = ctx.createLinearGradient(
+          tc[0] - lx * rad * 1.05, tc[1] - ly * rad * 1.05,
+          tc[0] + lx * rad * 1.05, tc[1] + ly * rad * 1.05
+        );
+        tg.addColorStop(0.00, "#FFFFFF");
+        tg.addColorStop(0.48, "#FBF7FF");
+        tg.addColorStop(0.78, "#EFE9FC");
+        tg.addColorStop(1.00, "#E3DAF7");
+        tracePath(top);
+        ctx.fillStyle = tg;
+        ctx.fill();
+        ctx.lineWidth = 2.1;
+        ctx.strokeStyle = INK;
+        ctx.stroke();
+      }
+      const bot = ringScreen(SOLID.r, 0);
+      if (bot) drawBaseRim(bot);
+    } else if (SOLID.type === "cone") {
+      const bot = ringScreen(SOLID.r, 0);
+      if (bot) drawBaseRim(bot);
+      const ap = project(SOLID.xform ? SOLID.xform([0, SOLID.H, 0]) : [0, SOLID.H, 0]);
+      if (ap) {
+        ctx.save();
+        ctx.beginPath();
+        ctx.arc(ap.x, ap.y + 2, 3.4, 0, Math.PI * 2);
+        ctx.fillStyle = "#FFD23F";
+        ctx.fill();
+        ctx.lineWidth = 1.8;
+        ctx.strokeStyle = INK;
+        ctx.stroke();
+        ctx.restore();
+      }
+    }
+
+    // 3. bold silhouette
+    tracePath(hullPts.map(p => ({ x: p[0], y: p[1] })));
+    ctx.lineWidth = 2.9;
+    ctx.strokeStyle = INK;
+    ctx.stroke();
+    ctx.restore();
+
+  // 石门中学伍岭教练 · wuling.name · 保留所有权利
+  }
+
+  function drawSolid() {
+    if (SOLID.type === "poly") drawPolySolid();
+    else drawCurvedSolid();
+  }
+
+  // sun / bulb icons
+  let lightScreens = { A: { x: -999, y: -999 } };
+  let solidHull = [];
+  const LIGHT_TONE = {
+    A: { sun: "#FFD23F", glow: "rgba(255,210,63,.22)", bulb: "#7BE3F7", halo: "rgba(123,227,247,.55)", haloEnd: "rgba(123,227,247,0)", ray: "rgba(255,79,151,.75)" },
+    B: { sun: "#FF9E4A", glow: "rgba(255,158,74,.24)", bulb: "#C9B4FF", halo: "rgba(180,150,255,.55)", haloEnd: "rgba(180,150,255,0)", ray: "rgba(123,92,250,.7)" }
+  };
+
+  function drawLight(L, p, key, isActive) {
+    if (!p) return;
+    const tone = LIGHT_TONE[key];
+    ctx.save();
+    ctx.globalAlpha = isActive ? 1 : 0.72;
+    if (L.mode === "parallel") {
+      const u = sunDirOf(L);
+      const c3 = [0, SOLID.topY * 0.6, 0];
+      const a3 = project(add(c3, mul(u, 2.2)));
+      const b3 = project(add(c3, mul(u, 1.4)));
+      if (a3 && b3) {
+        let vx = b3.x - a3.x, vy = b3.y - a3.y;
+        const l = Math.hypot(vx, vy) || 1; vx /= l; vy /= l;
+        const ang = Math.atan2(vy, vx);
+        ctx.strokeStyle = tone.ray;
+        ctx.fillStyle = tone.ray;
+        ctx.lineWidth = 2.1;
+        ctx.lineCap = "round";
+        for (const sd of [-1, 1]) {
+          const ox = p.x + Math.cos(ang + Math.PI / 2) * 25 * sd;
+          const oy = p.y + Math.sin(ang + Math.PI / 2) * 25 * sd;
+          const sx = ox + vx * 36, sy = oy + vy * 36;
+          ctx.beginPath(); ctx.moveTo(ox, oy); ctx.lineTo(sx, sy); ctx.stroke();
+          ctx.beginPath();
+          ctx.moveTo(sx, sy);
+          ctx.lineTo(sx - Math.cos(ang - 0.45) * 8, sy - Math.sin(ang - 0.45) * 8);
+          ctx.lineTo(sx - Math.cos(ang + 0.45) * 8, sy - Math.sin(ang + 0.45) * 8);
+          ctx.closePath(); ctx.fill();
+        }
+      }
+      ctx.beginPath(); ctx.arc(p.x, p.y, 20, 0, Math.PI * 2);
+      ctx.fillStyle = tone.glow; ctx.fill();
+      ctx.beginPath(); ctx.arc(p.x, p.y, 12.5, 0, Math.PI * 2);
+      ctx.fillStyle = tone.sun; ctx.fill();
+      ctx.lineWidth = 2.3; ctx.strokeStyle = INK; ctx.stroke();
+      ctx.strokeStyle = INK; ctx.lineWidth = 2.1; ctx.lineCap = "round";
+      for (let i = 0; i < 8; i++) {
+        const a = i / 8 * Math.PI * 2 + state.t * 0.22;
+        ctx.beginPath();
+        ctx.moveTo(p.x + Math.cos(a) * 16, p.y + Math.sin(a) * 16);
+        ctx.lineTo(p.x + Math.cos(a) * 21, p.y + Math.sin(a) * 21);
+        ctx.stroke();
+      }
+    } else {
+      const g = ctx.createRadialGradient(p.x, p.y, 3, p.x, p.y, 44);
+      g.addColorStop(0, tone.halo);
+      g.addColorStop(1, tone.haloEnd);
+      ctx.fillStyle = g;
+      ctx.beginPath(); ctx.arc(p.x, p.y, 44, 0, Math.PI * 2); ctx.fill();
+
+      ctx.beginPath();
+      ctx.arc(p.x, p.y - 2, 10.5, Math.PI * 0.82, Math.PI * 2.18);
+      ctx.lineTo(p.x + 6, p.y + 9);
+      ctx.lineTo(p.x - 6, p.y + 9);
+      ctx.closePath();
+      ctx.fillStyle = tone.bulb; ctx.fill();
+      ctx.lineWidth = 2.3; ctx.strokeStyle = INK; ctx.stroke();
+      ctx.beginPath();
+      ctx.moveTo(p.x - 6, p.y + 11); ctx.lineTo(p.x + 6, p.y + 11);
+      ctx.moveTo(p.x - 4.5, p.y + 15); ctx.lineTo(p.x + 4.5, p.y + 15);
+      ctx.lineWidth = 2.3; ctx.lineCap = "round"; ctx.stroke();
+    }
+    // badge
+    ctx.globalAlpha = 1;
+    ctx.beginPath();
+    ctx.arc(p.x + 17, p.y - 15, 8, 0, Math.PI * 2);
+    ctx.fillStyle = key === "A" ? INK : "#7B5CFA";
+    ctx.fill();
+    ctx.lineWidth = 1.8; ctx.strokeStyle = "#fff"; ctx.stroke();
+    ctx.fillStyle = "#fff";
+    ctx.font = "900 9px 'PingFang SC',sans-serif";
+    ctx.textAlign = "center"; ctx.textBaseline = "middle";
+    ctx.fillText(key, p.x + 17, p.y - 14.5);
+    ctx.restore();
+  // 石门中学伍岭教练 · wuling.name
+  }
+
+  function drawFloorLabel() {
+    const p = project([-BOARD + 0.55, 0.01, BOARD - 0.1]);
+    if (!p) return;
+    ctx.save();
+    ctx.translate(p.x, p.y);
+    ctx.rotate(-0.06);
+    ctx.font = "900 10px 'PingFang SC',sans-serif";
+    ctx.fillStyle = "rgba(36,28,58,.42)";
+    ctx.textAlign = "center";
+    ctx.fillText("投 影 面", 0, 0);
+    ctx.restore();
+  }
+
+  function drawShadowTag(sh, label) {
+    if (!sh.poly.length) return;
+    const c = centroid2(sh.poly);
+    const p = project([c[0], 0.01, c[1]]);
+    if (!p) return;
+    ctx.save();
+    ctx.translate(p.x, p.y);
+    ctx.rotate(-0.09);
+    ctx.font = "900 12px 'PingFang SC',sans-serif";
+    const w = 25, h = 19;
+    ctx.fillStyle = "rgba(255,253,247,.92)";
+    ctx.strokeStyle = INK;
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.roundRect ? ctx.roundRect(-w / 2, -h / 2, w, h, 6) : ctx.rect(-w / 2, -h / 2, w, h);
+    ctx.fill(); ctx.stroke();
+    ctx.fillStyle = INK;
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+    ctx.fillText(label, 0, 1);
+    ctx.restore();
+  }
+
+  function render() {
+    updateCamera();
+    ctx.clearRect(0, 0, W, H);
+
+    drawBoard();
+    const shA = computeShadowFor(LIGHTS.A);
+    const shapeA = classify(cleanPoly(shA.raw));
+    const shB = lightBOn ? computeShadowFor(LIGHTS.B) : null;
+    const shapeB = shB ? classify(cleanPoly(shB.raw)) : null;
+    const overlap = shB && shA.boardArea > 1e-8 && shB.boardArea > 1e-8
+      ? polyIntersect(shA.poly, shB.poly)
+      : [];
+
+    if (shB) {
+      drawShadow(shA, { fill: "rgba(46,38,87,.55)", strokeW: 2.4 });
+      drawShadow(shB, { fill: "rgba(46,38,87,.55)", strokeW: 2.4 });
+      drawOverlap(overlap);
+    } else {
+      drawShadow(shA, { fill: "rgba(46,38,87,.88)", strokeW: 2.6 });
+    }
+
+    drawRays(LIGHTS.A, lightBOn ? "rgba(255,79,151,.42)" : "rgba(255,79,151,.55)");
+    if (shB) drawRays(LIGHTS.B, "rgba(123,92,250,.42)");
+
+    const solidDepth = project([0, SOLID.topY / 2, 0]);
+    const scrSamples = [];
+    for (const p of SOLID.samples) { const q = project(p); if (q) scrSamples.push([q.x, q.y]); }
+    solidHull = convexHull(scrSamples);
+
+    lightScreens = {};
+    const icons = [];
+    for (const key of (lightBOn ? ["A", "B"] : ["A"])) {
+      const L = LIGHTS[key];
+      const lp = project(lightPosOf(L));
+      const scr = lp ? { x: clamp(lp.x, 40, W - 40), y: clamp(lp.y, 58, H - 44), z: lp.z } : null;
+      icons.push({ key, L, scr });
+    }
+    // 两个图标靠太近就错开，免得叠在一起
+    if (icons.length === 2 && icons[0].scr && icons[1].scr) {
+      const a = icons[0].scr, b = icons[1].scr;
+      if (Math.hypot(a.x - b.x, a.y - b.y) < 56) {
+        const dir = (b.y + 52 > H - 44) ? -1 : 1;
+        b.y = clamp(b.y + 52 * dir, 58, H - 44);
+        if (Math.hypot(a.x - b.x, a.y - b.y) < 48) b.x = clamp(b.x + 46, 40, W - 40);
+      }
+    }
+    for (const ic of icons) if (ic.scr) lightScreens[ic.key] = { x: ic.scr.x, y: ic.scr.y };
+    const behind = icons.filter(i => i.scr && solidDepth && i.scr.z > solidDepth.z);
+    const front = icons.filter(i => !(i.scr && solidDepth && i.scr.z > solidDepth.z));
+    if (state.view === "top") {
+      drawShadowTag(shA, lightBOn ? "A" : "影");
+      if (shB) drawShadowTag(shB, "B");
+    }
+    behind.forEach(i => drawLight(i.L, i.scr, i.key, !lightBOn || i.key === activeLight));
+    drawSolid();
+    front.forEach(i => drawLight(i.L, i.scr, i.key, !lightBOn || i.key === activeLight));
+
+    drawFloorLabel();
+    if (state.view === "iso") {
+      drawShadowTag(shA, lightBOn ? "A" : "影");
+      if (shB) drawShadowTag(shB, "B");
+    }
+
+    drawSignature();
+
+    return { shA, shB, shapeA, shapeB, overlap };
+  // © 石门中学伍岭教练 · wuling.name
+  }
+
+  /* ============================== 7. mini card ============================== */
+  function drawMini({ shA, shB, overlap }) {
+    const clipped = shA.clipped || (shB && shB.clipped);
+    if (!miniCard.open) return;
+
+    const w = miniCanvas.width, h = miniCanvas.height;
+    mctx.clearRect(0, 0, w, h);
+    const board = [[-BOARD, -BOARD], [BOARD, -BOARD], [BOARD, BOARD], [-BOARD, BOARD]];
+    const all = [...shA.raw, ...(shB ? shB.raw : []), ...(clipped ? board : [])];
+    if (!all.length) return;
+
+    const xs = all.map(p => p[0]), zs = all.map(p => p[1]);
+    const minX = Math.min(...xs), maxX = Math.max(...xs);
+    const minZ = Math.min(...zs), maxZ = Math.max(...zs);
+    const scale = Math.min((w - 48) / (maxX - minX || 1), (h - 32) / (maxZ - minZ || 1));
+    const cx = w / 2 - (minX + maxX) / 2 * scale;
+    const cy = h / 2 - (minZ + maxZ) / 2 * scale;
+
+    function path(poly) {
+      mctx.beginPath();
+      poly.forEach(([x, z], i) => {
+        if (i) mctx.lineTo(cx + x * scale, cy + z * scale);
+        else mctx.moveTo(cx + x * scale, cy + z * scale);
+      });
+      mctx.closePath();
+    }
+
+    function shadow(sh, pale, dark, outline) {
+      path(sh.raw);
+      mctx.fillStyle = pale;
+      mctx.fill();
+      path(sh.poly);
+      mctx.fillStyle = dark;
+      mctx.fill();
+      path(sh.raw);
+      mctx.strokeStyle = outline;
+      mctx.lineWidth = 2.4;
+      mctx.stroke();
+    }
+
+    mctx.save();
+    mctx.lineJoin = "round";
+    if (shB) {
+      shadow(shA, "rgba(216,53,123,.17)", "rgba(185,42,106,.56)", "#9d2459");
+      shadow(shB, "rgba(123,92,250,.17)", "rgba(96,63,193,.60)", "#4c2ba4");
+      path(overlap);
+      mctx.fillStyle = "rgba(36,28,58,.62)";
+      mctx.fill();
+    } else {
+      shadow(shA, "rgba(46,38,87,.18)", "rgba(46,38,87,.88)", INK);
+    }
+    if (clipped) {
+      path(board);
+      mctx.setLineDash([6, 5]);
+      mctx.lineWidth = 2;
+      mctx.strokeStyle = "#765B9E";
+      mctx.stroke();
+    }
+    mctx.restore();
+  // 作者：石门中学伍岭教练（wuling.name）
+  }
+
+  /* ============================== 8. UI ============================== */
+  const el = id => document.getElementById(id);
+  const shapeNameEl = el("shapeName"), shapeEnEl = el("shapeEn"), bubbleEl = el("bubble");
+  const mArea = el("mArea"), mBoard = el("mBoard"), mRatio = el("mRatio"), mType = el("mType");
+  const singleMetrics = el("singleMetrics"), dualMetrics = el("dualMetrics");
+  const dualValues = ["mFullA", "mFullB", "mBoardA", "mBoardB", "mOverlap"].map(el);
+  const miniCard = el("miniCard"), miniLegend = el("miniLegend");
+  const azRange = el("azRange"), elRange = el("elRange"), hRange = el("hRange"), rRange = el("rRange");
+  const azVal = el("azVal"), elVal = el("elVal"), hVal = el("hVal"), rVal = el("rVal");
+  const elRow = el("elRow"), hRow = el("hRow"), rRow = el("rRow");
+  const heightNote = el("heightNote");
+  const canvasMode = el("canvasMode");
+  const mobileLayout = window.matchMedia("(max-width:1040px)");
+  const readoutCard = el("readoutCard"), lightCard = el("lightCard");
+  const solidCard = el("solidCard"), presetCard = el("presetCard");
+
+  function placePanels() {
+    if (mobileLayout.matches) {
+      readoutCard.before(lightCard, presetCard);
+      readoutCard.after(miniCard);
+    } else {
+      readoutCard.after(lightCard);
+      solidCard.after(presetCard);
+      stage.append(miniCard);
+    }
+    miniCard.open = !mobileLayout.matches;
+  }
+  mobileLayout.addEventListener("change", placePanels);
+  placePanels();
+
+  canvasMode.addEventListener("click", () => {
+    const enabled = canvas.classList.toggle("touch-enabled");
+    canvasMode.setAttribute("aria-pressed", enabled);
+    canvasMode.textContent = enabled ? "完成操作" : "操作画布";
+  });
+  const modeTag = el("modeTag"), brandSub = el("brandSub"), brandSolid = el("brandSolid");
+  const tipLight = el("tipLight");
+  const tabA = el("tabA"), tabB = el("tabB"), removeLightBtn = el("removeLightBtn");
+  const toast = el("toast");
+
+  function curL() { return LIGHTS[activeLight]; }
+
+  function showToast(msg) {
+    toast.textContent = msg;
+    toast.classList.add("show");
+    clearTimeout(showToast._t);
+    showToast._t = setTimeout(() => toast.classList.remove("show"), 1700);
+  }
+
+  function paintRange(input) {
+    const min = +input.min, max = +input.max, v = +input.value;
+    input.style.setProperty("--fill", ((v - min) / (max - min) * 100).toFixed(1) + "%");
+  }
+
+  const MIN_POINT_HEIGHT = 2.6;
+  const MAX_POINT_HEIGHT = 10;
+  const POINT_CLEARANCE = 0.35;
+
+  function minPointHeight() {
+    return Math.max(MIN_POINT_HEIGHT, Math.ceil((SOLID.topY + POINT_CLEARANCE) * 10) / 10);
+  }
+
+  function limitPointHeight(h) {
+    return clamp(h, minPointHeight(), MAX_POINT_HEIGHT);
+  }
+
+  function lightKindText(L) {
+    if (L.mode === "point") return "中心投影";
+    return L.el === 90 ? "正投影" : "斜投影";
+  }
+
+  function updateModeUI() {
+    const L = curL();
+    const par = L.mode === "parallel";
+    el("modeParallel").classList.toggle("on", par);
+    el("modePoint").classList.toggle("on", !par);
+    elRow.hidden = !par;
+    hRow.hidden = par;
+    heightNote.hidden = par;
+    rRow.hidden = par;
+    tipLight.textContent = par ? "太阳" : "灯泡";
+    brandSub.textContent = par ? "PARALLEL LIGHT · 平行投影" : "POINT LIGHT · 中心投影";
+
+    const tag = lightKindText(L);
+    modeTag.textContent = lightBOn ? "双光源 · " + tag : tag;
+    modeTag.style.background = par ? (L.el === 90 ? "#FFD23F" : "#FFD7E7") : "#D5F4FD";
+
+    tabA.classList.toggle("on", activeLight === "A");
+    tabB.classList.toggle("on", activeLight === "B");
+    tabB.classList.toggle("empty", !lightBOn);
+    tabB.innerHTML = lightBOn
+      ? '<b>②</b> 副光源 · ' + (LIGHTS.B.mode === "parallel" ? "平行" : "点光")
+      : '<b>＋</b> 加一盏副光源';
+    removeLightBtn.hidden = !lightBOn;
+  }
+
+  function updateSliders() {
+    const L = curL();
+    const floor = minPointHeight();
+    hRange.min = floor.toFixed(1);
+    azRange.value = Math.round(L.az);
+    elRange.value = Math.round(L.el);
+    hRange.value = L.h.toFixed(1);
+    rRange.value = L.r.toFixed(2);
+    azVal.textContent = Math.round(L.az) + "°";
+    const displayEl = L.el === 90 ? 90 : Math.min(89.9, Math.round(L.el * 10) / 10);
+    elVal.textContent = displayEl + "°";
+    elRange.setAttribute("aria-valuetext", displayEl + "°");
+    hVal.textContent = L.h.toFixed(1);
+    rVal.textContent = L.r.toFixed(2);
+    const atMin = L.h <= floor + 1e-6;
+    heightNote.classList.toggle("at-min", atMin);
+    heightNote.textContent = (atMin ? "已达高度下限。" : "") +
+      `点光源须高于几何体，当前最低高度为 ${floor.toFixed(1)}。`;
+    [azRange, elRange, hRange, rRange].forEach(paintRange);
+  }
+
+  function bubbleText(shape, ratio, L) {
+    if (L.mode === "point") {
+      return `光线从一点发散，形成${shape.name}影子。试着只改变光源高度，观察完整影子的大小。`;
+    }
+    if (L.el === 90) return "光线垂直照下来，完整影子和几何体的俯视轮廓一样大。";
+    const direction = L.el >= 87 ? "光线接近垂直，仍是斜投影。" : "平行光斜着照，形成" + shape.name + "影子。";
+    return direction + `完整影子的面积是正投影的 ${ratio} 倍。`;
+  }
+
+  function boardHint(sh, name = "影子") {
+    if (!sh.clipped) return "";
+    return sh.boardArea <= 1e-8
+      ? `${name}完全落在投影板外。`
+      : `${name}有一部分超出投影板。`;
+  }
+
+  let lastKey = "";
+  function updateReadout({ shA, shB, shapeA, shapeB, overlap }) {
+    const fullA = shA.fullArea.toFixed(2);
+    const boardA = shA.boardArea.toFixed(2);
+    const ratio = (shA.fullArea / (SOLID.base || 1)).toFixed(2);
+    const kind = lightKindText(LIGHTS.A);
+    let name = shapeA.name, english = shapeA.en;
+    let message = bubbleText(shapeA, ratio, LIGHTS.A) + boardHint(shA);
+    let values = [fullA, boardA, ratio + "×", kind];
+
+    if (shB) {
+      name = "两个影子";
+      english = "TWO SHADOWS";
+      const overlapArea = area2(overlap);
+      message = `A 灯投出${shapeA.name}，B 灯投出${shapeB.name}。` +
+        (overlapArea > 1e-8 ? "两盏灯都照不到板内的重叠区域，所以那里最暗。" : "两束光在投影板内没有形成共同的阴影区域。") +
+        boardHint(shA, "A 灯影子") + boardHint(shB, "B 灯影子");
+      values = [fullA, shB.fullArea.toFixed(2), boardA, shB.boardArea.toFixed(2), overlapArea.toFixed(2)];
+    }
+
+    const key = [name, english, message, ...values].join("|");
+    if (key === lastKey) return;
+    const changedShape = shapeNameEl.textContent !== name;
+    lastKey = key;
+    shapeNameEl.textContent = name;
+    shapeEnEl.textContent = english;
+    bubbleEl.textContent = message;
+    singleMetrics.hidden = Boolean(shB);
+    dualMetrics.hidden = !shB;
+    miniLegend.hidden = !shA.clipped && !(shB && shB.clipped);
+    const fields = shB ? dualValues : [mArea, mBoard, mRatio, mType];
+    fields.forEach((field, i) => { field.textContent = values[i]; });
+
+    if (changedShape) {
+      bubbleEl.classList.remove("pop");
+      void bubbleEl.offsetWidth;
+      bubbleEl.classList.add("pop");
+    }
+  }
+
+  /* ---------- 光源：主 / 副 ---------- */
+  const PRESETS = {
+    ortho: { mode: "parallel", az: 0, el: 90 },
+    oblique: { mode: "parallel", az: 34, el: 40 },
+    near: { mode: "point", az: 28, h: 3.6, r: 1.05 },
+    far: { mode: "point", az: 28, h: 9.4, r: 1.05 }
+  };
+
+  function animateLightTo(cfg) {
+    const L = curL();
+    const to = Object.assign({}, L, cfg);
+    if (to.mode === "point") to.h = limitPointHeight(to.h);
+    state.lightAnim = { key: activeLight, t: 0, from: Object.assign({}, L), to };
+  }
+
+  document.querySelectorAll(".preset").forEach(btn => {
+    btn.addEventListener("click", () => {
+      animateLightTo(PRESETS[btn.dataset.preset]);
+      showToast("已切换：" + btn.textContent.trim());
+    });
+  });
+
+  el("modeParallel").addEventListener("click", () => {
+    const L = curL();
+    if (L.mode === "parallel") return;
+    state.lightAnim = null;
+    const e = clamp(Math.atan2(L.h, L.r) * 180 / Math.PI, 16, 90);
+    L.mode = "parallel"; L.el = e;
+    updateModeUI(); updateSliders();
+  // 石门中学伍岭教练 · wuling.name
+  });
+  el("modePoint").addEventListener("click", () => {
+    const L = curL();
+    if (L.mode === "point") return;
+    state.lightAnim = null;
+    const e = deg(L.el);
+    L.mode = "point";
+    L.h = limitPointHeight(4.2 * Math.sin(e));
+    L.r = clamp(4.2 * Math.cos(e), 0, 2.4);
+    updateModeUI(); updateSliders();
+  });
+
+  [azRange, elRange, hRange, rRange].forEach(inp => {
+    inp.addEventListener("input", () => {
+      const L = curL();
+      state.lightAnim = null;
+      if (inp === azRange) L.az = +inp.value;
+      if (inp === elRange) L.el = +inp.value;
+      if (inp === hRange) L.h = limitPointHeight(+inp.value);
+      if (inp === rRange) L.r = +inp.value;
+      updateSliders(); updateModeUI();
+    });
+  });
+
+  tabA.addEventListener("click", () => {
+    activeLight = "A";
+    updateModeUI(); updateSliders();
+  });
+  tabB.addEventListener("click", () => {
+    if (!lightBOn) {
+      lightBOn = true;
+      showToast("加了一盏副光源，拖它可以搬位置");
+    }
+    activeLight = "B";
+    updateModeUI(); updateSliders();
+  });
+  removeLightBtn.addEventListener("click", ev => {
+    ev.stopPropagation();
+    if (state.lightAnim?.key === "B") state.lightAnim = null;
+    lightBOn = false;
+    activeLight = "A";
+    updateModeUI(); updateSliders();
+    showToast("已收起副光源");
+  });
+
+  /* ---------- 几何体：类型 / 边数 / 面数 / 姿态 ---------- */
+  const sidesRow = el("sidesRow"), facesRow = el("facesRow");
+  const sidesInput = el("sidesInput"), facesInput = el("facesInput");
+  const rotRange = el("rotRange"), liftRange = el("liftRange");
+  const rotVal = el("rotVal"), liftVal = el("liftVal");
+  const tiltRange = el("tiltRange"), tiltVal = el("tiltVal");
+  const PLATONIC_SET = [4, 6, 8, 12, 20];
+
+  function rebuildSolid() {
+    SOLID = buildSolid({
+      kind: state.kind, sides: state.sides, faces: state.faces,
+      rot: state.rot, tilt: state.tilt, lift: state.lift
+    // © 石门中学伍岭教练 · wuling.name
+    });
+    for (const L of Object.values(LIGHTS)) {
+      if (L.mode === "point") L.h = limitPointHeight(L.h);
+    }
+    updateSliders();
+    brandSolid.textContent = SOLID.name;
+    document.title = "投影实验室 · " + SOLID.name;
+  }
+
+  function syncSolidUI() {
+    const multi = ["prism", "pyramid", "frustum"].includes(state.kind);
+    sidesRow.hidden = !multi;
+    facesRow.hidden = state.kind !== "poly";
+    document.querySelectorAll(".solid-btn").forEach(b => b.classList.toggle("on", b.dataset.kind === state.kind));
+    sidesInput.value = state.sides;
+    facesInput.value = state.faces;
+  }
+
+  document.querySelectorAll(".solid-btn").forEach(btn => {
+    btn.addEventListener("click", () => {
+      if (state.kind === btn.dataset.kind) return;
+      state.kind = btn.dataset.kind;
+      syncSolidUI();
+      rebuildSolid();
+      showToast("几何体：" + SOLID.name);
+    });
+  });
+
+  sidesInput.addEventListener("change", () => {
+    let v = Math.round(+sidesInput.value || 6);
+    if (v < 3 || v > 8) { v = clamp(v, 3, 8); showToast("底面边数只能取 3 – 8"); }
+    state.sides = v; sidesInput.value = v;
+    rebuildSolid();
+  });
+
+  facesInput.addEventListener("change", () => {
+    let v = Math.round(+facesInput.value || 6);
+    if (!PLATONIC_SET.includes(v)) {
+      v = PLATONIC_SET.reduce((a, b) => Math.abs(b - v) < Math.abs(a - v) ? b : a);
+      showToast("正多面体只有 4、6、8、12、20 面");
+    }
+    state.faces = v; facesInput.value = v;
+    rebuildSolid();
+  });
+
+  rotRange.addEventListener("input", () => {
+    state.rot = +rotRange.value;
+    rotVal.textContent = Math.round(state.rot) + "°";
+    paintRange(rotRange);
+    rebuildSolid();
+  });
+  tiltRange.addEventListener("input", () => {
+    state.tilt = +tiltRange.value;
+    tiltVal.textContent = Math.round(state.tilt) + "°";
+    paintRange(tiltRange);
+    rebuildSolid();
+  });
+  liftRange.addEventListener("input", () => {
+    state.lift = +liftRange.value;
+    liftVal.textContent = state.lift.toFixed(2);
+    paintRange(liftRange);
+    rebuildSolid();
+  });
+
+  const viewButtons = document.querySelectorAll(".view-switch button");
+  const views = {
+    iso: { yaw: -0.62, pitch: 0.6, dist: 10.6 },
+    top: { yaw: 0, pitch: Math.PI / 2, dist: 11.8 },
+    front: { yaw: 0, pitch: 0, dist: 11.8 }
+  };
+
+  function markView(view) {
+    state.view = view;
+    viewButtons.forEach(btn => {
+      const selected = btn.dataset.view === view;
+      btn.classList.toggle("active", selected);
+      btn.setAttribute("aria-pressed", selected);
+    });
+  }
+
+  function setView(view) {
+    markView(view);
+    const { yaw, pitch, dist } = views[view];
+    state.yawG = yaw;
+    state.pitchG = pitch;
+    state.distG = dist;
+    // 正交观察立即用标准方向，避免经过倾斜的过渡画面。
+    if (view !== "iso") Object.assign(state, { yaw, pitch, dist });
+  }
+
+  viewButtons.forEach(btn => {
+    btn.addEventListener("click", () => setView(btn.dataset.view));
+  });
+
+  el("resetBtn").addEventListener("click", () => {
+    Object.assign(state, DEFAULT);
+    setView("iso");
+    state.lightAnim = null;
+    Object.assign(LIGHTS.A, { mode: "parallel", az: 18, el: 90, h: 3.2, r: 0.5 });
+    lightBOn = false; activeLight = "A";
+    rotRange.value = 0; tiltRange.value = 0; liftRange.value = 0.75;
+    rotVal.textContent = "0°"; tiltVal.textContent = "0°"; liftVal.textContent = "0.75";
+    [rotRange, tiltRange, liftRange].forEach(paintRange);
+    updateModeUI(); updateSliders();
+    rebuildSolid();
+    showToast("已重置");
+  // 石门中学伍岭教练 · wuling.name · 保留所有权利
+  });
+
+  /* ---------- pointer: orbit / drag light / rotate solid ---------- */
+  function hitLight(x, y) {
+    let best = null, bd = 30;
+    for (const k of Object.keys(lightScreens)) {
+      const s = lightScreens[k];
+      const d = Math.hypot(x - s.x, y - s.y);
+      if (d < bd) { bd = d; best = k; }
+    }
+    return best;
+  }
+  function hitSolid(x, y) {
+    if (solidHull.length < 3) return false;
+    let inside = false;
+    for (let i = 0, j = solidHull.length - 1; i < solidHull.length; j = i++) {
+      const xi = solidHull[i][0], yi = solidHull[i][1];
+      const xj = solidHull[j][0], yj = solidHull[j][1];
+      if (((yi > y) !== (yj > y)) && (x < (xj - xi) * (y - yi) / (yj - yi) + xi)) inside = !inside;
+    }
+    return inside;
+  }
+
+  canvas.addEventListener("pointerdown", ev => {
+    if (state.drag || ev.button !== 0 || (ev.pointerType === "touch" && !canvas.classList.contains("touch-enabled"))) return;
+    const r = canvas.getBoundingClientRect();
+    const x = ev.clientX - r.left, y = ev.clientY - r.top;
+    try { canvas.setPointerCapture(ev.pointerId); } catch (e) { /* synthetic */ }
+    const lk = hitLight(x, y);
+    if (lk) {
+      if (state.lightAnim?.key === lk) state.lightAnim = null;
+      activeLight = lk;
+      updateModeUI(); updateSliders();
+      const L = LIGHTS[lk];
+      state.drag = { kind: "light", key: lk, x, y, az: L.az, el: L.el, h: L.h, r: L.r };
+      canvas.style.cursor = "grabbing";
+    } else if (hitSolid(x, y)) {
+      state.drag = { kind: "spin", x, y, rot: state.rot, tilt: state.tilt };
+      canvas.style.cursor = "grabbing";
+    } else {
+      state.drag = { kind: "orbit", x, y, yaw: state.yaw, pitch: state.pitch };
+      canvas.classList.add("dragging");
+    }
+    state.drag.pointerId = ev.pointerId;
+  // 石门中学伍岭教练 · wuling.name
+  });
+
+  canvas.addEventListener("pointermove", ev => {
+    const r = canvas.getBoundingClientRect();
+    const x = ev.clientX - r.left, y = ev.clientY - r.top;
+    if (!state.drag) {
+      if (ev.pointerType === "touch") return;
+      const hov = !!hitLight(x, y) || hitSolid(x, y);
+      if (hov !== state.hover) {
+        state.hover = hov;
+        canvas.style.cursor = hov ? "grab" : "";
+      }
+      return;
+    }
+    if (state.drag.pointerId !== ev.pointerId) return;
+    const dx = x - state.drag.x, dy = y - state.drag.y;
+    if (state.drag.kind === "orbit") {
+      if (dx === 0 && dy === 0) return;
+      if (state.view !== "iso") markView("iso");
+      state.yawG = state.yaw = state.drag.yaw - dx * 0.0062;
+      state.pitchG = state.pitch = clamp(state.drag.pitch + dy * 0.005, 0.05, 1.45);
+    } else if (state.drag.kind === "spin") {
+      state.rot = ((state.drag.rot + dx * 0.7) % 360 + 360) % 360;
+      state.tilt = clamp(state.drag.tilt + dy * 0.5, -85, 85);
+      rotRange.value = Math.round(state.rot);
+      tiltRange.value = Math.round(state.tilt);
+      rotVal.textContent = Math.round(state.rot) + "°";
+      tiltVal.textContent = Math.round(state.tilt) + "°";
+      paintRange(rotRange); paintRange(tiltRange);
+      rebuildSolid();
+    } else {
+      state.lightAnim = null;
+      const L = LIGHTS[state.drag.key];
+      L.az = (state.drag.az + dx * 0.32 + 360) % 360;
+      if (L.mode === "parallel") {
+        L.el = clamp(state.drag.el - dy * 0.30, 16, 90);
+      } else {
+        L.h = limitPointHeight(state.drag.h - dy * 0.016);
+        L.r = clamp(state.drag.r - dx * 0.004, 0, 2.4);
+      }
+      updateSliders(); updateModeUI();
+    // © 石门中学伍岭教练 · wuling.name
+    }
+  });
+  const endDrag = ev => {
+    if (state.drag?.pointerId !== ev.pointerId) return;
+    state.drag = null;
+    canvas.classList.remove("dragging");
+    canvas.style.cursor = state.hover ? "grab" : "";
+  };
+  canvas.addEventListener("pointerup", endDrag);
+  canvas.addEventListener("pointercancel", endDrag);
+  canvas.addEventListener("lostpointercapture", endDrag);
+  canvas.addEventListener("wheel", ev => {
+    if (mobileLayout.matches && !canvas.classList.contains("touch-enabled")) return;
+    ev.preventDefault();
+    state.distG = clamp(state.distG + Math.sign(ev.deltaY) * 0.55, 6.2, 15);
+  }, { passive: false });
+
+  /* ============================== 9. loop ============================== */
+  let last = performance.now();
+  function frame(now) {
+    const dt = Math.min(0.05, (now - last) / 1000);
+    last = now;
+    state.t += dt;
+
+    if (state.lightAnim) {
+      const a = state.lightAnim;
+      a.t = Math.min(1, a.t + dt / 0.55);
+      const e = 1 - Math.pow(1 - a.t, 3);
+      const L = LIGHTS[a.key];
+      const previousKind = lightKindText(L);
+      L.mode = a.t > 0.5 ? a.to.mode : a.from.mode;
+      let daz = a.to.az - a.from.az;
+      while (daz > 180) daz -= 360;
+      while (daz < -180) daz += 360;
+      L.az = ((a.from.az + daz * e) % 360 + 360) % 360;
+      L.el = a.t === 1 ? a.to.el : lerp(a.from.el, a.to.el, e);
+      L.h = lerp(a.from.h, a.to.h, e);
+      if (L.mode === "point") L.h = limitPointHeight(L.h);
+      L.r = lerp(a.from.r, a.to.r, e);
+      if (activeLight === a.key) updateSliders();
+      if (previousKind !== lightKindText(L) || a.t === 1) updateModeUI();
+      if (a.t === 1) state.lightAnim = null;
+    }
+
+    if (Math.abs(state.yaw - state.yawG) > 1e-4 || Math.abs(state.pitch - state.pitchG) > 1e-4 || Math.abs(state.dist - state.distG) > 1e-3) {
+      state.yaw = lerp(state.yaw, state.yawG, 1 - Math.pow(0.001, dt));
+      state.pitch = lerp(state.pitch, state.pitchG, 1 - Math.pow(0.001, dt));
+      state.dist = lerp(state.dist, state.distG, 1 - Math.pow(0.001, dt));
+    }
+
+    const out = render();
+    updateReadout(out);
+    drawMini(out);
+    requestAnimationFrame(frame);
+  }
+
+  updateModeUI();
+  updateSliders();
+  syncSolidUI();
+  rebuildSolid();
+  [rotRange, tiltRange, liftRange].forEach(paintRange);
+  requestAnimationFrame(frame);
+})();
+</script>
+</body>
+</html>
