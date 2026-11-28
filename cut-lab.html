@@ -1,0 +1,3120 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>切图实验室-零与整</title>
+<style>/* ================= 基础 ================= */
+* { box-sizing: border-box; }
+html, body { margin: 0; padding: 0; }
+body {
+  min-height: 100vh;
+  color: #22324F;
+  font-family: "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", system-ui, -apple-system, sans-serif;
+  background:
+    radial-gradient(900px 520px at 8% -12%, #FFFAEC 0%, rgba(255, 250, 236, 0) 62%),
+    radial-gradient(760px 460px at 102% -4%, #FBEFD6 0%, rgba(251, 239, 214, 0) 58%),
+    radial-gradient(900px 700px at 50% 120%, #F3E7CE 0%, rgba(243, 231, 206, 0) 60%),
+    #F6EFDF;
+  -webkit-font-smoothing: antialiased;
+  position: relative;
+}
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  opacity: .5;
+  background-image:
+    repeating-linear-gradient(0deg, rgba(31, 46, 74, .028) 0 1px, transparent 1px 4px),
+    repeating-linear-gradient(90deg, rgba(31, 46, 74, .022) 0 1px, transparent 1px 6px);
+}
+.app { position: relative; z-index: 1; }
+
+/* ================= 顶部 ================= */
+.top {
+  max-width: 1300px;
+  margin: 0 auto;
+  padding: 24px 30px 4px;
+  display: flex;
+  gap: 24px;
+  align-items: flex-start;
+  justify-content: space-between;
+}
+.kicker {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: .16em;
+  color: #8A6A24;
+  background: #FBEBC6;
+  border: 1.5px solid #E3C47A;
+  border-radius: 999px;
+  padding: 4px 12px;
+}
+.kicker::before { content: "✂"; font-size: 12px; }
+h1 {
+  font-family: "Songti SC", "STSong", "SimSun", "Noto Serif SC", serif;
+  font-size: clamp(28px, 3.1vw, 40px);
+  line-height: 1.16;
+  margin: 10px 0 6px;
+  letter-spacing: .02em;
+  font-weight: 700;
+}
+h1 .hl {
+  position: relative;
+  display: inline-block;
+  padding: 0 4px;
+}
+h1 .hl::after {
+  content: "";
+  position: absolute;
+  left: -2px; right: -2px; bottom: 2px;
+  height: 12px;
+  background: linear-gradient(90deg, rgba(232, 178, 63, .55), rgba(232, 178, 63, .18));
+  border-radius: 6px;
+  z-index: -1;
+  transform: rotate(-1deg);
+}
+h1 small {
+  font-family: "Songti SC", "STSong", serif;
+  font-size: .46em;
+  font-weight: 500;
+  color: #7D8AA3;
+  letter-spacing: .04em;
+  margin-left: 6px;
+}
+.sub {
+  margin: 0;
+  color: #5E6E8C;
+  font-size: 14px;
+  line-height: 1.7;
+  max-width: 620px;
+}
+.mascot-wrap {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+  padding-top: 6px;
+}
+.bubble {
+  position: relative;
+  max-width: 190px;
+  background: #FFFCF3;
+  border: 2px solid #22324F;
+  border-radius: 16px 16px 16px 4px;
+  padding: 9px 13px;
+  font-size: 12.5px;
+  line-height: 1.55;
+  font-weight: 600;
+  color: #33456A;
+  box-shadow: 3px 3px 0 rgba(34, 50, 79, .12);
+}
+.mascot { width: 108px; height: 108px; overflow: visible; }
+.mascot .float { animation: floaty 3.6s ease-in-out infinite; transform-origin: 60px 70px; }
+.mascot .eye { transform-box: fill-box; transform-origin: center; animation: blink 4.6s infinite; }
+.mascot .spark { animation: twinkle 2.4s ease-in-out infinite; transform-box: fill-box; transform-origin: center; }
+.mascot .spark:nth-of-type(2) { animation-delay: .8s; }
+@keyframes floaty { 0%, 100% { transform: translateY(0) rotate(-1.2deg); } 50% { transform: translateY(-6px) rotate(1.2deg); } }
+@keyframes blink { 0%, 92%, 100% { transform: scaleY(1); } 95% { transform: scaleY(.12); } }
+@keyframes twinkle { 0%, 100% { transform: scale(.8) rotate(0deg); opacity: .65; } 50% { transform: scale(1.15) rotate(18deg); opacity: 1; } }
+
+/* ================= 布局 ================= */
+.layout {
+  max-width: 1300px;
+  margin: 0 auto;
+  padding: 16px 30px 10px;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 396px;
+  gap: 22px;
+  align-items: start;
+}
+.card {
+  background: #FFFCF3;
+  border: 2px solid #22324F;
+  border-radius: 22px;
+  box-shadow: 6px 6px 0 rgba(34, 50, 79, .10);
+  padding: 16px 18px;
+}
+.panel { display: grid; gap: 16px; }
+
+/* ================= 画台 ================= */
+.stage-card { padding: 14px 16px 12px; }
+.stage-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 2px 4px 12px;
+}
+.stage-title {
+  font-family: "Songti SC", "STSong", serif;
+  font-size: 19px;
+  font-weight: 700;
+  letter-spacing: .02em;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.stage-title .dot-sep { color: #C6B893; font-weight: 400; }
+.stage-title span:last-child { color: #7C8AA4; font-family: inherit; font-size: 14px; font-weight: 600; }
+.badges { display: flex; gap: 8px; }
+.badge {
+  font-size: 12px;
+  font-weight: 700;
+  color: #5A6B8C;
+  background: #F5EDDB;
+  border: 1.5px solid #E2D3B3;
+  border-radius: 999px;
+  padding: 4px 10px;
+  white-space: nowrap;
+}
+.badge b { color: #22324F; font-size: 13px; }
+
+.stage-wrap {
+  position: relative;
+  border-radius: 18px;
+  overflow: hidden;
+  background: #FFFDF6;
+  border: 2px dashed #DCCBAA;
+}
+#stage { display: block; width: 100%; height: auto; touch-action: pan-y pinch-zoom; cursor: crosshair; }
+.stage-wrap.cutting #stage { cursor: none; }
+.stage-hint {
+  position: absolute;
+  left: 14px;
+  bottom: 12px;
+  pointer-events: none;
+  font-size: 12px;
+  font-weight: 600;
+  color: #7A6A45;
+  background: rgba(255, 252, 243, .86);
+  border: 1.5px dashed #DECB9F;
+  border-radius: 999px;
+  padding: 5px 12px;
+  backdrop-filter: blur(2px);
+}
+.stage-hint.hide { opacity: 0; }
+.stage-foot {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 14px 2px 2px;
+  flex-wrap: wrap;
+}
+.grow { flex: 1 1 auto; }
+
+/* ================= 按钮/胶囊 ================= */
+.btn {
+  font-family: inherit;
+  font-size: 13.5px;
+  font-weight: 700;
+  color: #22324F;
+  background: #FFFCF3;
+  border: 2px solid #22324F;
+  border-radius: 999px;
+  padding: 9px 16px;
+  cursor: pointer;
+  box-shadow: 0 3px 0 rgba(34, 50, 79, .18);
+  transition: transform .12s ease, box-shadow .12s ease, background .12s ease;
+  white-space: nowrap;
+}
+.btn:hover { transform: translateY(-1px); box-shadow: 0 4px 0 rgba(34, 50, 79, .2); }
+.btn:active { transform: translateY(2px); box-shadow: 0 1px 0 rgba(34, 50, 79, .2); }
+.btn.primary {
+  background: linear-gradient(180deg, #F7C85C, #E9AE38);
+  border-color: #22324F;
+}
+.btn.ghost { border-style: dashed; box-shadow: none; color: #5A6B8C; }
+.btn.wide { width: 100%; margin-top: 10px; }
+.btn:disabled { opacity: .45; cursor: not-allowed; transform: none; box-shadow: 0 3px 0 rgba(34,50,79,.1); }
+.toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12.5px;
+  font-weight: 600;
+  color: #5A6B8C;
+  cursor: pointer;
+  user-select: none;
+  padding-left: 4px;
+}
+.toggle input { accent-color: #D9A537; width: 15px; height: 15px; cursor: pointer; }
+
+/* ================= 侧栏 ================= */
+.card-title {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  margin: 0 0 12px;
+  font-family: "Songti SC", "STSong", serif;
+  font-size: 16.5px;
+  font-weight: 700;
+  letter-spacing: .02em;
+}
+.card-title i {
+  display: grid;
+  place-items: center;
+  width: 22px; height: 22px;
+  border-radius: 50%;
+  background: #22324F;
+  color: #FBEBC6;
+  font-style: normal;
+  font-size: 12px;
+  font-weight: 700;
+  font-family: inherit;
+  flex-shrink: 0;
+}
+.chips { display: flex; flex-wrap: wrap; gap: 7px; }
+.chip {
+  font-family: inherit;
+  font-size: 12.5px;
+  font-weight: 600;
+  color: #4E5F80;
+  background: #FFFDF7;
+  border: 1.5px solid #D8C8A8;
+  border-radius: 999px;
+  padding: 6px 12px;
+  cursor: pointer;
+  transition: all .14s ease;
+}
+.chip:hover { border-color: #22324F; color: #22324F; }
+.chip.active {
+  background: #22324F;
+  border-color: #22324F;
+  color: #FBEBC6;
+  box-shadow: 0 2px 0 rgba(34, 50, 79, .25);
+}
+
+/* 数据格 */
+.stats { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.stat {
+  background: #FBF4E4;
+  border: 1.5px solid #E7D9BB;
+  border-radius: 14px;
+  padding: 9px 12px 8px;
+}
+.stat span { display: block; font-size: 11px; color: #8A7B5C; font-weight: 600; letter-spacing: .04em; }
+.stat b {
+  font-size: 22px;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -.01em;
+  line-height: 1.25;
+}
+.stat b em { font-style: normal; font-size: 11.5px; font-weight: 700; color: #8A7B5C; margin-left: 2px; }
+.kv {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 12.5px;
+  padding: 6px 2px;
+  border-bottom: 1px dashed #EADFC6;
+}
+.kv:last-child { border-bottom: 0; }
+.kv span { color: #7B89A2; font-weight: 600; }
+.kv b { font-weight: 700; font-variant-numeric: tabular-nums; }
+.note {
+  margin: 9px 0 0;
+  font-size: 11.5px;
+  line-height: 1.6;
+  color: #8A7B5C;
+  background: #FBF4E4;
+  border-radius: 10px;
+  padding: 7px 10px;
+}
+
+/* 结果 */
+.empty {
+  text-align: center;
+  padding: 16px 8px 18px;
+  color: #8A96AD;
+  font-size: 13px;
+  line-height: 1.7;
+}
+.empty .big { font-size: 26px; display: block; margin-bottom: 6px; }
+.ptable { width: 100%; }
+.prow {
+  display: grid;
+  grid-template-columns: 1.5fr .9fr .9fr .62fr;
+  gap: 6px;
+  align-items: center;
+  padding: 7px 0;
+  border-bottom: 1px dashed #EADFC6;
+  font-size: 12.5px;
+}
+.prow.head {
+  border-bottom: 1.5px solid #E4D6B7;
+  padding-bottom: 5px;
+  padding-top: 0;
+}
+.prow.head span { font-size: 10.5px; font-weight: 700; color: #9A8B6C; letter-spacing: .02em; }
+.prow span.num { text-align: right; font-variant-numeric: tabular-nums; font-weight: 600; }
+.prow.head span.num, .prow.head span:nth-child(4) { text-align: right; }
+.prow.total { border-bottom: 0; border-top: 1.5px solid #E4D6B7; font-weight: 800; padding-top: 8px; }
+.pname { display: flex; align-items: center; gap: 6px; min-width: 0; }
+.pname b { font-size: 13px; }
+.pname em {
+  font-style: normal;
+  font-size: 10px;
+  color: #93A0B6;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.swatch {
+  width: 11px; height: 11px;
+  border-radius: 3px;
+  border: 1.5px solid #22324F;
+  flex-shrink: 0;
+}
+.share {
+  display: flex;
+  height: 16px;
+  border-radius: 999px;
+  overflow: hidden;
+  border: 2px solid #22324F;
+  margin: 12px 0 4px;
+  background: #F5EDDB;
+}
+.share i { display: block; height: 100%; }
+.share-legend {
+  display: flex;
+  justify-content: space-between;
+  font-size: 10.5px;
+  color: #93A0B6;
+  font-weight: 600;
+}
+.check {
+  display: flex;
+  gap: 9px;
+  background: #F1F8F1;
+  border: 1.5px dashed #B4D8BA;
+  border-radius: 13px;
+  padding: 9px 11px;
+  margin-top: 9px;
+  font-size: 12px;
+  line-height: 1.65;
+  color: #3F5A45;
+}
+.check > b {
+  flex-shrink: 0;
+  display: grid;
+  place-items: center;
+  width: 42px; height: 22px;
+  border-radius: 7px;
+  background: #D6EBD8;
+  color: #2F6B3B;
+  font-size: 11px;
+}
+.check .val { font-weight: 800; color: #22324F; font-variant-numeric: tabular-nums; }
+.check .ok { color: #2F7B44; font-weight: 700; }
+.check .approx { color: #A9762B; font-weight: 700; }
+.takeaway {
+  margin: 12px 0 0;
+  font-size: 12px;
+  line-height: 1.7;
+  color: #7A6A45;
+  background: #FBF1D9;
+  border-left: 3px solid #E8B23F;
+  border-radius: 0 10px 10px 0;
+  padding: 8px 11px;
+}
+.teaser {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  background: #FBF4E4;
+  border: 1.5px dashed #DECB9F;
+  border-radius: 14px;
+  padding: 11px 13px;
+  font-size: 12.5px;
+  line-height: 1.6;
+  color: #7A6A45;
+}
+.teaser .emoji { font-size: 22px; }
+.teaser b { color: #22324F; }
+
+/* ================= 页脚/提示 ================= */
+.foot {
+  max-width: 1300px;
+  margin: 0 auto;
+  padding: 6px 30px 34px;
+  font-size: 12px;
+  color: #9C8F72;
+  text-align: center;
+  letter-spacing: .02em;
+}
+.toast {
+  position: fixed;
+  left: 50%;
+  bottom: 28px;
+  transform: translate(-50%, 20px);
+  background: #22324F;
+  color: #FFF7E4;
+  font-size: 13px;
+  font-weight: 600;
+  padding: 11px 20px;
+  border-radius: 999px;
+  box-shadow: 0 8px 24px rgba(34, 50, 79, .28);
+  opacity: 0;
+  pointer-events: none;
+  transition: all .25s ease;
+  z-index: 50;
+  max-width: 82vw;
+  text-align: center;
+}
+.toast.show { opacity: 1; transform: translate(-50%, 0); }
+
+/* ================= SVG 元素 ================= */
+.piece { transform-box: fill-box; transform-origin: center; }
+.piece.pop { animation: pop .34s cubic-bezier(.2, 1.5, .5, 1) both; }
+@keyframes pop { from { transform: scale(.93); opacity: .3; } to { transform: scale(1); opacity: 1; } }
+.seam-flash .seamline { animation: seamflash .75s ease-out both; }
+@keyframes seamflash {
+  0% { stroke: #E8B23F; stroke-width: .04; opacity: 1; }
+  40% { stroke: #FFF3C4; stroke-width: .11; opacity: 1; }
+  100% { stroke: #B8860B; stroke-width: .05; opacity: .95; }
+}
+.mark { pointer-events: none; user-select: none; }
+.face { pointer-events: none; }
+
+/* ================= 响应式 ================= */
+@media (max-width: 1080px) {
+  .layout { grid-template-columns: minmax(0, 1fr) 340px; }
+  .mascot { width: 92px; height: 92px; }
+  .bubble { max-width: 160px; font-size: 12px; }
+}
+@media (max-width: 900px) {
+  .top { padding: 22px 18px 4px; }
+  .layout { grid-template-columns: 1fr; padding: 12px 18px 8px; gap: 18px; }
+  .mascot-wrap { display: none; }
+  .stage-foot { gap: 8px; }
+  .btn { padding: 8px 13px; font-size: 12.5px; }
+  .foot { padding: 4px 18px 30px; }
+}
+@media (max-width: 460px) {
+  h1 { font-size: 26px; }
+  h1 small { display: block; margin: 4px 0 0; font-size: 12px; }
+  .stat b { font-size: 19px; }
+  .prow { font-size: 12px; }
+}
+
+.face .eye { transform-box: fill-box; transform-origin: center; animation: blink 5.4s infinite; }
+
+/* ================= 图形按钮网格 ================= */
+.shape-grid { display: grid; grid-template-columns: repeat(6, 1fr); gap: 7px; }
+.shape-grid .chip { width: 100%; padding: 7px 2px; font-size: 12px; text-align: center; grid-column: span 2; }
+.shape-grid .chip.wide { grid-column: span 3; }
+.ngon-row {
+  display: flex; align-items: center; gap: 8px 14px; flex-wrap: wrap;
+  margin-top: 10px; font-size: 12px; color: #7B89A2; font-weight: 600;
+}
+.ngon-row input {
+  width: 58px; padding: 5px 8px;
+  border: 1.5px solid #D8C8A8; border-radius: 9px;
+  font: inherit; font-weight: 700; color: #22324F; background: #FFFDF7;
+}
+.ngon-row input:focus { outline: 2px solid #E8B23F; outline-offset: 1px; }
+.ng-item { display: inline-flex; align-items: center; gap: 6px; }
+.ng-item em { font-style: normal; color: #A39A82; font-size: 11px; font-weight: 600; }
+
+/* ================= 模式切换 ================= */
+.modes { display: flex; background: #F1E7D2; border: 2px solid #22324F; border-radius: 999px; padding: 2px; gap: 2px; }
+.mode-btn {
+  font: inherit; font-size: 12.5px; font-weight: 700;
+  border: 0; background: transparent; color: #6B7A94;
+  padding: 6px 12px; border-radius: 999px; cursor: pointer; transition: all .14s ease;
+}
+.mode-btn:hover { color: #22324F; }
+.mode-btn.active { background: #22324F; color: #FBEBC6; box-shadow: 0 2px 0 rgba(34,50,79,.2); }
+
+/* ================= 移动工具条 ================= */
+.move-bar {
+  display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
+  margin-top: 12px; padding: 9px 12px;
+  background: #FBF1D9; border: 2px dashed #DEC38A; border-radius: 16px;
+}
+.move-bar[hidden] { display: none; }
+.mb-info { display: flex; align-items: center; gap: 8px; font-size: 12.5px; flex-wrap: wrap; }
+.mb-tag {
+  display: inline-flex; align-items: center; gap: 6px;
+  font-weight: 700; color: #22324F;
+  background: #FFFCF3; border: 1.5px solid #E2D3B3; border-radius: 999px; padding: 4px 10px;
+}
+.mb-tag .swatch { width: 10px; height: 10px; border-radius: 3px; border: 1.5px solid #22324F; }
+.mb-hint { color: #8A7B5C; font-size: 11.5px; }
+.mb-tools { display: flex; gap: 6px; flex-wrap: wrap; margin-left: auto; }
+.tbtn {
+  font: inherit; font-size: 12px; font-weight: 700; color: #22324F;
+  background: #FFFCF3; border: 1.5px solid #22324F; border-radius: 999px;
+  padding: 5px 10px; cursor: pointer; transition: .12s ease; white-space: nowrap;
+}
+.tbtn:hover:not(:disabled) { background: #F7E6BD; transform: translateY(-1px); }
+.tbtn:active:not(:disabled) { transform: translateY(1px); }
+.tbtn:disabled { opacity: .4; cursor: not-allowed; }
+.tbtn.ghost { border-style: dashed; color: #6B7A94; }
+.dim { color: #A39A82; font-weight: 600; }
+
+/* ================= 画布交互光标 ================= */
+.stage-wrap.move #stage { cursor: default; }
+.stage-wrap.move .piece { cursor: grab; }
+.stage-wrap.dragging .piece { cursor: grabbing; }
+#labelLayer, #selLayer { pointer-events: none; }
+
+@media (max-width: 460px) {
+  .shape-grid { gap: 6px; }
+  .shape-grid .chip { font-size: 11.5px; }
+  .mb-tools { margin-left: 0; width: 100%; }
+}
+
+@media (max-width: 560px) {
+  .mb-hint { display: none; }
+  .mb-tools { gap: 5px; }
+  .tbtn { font-size: 11px; padding: 5px 8px; }
+  .move-bar { padding: 8px 10px; gap: 8px; }
+}
+
+/* 调整大小模式 */
+.stage-wrap.resize #stage { cursor: default; }
+.vhandle { pointer-events: none; }
+.mb-tools[hidden] { display: none; }
+.mb-info .mb-hint { white-space: nowrap; }
+@media (max-width: 560px) {
+  .mb-info .mb-hint { white-space: normal; }
+}
+
+.ngon-tip { font-size: 11px; color: #A39A82; font-weight: 500; }
+
+/* 图形下拉菜单 */
+.select-wrap { position: relative; }
+.select-wrap select {
+  width: 100%;
+  appearance: none;
+  -webkit-appearance: none;
+  font: inherit;
+  font-size: 14.5px;
+  font-weight: 700;
+  color: #22324F;
+  background: linear-gradient(180deg, #FFFDF7, #FBF4E4);
+  border: 2px solid #22324F;
+  border-radius: 14px;
+  padding: 10px 36px 10px 14px;
+  cursor: pointer;
+  box-shadow: 0 3px 0 rgba(34, 50, 79, .12);
+}
+.select-wrap select:focus { outline: 2px solid #E8B23F; outline-offset: 2px; }
+.select-caret {
+  position: absolute;
+  right: 16px;
+  top: 50%;
+  width: 0;
+  height: 0;
+  border-left: 5.5px solid transparent;
+  border-right: 5.5px solid transparent;
+  border-top: 7px solid #22324F;
+  transform: translateY(-50%);
+  pointer-events: none;
+}
+
+/* 操作与读数提示 */
+#stageWrap.touch-enabled #stage { touch-action: none; }
+.touch-tools { display: none; }
+.preview-hint {
+  position: absolute; top: 8px; left: 8px; right: 8px; width: fit-content;
+  max-width: calc(100% - 16px); padding: 6px 9px; border-radius: 9px;
+  background: #fff1ea; color: #8E332D; border: 1px solid #E9B3A2;
+  font-size: 12px; line-height: 1.45; font-weight: 700; pointer-events: none;
+}
+.ngon-row[hidden], .preview-hint[hidden] { display: none; }
+.perim-demo {
+  margin-top: 12px; padding: 8px 10px; border-radius: 12px; border: 1px solid #DCCBAA;
+  background: #FFFCF3; color: #22324F; font-size: 12px; line-height: 1.55;
+}
+.perim-demo summary { cursor: pointer; font-weight: 700; }
+.perim-demo svg { display: block; width: 100%; height: auto; }
+.perim-demo p { margin: 8px 0 2px; }
+@media (any-pointer: coarse) {
+  .touch-tools { display: flex; align-items: center; flex-wrap: wrap; gap: 4px 10px; margin: 0 0 9px; }
+  .touch-tools .btn { min-height: 40px; }
+  .touch-tools span { flex: 1 1 120px; font-size: 12px; line-height: 1.4; color: #5E6E8C; }
+  .touch-tools button[aria-pressed="true"] { background: #F7E6BD; }
+}
+@media (max-width: 900px) {
+  .layout { gap: 12px; min-width: 0; }
+  #shapeCard { padding: 12px; }
+  #shapeCard .card-title { margin-bottom: 7px; }
+  #shapeCard .select-wrap select { min-height: 40px; }
+  .stage-head { flex-wrap: wrap; gap: 5px 10px; }
+  .stage-title { min-width: 0; }
+}
+@media (max-width: 460px) {
+  .top { padding-top: 12px; }
+  .top .kicker, h1 small { display: none; }
+  .sub { font-size: 12px; line-height: 1.5; }
+  .stage-card { padding: 10px; }
+  .stage-hint { left: 7px; right: 7px; bottom: 6px; width: fit-content; max-width: calc(100% - 14px); font-size: 10.5px; padding: 3px 7px; }
+  .prow { grid-template-columns: minmax(54px, 1.25fr) repeat(2, minmax(51px, .85fr)) minmax(32px, .5fr); gap: 4px; }
+}
+</style>
+</head>
+<body>
+<div class="app">
+  <header class="top">
+    <div class="brand">
+      <div class="kicker">数学 · 图形与几何</div>
+      <h1><span class="hl">切图实验室</span>-零与整 <small>parts &amp; whole</small></h1>
+      <p class="sub">选一个平面图形，拖动划一刀把它分成两块；多划几刀还能分成更多块。确认之后可以拖动、旋转、翻面拼摆小块，再看看原图形和每一块的面积、周长。</p>
+    </div>
+    <div class="mascot-wrap">
+      <div class="bubble" id="tipBubble">按住画布拖一条线出来，就能划出第一刀啦！</div>
+      <svg class="mascot" viewBox="0 0 120 120" aria-hidden="true">
+        <g class="float">
+          <path class="spark" d="M16 30 l2.6 6.4 6.4 2.6 -6.4 2.6 -2.6 6.4 -2.6 -6.4 -6.4 -2.6 6.4 -2.6z" fill="#F0C455"/>
+          <path class="spark" d="M104 62 l2.2 5.4 5.4 2.2 -5.4 2.2 -2.2 5.4 -2.2 -5.4 -5.4 -2.2 5.4 -2.2z" fill="#EFB84A"/>
+          <ellipse cx="60" cy="74" rx="27" ry="25" fill="#FBD6D4" stroke="#22324F" stroke-width="3"/>
+          <path d="M33 52 Q60 34 87 52 L60 66 Z" fill="#22324F"/>
+          <path d="M33 52 L60 38 L87 52 L60 66 Z" fill="#2C3E60"/>
+          <rect x="56" y="24" width="8" height="14" rx="2" fill="#22324F"/>
+          <circle cx="60" cy="24" r="5" fill="#E8B23F" stroke="#22324F" stroke-width="2.5"/>
+          <path d="M87 52 q7 12 1 22" fill="none" stroke="#E8B23F" stroke-width="3" stroke-linecap="round"/>
+          <circle cx="87" cy="78" r="3.6" fill="#E8B23F" stroke="#22324F" stroke-width="2"/>
+          <ellipse class="eye" cx="50" cy="73" rx="3.6" ry="4.8" fill="#22324F"/>
+          <ellipse class="eye" cx="70" cy="73" rx="3.6" ry="4.8" fill="#22324F"/>
+          <ellipse cx="43" cy="83" rx="5" ry="3" fill="#F2A0A0" opacity=".75"/>
+          <ellipse cx="77" cy="83" rx="5" ry="3" fill="#F2A0A0" opacity=".75"/>
+          <path d="M53 84 q7 7 14 0" fill="none" stroke="#22324F" stroke-width="3" stroke-linecap="round"/>
+        </g>
+      </svg>
+    </div>
+  </header>
+
+  <main class="layout">
+    <section class="card stage-card">
+      <div class="stage-head">
+        <div class="stage-title"><span id="shapeName">六边形</span><span class="dot-sep">·</span><span id="stageMeta">还没下刀</span></div>
+        <div class="badges">
+          <span class="badge">当前 <b id="pieceBadge">1</b> 块</span>
+          <span class="badge">已划 <b id="cutBadge">0</b> 刀</span>
+        </div>
+      </div>
+      <div class="touch-tools">
+        <button class="btn" id="touchModeBtn" type="button" aria-pressed="false">操作画布</button>
+        <span id="touchHelp">默认可从画布上滑动页面。</span>
+      </div>
+      <div class="stage-wrap" id="stageWrap">
+        <svg id="stage" viewBox="0 0 13 9" preserveAspectRatio="xMidYMid meet">
+          <defs>
+            <pattern id="gridPat" width="1" height="1" patternUnits="userSpaceOnUse">
+              <circle cx="0" cy="0" r="0.042" fill="#22324F" fill-opacity="0.55"/>
+            </pattern>
+            <filter id="pieceShadow" x="-30%" y="-30%" width="160%" height="160%">
+              <feDropShadow dx="0" dy="0.07" stdDeviation="0.05" flood-color="#22324F" flood-opacity="0.22"/>
+            </filter>
+          </defs>
+          <rect id="gridRect" x="0" y="0" width="13" height="9" fill="url(#gridPat)"/>
+          <g id="piecesLayer"></g>
+          <g id="faceLayer"></g>
+          <g id="labelLayer"></g>
+          <g id="selLayer"></g>
+          <g id="previewLayer"></g>
+        </svg>
+        <div class="preview-hint" id="previewHint" role="status" hidden></div>
+        <div class="stage-hint" id="stageHint">按住拖动 · 沿直线划一刀</div>
+      </div>
+
+      <div class="move-bar" id="moveBar" hidden>
+        <div class="mb-info"><span class="mb-tag" id="selTag"><span class="dim">未选中</span></span><span class="mb-hint">拖动小块移动 · 拖 ↻ 旋转</span></div>
+        <div class="mb-tools" id="mbTools">
+          <button class="tbtn" data-act="rotl" title="逆时针旋转 15°">⟲ 15°</button>
+          <button class="tbtn" data-act="rotr" title="顺时针旋转 15°">⟳ 15°</button>
+          <button class="tbtn" data-act="flipx" title="左右翻转">⇄ 左右翻</button>
+          <button class="tbtn" data-act="flipy" title="上下翻转">⇅ 上下翻</button>
+          <button class="tbtn" data-act="resett" title="这一块回到原位">↺ 复位</button>
+          <button class="tbtn ghost" data-act="resetall" title="全部回到原位">全部复位</button>
+        </div>
+      </div>
+
+      <div class="stage-foot">
+        <div class="modes" id="modeSwitch">
+          <button class="mode-btn active" data-mode="cut">✂ 划刀</button>
+          <button class="mode-btn" data-mode="move">✋ 移动</button>
+          <button class="mode-btn" data-mode="resize">⤢ 调整</button>
+        </div>
+        <button class="btn" id="undoBtn">↩ 撤销一刀</button>
+        <button class="btn" id="resetBtn">↻ 重来</button>
+        <label class="toggle"><input type="checkbox" id="gridToggle" checked />网格</label>
+        <label class="toggle"><input type="checkbox" id="angleToggle" />∠ 角标记</label>
+        <span class="grow"></span>
+        <button class="btn primary" id="confirmBtn">✓ 确认并展示数据</button>
+      </div>
+    </section>
+
+    <aside class="panel" id="dataPanel">
+      <section class="card" id="shapeCard">
+        <h2 class="card-title"><i>1</i>选图形</h2>
+        <div class="select-wrap">
+          <select id="shapeSelect" aria-label="选择图形">
+            <optgroup label="基本">
+              <option value="random">随机</option>
+              <option value="circle">圆形</option>
+              <option value="concave">凹形</option>
+            </optgroup>
+            <optgroup label="三角形">
+              <option value="isosceles">等腰三角形</option>
+              <option value="right">直角三角形</option>
+            </optgroup>
+            <optgroup label="四边形">
+              <option value="rect">矩形</option>
+              <option value="parallelogram">平行四边形</option>
+              <option value="rhombus">菱形</option>
+              <option value="trapezoid">梯形</option>
+              <option value="isoTrapezoid">等腰梯形</option>
+              <option value="rightTrapezoid">直角梯形</option>
+            </optgroup>
+            <optgroup label="多边形 / 星形">
+              <option value="polygon">多边形（随机形状）</option>
+              <option value="regular">正多边形</option>
+              <option value="star">正多角星</option>
+            </optgroup>
+          </select>
+          <span class="select-caret" aria-hidden="true">▾</span>
+        </div>
+        <div class="ngon-row" id="shapeCountRow">
+          <span class="ng-item"><label for="shapeN" id="shapeCountLabel">边数</label><input id="shapeN" type="number" min="3" max="12" step="1" value="6" aria-describedby="shapeCountRange" /><em id="shapeCountRange">3–12 边</em></span>
+        </div>
+        <button class="btn wide" id="rerollBtn">🎲 换一个同类型图形</button>
+      </section>
+
+      <section class="card">
+        <h2 class="card-title"><i>2</i>原图形的数据</h2>
+        <div id="origBody"></div>
+      </section>
+
+      <section class="card">
+        <h2 class="card-title"><i>3</i>分割后的数据</h2>
+        <div id="resultBody"></div>
+      </section>
+    </aside>
+  </main>
+
+  <template id="perimeterDemo">
+    <details class="perim-demo">
+      <summary>拼回原图的周长演示</summary>
+      <p>把一个长 6 cm、宽 4 cm 的矩形分成两个 3 cm × 4 cm 的小矩形。</p>
+      <svg viewBox="0 0 300 118" role="img" aria-label="分开时两块各 14 厘米，周长之和 28 厘米。拼回时刀口在内部，外周长 20 厘米。">
+        <g fill="none" stroke="#22324F" stroke-width="1.5">
+          <rect x="18" y="18" width="37" height="49" rx="1" fill="#F7C95E" />
+          <rect x="63" y="18" width="37" height="49" rx="1" fill="#8AD3B0" />
+          <path d="M172 18h37v49h-37z" fill="#F7C95E" stroke="none" />
+          <path d="M209 18h37v49h-37z" fill="#8AD3B0" stroke="none" />
+          <path d="M172 18h74v49h-74z" />
+          <path d="M209 18v49" stroke="#82754E" stroke-dasharray="3 3" />
+        </g>
+        <g fill="#22324F" text-anchor="middle" font-size="11">
+          <text x="59" y="88">分开后各块相加</text>
+          <text x="59" y="106" font-weight="700">28 cm</text>
+          <text x="209" y="88">拼回后的外周长</text>
+          <text x="209" y="106" font-weight="700">20 cm</text>
+        </g>
+      </svg>
+      <p>拼回后，共用的刀口在内部。外周长只沿最外边走一圈。</p>
+    </details>
+  </template>
+  <footer class="foot">分割前后的总面积相等 · 各块周长之和增加 2 × 刀痕总长 · 平移、旋转、翻面不改变每块的面积和周长</footer>
+</div>
+<div class="toast" id="toast"></div>
+<script>/* ===================== 几何内核 =====================
+ * 全部为纯函数，坐标单位 = 厘米，屏幕坐标系（y 向下）。
+ * 约定：所有多边形按 shoelace 面积为正的方向存储（makeCCW）。
+ * ================================================== */
+(function (global) {
+  'use strict';
+
+  const EPS = 1e-7;
+  const TAU = Math.PI * 2;
+
+  const sub = (a, b) => ({ x: a.x - b.x, y: a.y - b.y });
+  const dist = (a, b) => Math.hypot(a.x - b.x, a.y - b.y);
+  const unit = (v) => { const l = Math.hypot(v.x, v.y) || 1; return { x: v.x / l, y: v.y / l }; };
+
+  /* ---------- 基本量 ---------- */
+  function polyArea(pts) {
+    let s = 0;
+    for (let i = 0, n = pts.length; i < n; i++) {
+      const a = pts[i], b = pts[(i + 1) % n];
+      s += a.x * b.y - b.x * a.y;
+    }
+    return s / 2;
+  }
+
+  function polyPerim(pts) {
+    let s = 0;
+    for (let i = 0, n = pts.length; i < n; i++) s += dist(pts[i], pts[(i + 1) % n]);
+    return s;
+  }
+
+  function polyCentroid(pts) {
+    let a = 0, cx = 0, cy = 0;
+    const n = pts.length;
+    for (let i = 0; i < n; i++) {
+      const p = pts[i], q = pts[(i + 1) % n];
+      const f = p.x * q.y - q.x * p.y;
+      a += f; cx += (p.x + q.x) * f; cy += (p.y + q.y) * f;
+    }
+    a *= 0.5;
+    if (Math.abs(a) < 1e-12) {
+      let sx = 0, sy = 0;
+      for (const p of pts) { sx += p.x; sy += p.y; }
+      return { x: sx / n, y: sy / n };
+    }
+    return { x: cx / (6 * a), y: cy / (6 * a) };
+  }
+
+  function pointInPoly(pts, p) {
+    let inside = false;
+    for (let i = 0, j = pts.length - 1; i < pts.length; j = i++) {
+      const xi = pts[i].x, yi = pts[i].y, xj = pts[j].x, yj = pts[j].y;
+      if ((yi > p.y) !== (yj > p.y) && p.x < ((xj - xi) * (p.y - yi)) / (yj - yi) + xi) inside = !inside;
+    }
+    return inside;
+  }
+
+  function distToSeg(p, a, b) {
+    const dx = b.x - a.x, dy = b.y - a.y;
+    const l2 = dx * dx + dy * dy;
+    let t = l2 ? ((p.x - a.x) * dx + (p.y - a.y) * dy) / l2 : 0;
+    t = Math.max(0, Math.min(1, t));
+    return Math.hypot(p.x - (a.x + t * dx), p.y - (a.y + t * dy));
+  }
+
+  function distToBoundary(pts, p) {
+    let best = Infinity;
+    for (let i = 0, n = pts.length; i < n; i++) best = Math.min(best, distToSeg(p, pts[i], pts[(i + 1) % n]));
+    return best;
+  }
+
+  function bbox(pts) {
+    let x0 = Infinity, y0 = Infinity, x1 = -Infinity, y1 = -Infinity;
+    for (const p of pts) {
+      if (p.x < x0) x0 = p.x; if (p.x > x1) x1 = p.x;
+      if (p.y < y0) y0 = p.y; if (p.y > y1) y1 = p.y;
+    }
+    return { x0, y0, x1, y1, w: x1 - x0, h: y1 - y0 };
+  }
+
+  function makeCCW(pts) {
+    return polyArea(pts) < 0 ? pts.slice().reverse() : pts.slice();
+  }
+
+  function cornerCount(pts) {
+    const n = pts.length;
+    let c = 0;
+    for (let i = 0; i < n; i++) {
+      const a = pts[(i - 1 + n) % n], b = pts[i], d = pts[(i + 1) % n];
+      const u = sub(a, b), v = sub(d, b);
+      const lu = Math.hypot(u.x, u.y) || 1, lv = Math.hypot(v.x, v.y) || 1;
+      const ang = Math.acos(Math.max(-1, Math.min(1, (u.x * v.x + u.y * v.y) / (lu * lv))));
+      if (ang > 0.12) c++; /* 约 7° 以下视为共线 */
+    }
+    return c;
+  }
+
+  /* ---------- 一刀：用一条直线把简单多边形切开 ----------
+   * A: 直线上一点；d: 单位方向向量。
+   * 返回 { pieces:[环...], chordLen, chords:[[p1,p2]...] } 或 null（没切开）。
+   * 算法：把交点作为节点，边界弧 + 直线上的“弦”构成平面图，
+   *       按角度规则走面（interior 在左），正面积的面就是切出来的块。
+   */
+  function splitPolygon(poly, A, d) {
+    let n = poly.length;
+    if (n < 3) return null;
+    /* 统一成“正面积”方向，镜像/翻转过的图形也能正确切开 */
+    if (polyArea(poly) < 0) poly = poly.slice().reverse();
+    const nx = -d.y, ny = d.x;
+    const s = new Array(n);
+    let hasPos = false, hasNeg = false;
+    for (let i = 0; i < n; i++) {
+      const v = (poly[i].x - A.x) * nx + (poly[i].y - A.y) * ny;
+      s[i] = v;
+      if (v > EPS) hasPos = true; else if (v < -EPS) hasNeg = true;
+    }
+    if (!hasPos || !hasNeg) return null;
+
+    const cuts = [];
+    for (let i = 0; i < n; i++) {
+      const j = (i + 1) % n;
+      if ((s[i] > 0) === (s[j] > 0)) continue;
+      const t = s[i] / (s[i] - s[j]);
+      cuts.push({
+        edge: i,
+        x: poly[i].x + t * (poly[j].x - poly[i].x),
+        y: poly[i].y + t * (poly[j].y - poly[i].y),
+        onCircle: !!(poly[i].onCircle && poly[j].onCircle)
+      });
+    }
+    const m = cuts.length;
+    if (m < 2 || m % 2 !== 0) return null;
+
+    const node = cuts.map((c) => ({ x: c.x, y: c.y, onCircle: !!c.onCircle }));
+    const u = cuts.map((c) => (c.x - A.x) * d.x + (c.y - A.y) * d.y);
+    const out = node.map(() => []);
+    const dirs = [];
+    const chords = [];
+    let chordLen = 0;
+
+    function addEdge(a, b, fwdPts, dirAtA, dirAtB) {
+      const revPts = fwdPts.slice(0, -1).reverse().concat([node[a]]);
+      const idF = dirs.length;
+      dirs.push({ from: a, to: b, pts: fwdPts, back: Math.atan2(-dirAtB.y, -dirAtB.x) });
+      out[a].push({ id: idF, ang: Math.atan2(dirAtA.y, dirAtA.x) });
+      const idR = dirs.length;
+      dirs.push({ from: b, to: a, pts: revPts, back: Math.atan2(dirAtA.y, dirAtA.x) });
+      out[b].push({ id: idR, ang: Math.atan2(-dirAtB.y, -dirAtB.x) });
+    }
+
+    /* 边界弧：节点 k -> k+1（沿多边形走向，包含中间顶点） */
+    for (let k = 0; k < m; k++) {
+      const k2 = (k + 1) % m;
+      const e1 = cuts[k].edge, e2 = cuts[k2].edge;
+      const pts = [];
+      let idx = (e1 + 1) % n, guard = 0;
+      while (true) {
+        pts.push(poly[idx]);
+        if (idx === e2) break;
+        idx = (idx + 1) % n;
+        if (++guard > n + 1) break;
+      }
+      pts.push(node[k2]);
+      if (pts.length < 2) continue;
+      const dirA = unit(sub(pts[0], node[k]));
+      const dirB = unit(sub(node[k2], pts[pts.length - 2]));
+      addEdge(k, k2, pts, dirA, dirB);
+    }
+
+    /* 直线上的弦：按沿直线排序后两两配对 */
+    const order = u.map((_, i) => i).sort((a, b) => u[a] - u[b]);
+    for (let i = 0; i + 1 < m; i += 2) {
+      const a = order[i], b = order[i + 1];
+      const dd = unit(sub(node[b], node[a]));
+      if (!dd.x && !dd.y) continue;
+      addEdge(a, b, [node[b]], dd, dd);
+      chords.push([{ x: node[a].x, y: node[a].y }, { x: node[b].x, y: node[b].y }]);
+      chordLen += dist(node[a], node[b]);
+    }
+
+    for (const list of out) list.sort((p, q) => p.ang - q.ang);
+
+    const next = new Array(dirs.length).fill(-1);
+    for (let i = 0; i < dirs.length; i++) {
+      const list = out[dirs[i].to];
+      const back = dirs[i].back;
+      let best = -1, bestD = Infinity;
+      for (const it of list) {
+        let diff = back - it.ang;
+        diff = ((diff % TAU) + TAU) % TAU;
+        if (diff < 1e-9) diff += TAU;
+        if (diff < bestD) { bestD = diff; best = it.id; }
+      }
+      next[i] = best;
+    }
+
+    const seen = new Array(dirs.length).fill(false);
+    const pieces = [];
+    for (let i = 0; i < dirs.length; i++) {
+      if (seen[i]) continue;
+      const ring = [];
+      let cur = i, closed = false, steps = 0;
+      while (steps++ < dirs.length + 6) {
+        if (seen[cur]) break;
+        seen[cur] = true;
+        const e = dirs[cur];
+        for (const p of e.pts) {
+          const last = ring[ring.length - 1];
+          if (!last || Math.hypot(last.x - p.x, last.y - p.y) > 1e-9) ring.push(p);
+        }
+        cur = next[cur];
+        if (cur === i) { closed = true; break; }
+        if (cur < 0) break;
+      }
+      if (!closed || ring.length < 3) continue;
+      if (Math.hypot(ring[0].x - ring[ring.length - 1].x, ring[0].y - ring[ring.length - 1].y) < 1e-9) ring.pop();
+      const ar = polyArea(ring);
+      if (ar > 1e-6) pieces.push({ pts: ring, area: ar });
+    }
+    if (!pieces.length) return null;
+    return { pieces: pieces.map((p) => p.pts), areas: pieces.map((p) => p.area), chordLen, chords };
+  }
+
+  /* ---------- 常见平面图形（以原点为中心，y 向下） ---------- */
+  function equilateralTriangle(s) {
+    const h = (s * Math.sqrt(3)) / 2;
+    return makeCCW([{ x: 0, y: (-2 * h) / 3 }, { x: s / 2, y: h / 3 }, { x: -s / 2, y: h / 3 }]);
+  }
+
+  function isoscelesTriangle(b, h) {
+    return makeCCW([{ x: 0, y: (-2 * h) / 3 }, { x: b / 2, y: h / 3 }, { x: -b / 2, y: h / 3 }]);
+  }
+
+  function rightTriangle(a, b) {
+    /* 直角在左下角，两条直角边长为 a、b */
+    const g = { x: a / 3, y: -b / 3 };
+    return makeCCW([{ x: -g.x, y: -g.y }, { x: a - g.x, y: -g.y }, { x: -g.x, y: -b - g.y }]);
+  }
+
+  function rectangle(w, h) {
+    return makeCCW([{ x: -w / 2, y: -h / 2 }, { x: w / 2, y: -h / 2 }, { x: w / 2, y: h / 2 }, { x: -w / 2, y: h / 2 }]);
+  }
+
+  function parallelogram(b, h, s) {
+    return makeCCW([
+      { x: -b / 2, y: h / 2 }, { x: b / 2, y: h / 2 },
+      { x: b / 2 + s, y: -h / 2 }, { x: -b / 2 + s, y: -h / 2 }
+    ]);
+  }
+
+  function rhombus(p, q) {
+    return makeCCW([{ x: 0, y: -q / 2 }, { x: p / 2, y: 0 }, { x: 0, y: q / 2 }, { x: -p / 2, y: 0 }]);
+  }
+
+  /* 下底 a（y=+h/2），上底 b（y=-h/2），上底左端相对下底左端偏移 off */
+  function trapezoid(a, b, h, off) {
+    const x0 = -a / 2;
+    return makeCCW([
+      { x: x0, y: h / 2 }, { x: x0 + a, y: h / 2 },
+      { x: x0 + off + b, y: -h / 2 }, { x: x0 + off, y: -h / 2 }
+    ]);
+  }
+
+  function isoTrapezoid(a, b, h) { return trapezoid(a, b, h, (a - b) / 2); }
+
+  function rightTrapezoid(a, b, h) { return trapezoid(a, b, h, 0); }
+
+  /* ---------- 形状识别：给切开的小块起名字 ---------- */
+  const _CN = { 3: '三', 4: '四', 5: '五', 6: '六', 7: '七', 8: '八', 9: '九', 10: '十', 11: '十一', 12: '十二' };
+
+  function simplifyRing(pts, tolDeg) {
+    const n = pts.length;
+    if (n <= 3) return pts.slice();
+    const tol = ((tolDeg === undefined ? 2.6 : tolDeg) * Math.PI) / 180;
+    const out = [];
+    for (let i = 0; i < n; i++) {
+      const a = pts[(i - 1 + n) % n], b = pts[i], c = pts[(i + 1) % n];
+      const ux = b.x - a.x, uy = b.y - a.y, vx = c.x - b.x, vy = c.y - b.y;
+      const lu = Math.hypot(ux, uy) || 1e-9, lv = Math.hypot(vx, vy) || 1e-9;
+      const ca = (ux * vx + uy * vy) / (lu * lv);
+      const ang = Math.acos(Math.max(-1, Math.min(1, ca)));
+      if (ang < tol) continue; /* 几乎共线 → 不算角 */
+      const prev = out[out.length - 1];
+      if (prev && Math.hypot(b.x - prev.x, b.y - prev.y) < 0.02) continue; /* 近重合点 */
+      out.push(b);
+    }
+    if (out.length > 3 && Math.hypot(out[0].x - out[out.length - 1].x, out[0].y - out[out.length - 1].y) < 0.02) out.pop();
+    return out.length >= 3 ? out : pts.slice();
+  }
+
+  function interiorAngle(a, b, c) {
+    const ux = a.x - b.x, uy = a.y - b.y, vx = c.x - b.x, vy = c.y - b.y;
+    const lu = Math.hypot(ux, uy) || 1e-9, lv = Math.hypot(vx, vy) || 1e-9;
+    return (Math.acos(Math.max(-1, Math.min(1, (ux * vx + uy * vy) / (lu * lv)))) * 180) / Math.PI;
+  }
+
+  function classifyShape(ptsIn) {
+    const pts = simplifyRing(ptsIn);
+    const n = pts.length;
+    if (n < 3) return '图形';
+    const L = [], A = [];
+    for (let i = 0; i < n; i++) L.push(dist(pts[i], pts[(i + 1) % n]));
+    for (let i = 0; i < n; i++) A.push(interiorAngle(pts[(i - 1 + n) % n], pts[i], pts[(i + 1) % n]));
+
+    const eqLen = (a, b) => Math.abs(a - b) <= Math.max(0.015 * Math.max(a, b), 0.008);
+    const isRight = (d) => Math.abs(d - 90) <= 2;
+    const allRight = A.every(isRight);
+    const allEq = L.every((l) => eqLen(l, L[0]));
+    const allAngEq = A.every((a) => Math.abs(a - A[0]) <= 2);
+
+    if (n === 3) {
+      if (allEq) return '等边三角形';
+      const right = A.some(isRight);
+      const eqs = eqLen(L[0], L[1]) || eqLen(L[1], L[2]) || eqLen(L[0], L[2]);
+      if (right && eqs) return '等腰直角三角形';
+      if (right) return '直角三角形';
+      if (eqs) return '等腰三角形';
+      if (A.some((a) => a > 92)) return '钝角三角形';
+      return '锐角三角形';
+    }
+
+    if (n === 4) {
+      const dir = (i) => ({ x: pts[(i + 1) % n].x - pts[i].x, y: pts[(i + 1) % n].y - pts[i].y });
+      const par = (i, j) => {
+        const a = dir(i), b = dir(j);
+        return Math.abs(a.x * b.y - a.y * b.x) <= 0.02 * (Math.hypot(a.x, a.y) || 1e-9) * (Math.hypot(b.x, b.y) || 1e-9);
+      };
+      const p02 = par(0, 2), p13 = par(1, 3);
+      const eq4 = eqLen(L[0], L[1]) && eqLen(L[1], L[2]) && eqLen(L[2], L[3]);
+      if (p02 && p13) {
+        if (allRight && eq4) return '正方形';
+        if (allRight) return '矩形';
+        if (eq4) return '菱形';
+        return '平行四边形';
+      }
+      if (p02 || p13) {
+        const legs = p02 ? [L[1], L[3]] : [L[0], L[2]];
+        if (eqLen(legs[0], legs[1])) return '等腰梯形';
+        if (A.filter(isRight).length >= 2) return '直角梯形';
+        return '梯形';
+      }
+      if (eq4) return '菱形';
+      return '四边形';
+    }
+
+    if (allEq && allAngEq) return '正' + (_CN[n] || n) + '边形';
+    return (_CN[n] || n) + '边形';
+  }
+
+  /* ---------- 仿射变换 ---------- */
+  function transformPts(pts, m) {
+    if (!m) return pts.slice();
+    return pts.map((p) => {
+      const q = { x: m.a * p.x + m.c * p.y + m.e, y: m.b * p.x + m.d * p.y + m.f };
+      if (p.onCircle) q.onCircle = true;
+      if (p.arcEdges) q.arcEdges = p.arcEdges;
+      if (p.corner) q.corner = true;
+      return q;
+    });
+  }
+
+  function applyM(m, p) {
+    return { x: m.a * p.x + m.c * p.y + m.e, y: m.b * p.x + m.d * p.y + m.f };
+  }
+
+  /* ---------- 微调直线，避开“刀正好过顶点”的退化情形 ----------
+   * pieces 里每项可以是点数组，也可以是 {pts}。偏移量极小（< 0.01cm），肉眼不可见。
+   */
+  function nudgeLine(pieces, A, d, eps) {
+    eps = eps || 4e-4;
+    const nx = -d.y, ny = d.x;
+    let minAbs = Infinity, minS = 0;
+    for (const pc of pieces) {
+      const pts = pc.pts || pc;
+      for (const p of pts) {
+        const s = (p.x - A.x) * nx + (p.y - A.y) * ny;
+        const a = Math.abs(s);
+        if (a < minAbs) { minAbs = a; minS = s; }
+      }
+    }
+    if (minAbs > eps) return { A: A, offset: 0 };
+    let off = (minS >= 0 ? 1 : -1) * (eps + 1e-5);
+    /* 万一刚好挪到另一个顶点上，再错开一点 */
+    for (let k = 0; k < 8; k++) {
+      let bad = false;
+      for (const pc of pieces) {
+        const pts = pc.pts || pc;
+        for (const p of pts) {
+          const s = (p.x - A.x) * nx + (p.y - A.y) * ny;
+          if (Math.abs(s - off) < 1e-6) { bad = true; break; }
+        }
+        if (bad) break;
+      }
+      if (!bad) break;
+      off += (off >= 0 ? 1 : -1) * 1e-4;
+    }
+    return { A: { x: A.x - d.y * off, y: A.y + d.x * off }, offset: Math.abs(off) };
+  }
+
+  /* ---------- 图形生成 ---------- */
+  function isConvex(pts) {
+    let sign = 0;
+    const n = pts.length;
+    for (let i = 0; i < n; i++) {
+      const a = pts[i], b = pts[(i + 1) % n], c = pts[(i + 2) % n];
+      const cr = (b.x - a.x) * (c.y - b.y) - (b.y - a.y) * (c.x - b.x);
+      if (Math.abs(cr) < 1e-9) continue;
+      const sg = cr > 0 ? 1 : -1;
+      if (!sign) sign = sg; else if (sg !== sign) return false;
+    }
+    return true;
+  }
+
+  function regularPolygon(n, cx, cy, r, rot, jitter) {
+    const mk = (j) => {
+      const pts = [];
+      for (let i = 0; i < n; i++) {
+        const a = rot + (i * TAU) / n + (j > 0 ? (Math.random() - 0.5) * (0.10 * TAU) / n : 0);
+        const rr = r * (1 + (Math.random() - 0.5) * 2 * j);
+        pts.push({ x: cx + rr * Math.cos(a), y: cy + rr * Math.sin(a) });
+      }
+      return pts;
+    };
+    for (let k = 0; k < 24; k++) {
+      const pts = mk(jitter);
+      if (isConvex(pts)) return makeCCW(pts);
+    }
+    return makeCCW(mk(0));
+  }
+
+  function starPolygon(n, cx, cy, rOut, rIn, rot) {
+    const pts = [];
+    for (let i = 0; i < n * 2; i++) {
+      const r = i % 2 === 0 ? rOut : rIn;
+      const a = rot + (i * Math.PI) / n;
+      pts.push({ x: cx + r * Math.cos(a), y: cy + r * Math.sin(a) });
+    }
+    return makeCCW(pts);
+  }
+
+  function lShape(cx, cy, w, h, a, b, flip) {
+    const x0 = cx - w / 2, y0 = cy - h / 2, x1 = cx + w / 2, y1 = cy + h / 2;
+    let pts = [
+      { x: x0, y: y0 }, { x: x1, y: y0 }, { x: x1, y: y1 - b },
+      { x: x1 - a, y: y1 - b }, { x: x1 - a, y: y1 }, { x: x0, y: y1 }
+    ];
+    if (flip) pts = pts.map((p) => ({ x: 2 * cx - p.x, y: p.y }));
+    return makeCCW(pts);
+  }
+
+  function circlePoints(cx, cy, r, seg) {
+    const pts = [];
+    for (let i = 0; i < seg; i++) {
+      const a = (i / seg) * TAU;
+      pts.push({
+        x: cx + r * Math.cos(a), y: cy + r * Math.sin(a), onCircle: true,
+        arcEdges: [(i + seg - 1) % seg, i]
+      });
+    }
+    return pts;
+  }
+
+  /** 找一个尽量“靠内”的点，用于摆标签 */
+  function innerPoint(pts) {
+    const c = polyCentroid(pts);
+    if (pointInPoly(pts, c) && distToBoundary(pts, c) > 0.02) return c;
+    const bb = bbox(pts);
+    let best = c, bestD = -1;
+    for (let i = 1; i < 14; i++) {
+      for (let j = 1; j < 14; j++) {
+        const p = { x: bb.x0 + (bb.w * i) / 14, y: bb.y0 + (bb.h * j) / 14 };
+        if (!pointInPoly(pts, p)) continue;
+        const d = distToBoundary(pts, p);
+        if (d > bestD) { bestD = d; best = p; }
+      }
+    }
+    return best;
+  }
+
+  global.Geom = {
+    TAU, EPS,
+    sub, dist, unit,
+    polyArea, polyPerim, polyCentroid, pointInPoly, distToBoundary, bbox,
+    makeCCW, cornerCount, splitPolygon, nudgeLine, innerPoint,
+    isConvex, regularPolygon, starPolygon, lShape, circlePoints,
+    equilateralTriangle, isoscelesTriangle, rightTriangle, rectangle,
+    parallelogram, rhombus, trapezoid, isoTrapezoid, rightTrapezoid,
+    transformPts, applyM, simplifyRing, classifyShape
+  };
+})(typeof window !== 'undefined' ? window : globalThis);
+</script>
+<script>(function () {
+  'use strict';
+  const G = window.Geom;
+  const NS = 'http://www.w3.org/2000/svg';
+  const W = 13, H = 9;
+  const MAX_CUTS = 6;
+  const MAX_PIECES = 12;
+
+  const COLORS = ['#F7C95E', '#F2907F', '#8AD3B0', '#94BBF3', '#C9A8EE', '#F3A860', '#EFA6C4', '#A9D89F', '#E6CB7C', '#9FD3E0', '#DCA9A9', '#C0CDA6'];
+
+  const $ = (s, r) => (r || document).querySelector(s);
+  const $$ = (s, r) => Array.from((r || document).querySelectorAll(s));
+
+  /* ---------------- 图形库 ---------------- */
+  const CN = { 3: '三', 4: '四', 5: '五', 6: '六', 7: '七', 8: '八', 9: '九', 10: '十', 11: '十一', 12: '十二' };
+  const SHAPE_KINDS = ['isosceles', 'right', 'rect', 'parallelogram', 'rhombus', 'trapezoid', 'isoTrapezoid', 'rightTrapezoid', 'regular', 'star', 'polygon', 'circle', 'concave'];
+  const SHAPE_NAME = {
+    isosceles: '等腰三角形', right: '直角三角形',
+    rect: '矩形', parallelogram: '平行四边形', rhombus: '菱形',
+    trapezoid: '梯形', isoTrapezoid: '等腰梯形', rightTrapezoid: '直角梯形',
+    regular: '正多边形', star: '正多角星', polygon: '多边形', circle: '圆形', concave: '凹形'
+  };
+  const SHAPE_NOTE = {
+    isosceles: '两条腰一样长，两个底角相等。',
+    right: '有一个角是 90°，另外两个锐角加起来也是 90°。',
+    rect: '四个角都是直角，对边平行且相等。',
+    parallelogram: '两组对边分别平行且相等，对角相等。',
+    rhombus: '四条边都一样长，对边平行，对角线互相垂直。',
+    trapezoid: '只有一组对边平行，平行的两条边叫上底和下底。',
+    isoTrapezoid: '只有一组对边平行，两条腰一样长，两个底角相等。',
+    rightTrapezoid: '只有一组对边平行，有两个角是 90°。',
+    regular: '每条边都一样长，每个角都一样大。',
+    star: '每个尖角都一样大，每条边都一样长。',
+    polygon: '边数固定，但各条边、各个角不一定相等。',
+    circle: '',
+    concave: '凹多边形：至少有一个内角大于 180°。'
+  };
+
+  /* 全部用整数尺寸生成，保证默认图形顶点落在网格交点上 */
+  const I = (a, b) => a + Math.floor(Math.random() * (b - a + 1));
+
+  const BUILDERS = {
+    isosceles: () => {
+      const m = I(2, 3), h = I(3, 5);
+      return G.makeCCW([{ x: 0, y: 0 }, { x: 2 * m, y: 0 }, { x: m, y: -h }]);
+    },
+    right: () => {
+      const a = I(3, 5), b = I(3, 4);
+      return G.makeCCW([{ x: 0, y: 0 }, { x: a, y: 0 }, { x: 0, y: -b }]);
+    },
+    rect: () => {
+      const w = I(4, 6), h = I(3, 4);
+      return G.makeCCW([{ x: 0, y: 0 }, { x: w, y: 0 }, { x: w, y: h }, { x: 0, y: h }]);
+    },
+    parallelogram: () => {
+      const b = I(4, 6), h = I(3, 4), sk = I(1, 2);
+      return G.makeCCW([{ x: 0, y: 0 }, { x: b, y: 0 }, { x: b + sk, y: h }, { x: sk, y: h }]);
+    },
+    rhombus: () => {
+      const p = I(2, 3), q = I(2, 3);
+      return G.makeCCW([{ x: -p, y: 0 }, { x: 0, y: -q }, { x: p, y: 0 }, { x: 0, y: q }]);
+    },
+    trapezoid: () => {
+      const a = I(6, 7), b = I(3, 4), h = I(3, 4), o = I(0, a - b);
+      return G.makeCCW([{ x: 0, y: 0 }, { x: a, y: 0 }, { x: o + b, y: h }, { x: o, y: h }]);
+    },
+    isoTrapezoid: () => {
+      const bt = I(3, 4), a = bt + 2 * I(1, 2), h = I(3, 4), o = (a - bt) / 2;
+      return G.makeCCW([{ x: 0, y: 0 }, { x: a, y: 0 }, { x: o + bt, y: h }, { x: o, y: h }]);
+    },
+    rightTrapezoid: () => {
+      const a = I(5, 7), b = I(3, 4), h = I(3, 4);
+      return G.makeCCW([{ x: 0, y: 0 }, { x: a, y: 0 }, { x: b, y: h }, { x: 0, y: h }]);
+    }
+  };
+
+  /* 整数平移，使图形尽量居中（平移量取整数 → 顶点仍是格点） */
+  function placeOnGrid(pts) {
+    const b = G.bbox(pts);
+    const dx = Math.round(6.5 - (b.x0 + b.x1) / 2);
+    const dy = Math.round(4.5 - (b.y0 + b.y1) / 2);
+    if (!dx && !dy) return pts;
+    return pts.map((p) => Object.assign({}, p, { x: p.x + dx, y: p.y + dy }));
+  }
+
+  /* 简单多边形检测（用于把顶点取整后校验） */
+  function segInt(a, b, c, d) {
+    const rx = b.x - a.x, ry = b.y - a.y;
+    const sx = d.x - c.x, sy = d.y - c.y;
+    const den = rx * sy - ry * sx;
+    if (Math.abs(den) < 1e-12) return false;
+    const t = ((c.x - a.x) * sy - (c.y - a.y) * sx) / den;
+    const u = ((c.x - a.x) * ry - (c.y - a.y) * rx) / den;
+    return t > 1e-9 && t < 1 - 1e-9 && u > 1e-9 && u < 1 - 1e-9;
+  }
+  function isSimplePoly(pts) {
+    const n = pts.length;
+    for (let i = 0; i < n; i++) {
+      for (let j = i + 1; j < n; j++) {
+        if ((i + 1) % n === j || (j + 1) % n === i) continue;
+        if (segInt(pts[i], pts[(i + 1) % n], pts[j], pts[(j + 1) % n])) return false;
+      }
+    }
+    return true;
+  }
+
+  /* 随机多边形：先随机生成，再取整到格点，校验凸性与边长 */
+  function intPolygon(n) {
+    for (let t = 0; t < 60; t++) {
+      const pts = G.regularPolygon(n, 0, 0, rnd(2.7, 3.2), Math.random() * Math.PI * 2, 0.1);
+      const rp = pts.map((p) => ({ x: Math.round(p.x), y: Math.round(p.y) }));
+      if (!G.isConvex(rp) || !isSimplePoly(rp)) continue;
+      if (Math.abs(G.polyArea(rp)) < 7) continue;
+      let ok = true;
+      for (let k = 0; k < n; k++) if (G.dist(rp[k], rp[(k + 1) % n]) < 1.2) { ok = false; break; }
+      if (!ok) continue;
+      return rp;
+    }
+    return null;
+  }
+
+  /* 随机星形：顶点取整到格点 */
+  function intStarPoly(n) {
+    for (let t = 0; t < 60; t++) {
+      const R = 3 + (t % 3) * 0.2;
+      const rin = (R * Math.cos((2 * Math.PI) / n)) / Math.cos(Math.PI / n);
+      const pts = G.starPolygon(n, 0, 0, R, rin, -Math.PI / 2 + t * 0.11);
+      const rp = pts.map((p) => ({ x: Math.round(p.x), y: Math.round(p.y) }));
+      let ok = true;
+      for (let k = 0; k < rp.length; k++) if (G.dist(rp[k], rp[(k + 1) % rp.length]) < 1) { ok = false; break; }
+      if (!ok) continue;
+      if (!isSimplePoly(rp)) continue;
+      if (Math.abs(G.polyArea(rp)) < 8) continue;
+      return rp;
+    }
+    return null;
+  }
+
+  /* ---------------- 变换矩阵 ---------------- */
+  const idM = () => ({ a: 1, b: 0, c: 0, d: 1, e: 0, f: 0 });
+  const isIdM = (m) => m.a === 1 && m.b === 0 && m.c === 0 && m.d === 1 && m.e === 0 && m.f === 0;
+  function mulM(m1, m2) {
+    return {
+      a: m1.a * m2.a + m1.c * m2.b,
+      b: m1.b * m2.a + m1.d * m2.b,
+      c: m1.a * m2.c + m1.c * m2.d,
+      d: m1.b * m2.c + m1.d * m2.d,
+      e: m1.a * m2.e + m1.c * m2.f + m1.e,
+      f: m1.b * m2.e + m1.d * m2.f + m1.f
+    };
+  }
+  const transM = (x, y) => ({ a: 1, b: 0, c: 0, d: 1, e: x, f: y });
+  function rotAbout(cx, cy, t) {
+    const c = Math.cos(t), s = Math.sin(t);
+    return { a: c, b: s, c: -s, d: c, e: cx - c * cx + s * cy, f: cy - s * cx - c * cy };
+  }
+  function scaleAbout(cx, cy, sx, sy) {
+    return { a: sx, b: 0, c: 0, d: sy, e: cx - sx * cx, f: cy - sy * cy };
+  }
+  function matStr(m) {
+    if (!m) return '';
+    return `matrix(${m.a.toFixed(5)} ${m.b.toFixed(5)} ${m.c.toFixed(5)} ${m.d.toFixed(5)} ${m.e.toFixed(4)} ${m.f.toFixed(4)})`;
+  }
+  const worldPts = (pc) => G.transformPts(pc.pts, pc.m);
+
+  /* ---------------- 状态 ---------------- */
+  const state = {
+    kind: 'random',
+    realKind: 'equilateral',
+    name: '',
+    note: '',
+    ngon: 6,
+    poly0: null,
+    meta: {},
+    pieces: [],
+    cuts: [],
+    history: [],
+    confirmed: false,
+    mode: 'cut',
+    sel: -1,
+    cutStart: null,
+    hoverBoundary: null,
+    cursorWorld: null,
+    tdrag: null,
+    snapSegs: null,
+    corners: [],
+    showGrid: true,
+    showAngles: false,
+    hoverV: null,
+    hoverKey: ''
+  };
+
+  const rnd = (a, b) => a + Math.random() * (b - a);
+  const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+  const fmt = (x, d) => (Math.round(x * 100) / 100).toFixed(d === undefined ? 2 : d);
+  function measured(value, approximate = false) {
+    const shown = fmt(value);
+    return (approximate || Math.abs(value - Number(shown)) > 1e-8 ? '约 ' : '') + shown;
+  }
+  const numChar = (i) => String.fromCharCode(0x2460 + i);
+  const pct = (a, t) => (t > 0 ? ((a / t) * 100).toFixed(1).replace(/\.0$/, '') + '%' : '—');
+
+  /* ---------------- SVG 工具 ---------------- */
+  function mk(tag, attrs, parent) {
+    const n = document.createElementNS(NS, tag);
+    if (attrs) for (const k in attrs) n.setAttribute(k, attrs[k]);
+    if (parent) parent.appendChild(n);
+    return n;
+  }
+  function pathD(pts) {
+    let d = 'M' + pts[0].x.toFixed(3) + ' ' + pts[0].y.toFixed(3);
+    for (let i = 1; i < pts.length; i++) d += 'L' + pts[i].x.toFixed(3) + ' ' + pts[i].y.toFixed(3);
+    return d + 'Z';
+  }
+  function centerAt(pts, cx, cy) {
+    const b = G.bbox(pts);
+    const dx = cx - (b.x0 + b.x1) / 2, dy = cy - (b.y0 + b.y1) / 2;
+    return pts.map((p) => Object.assign({}, p, { x: p.x + dx, y: p.y + dy }));
+  }
+
+  /* ---------------- 建图形 ---------------- */
+  function buildShape(kind) {
+    state.kind = kind;
+    const real = kind === 'random' ? SHAPE_KINDS[Math.floor(Math.random() * SHAPE_KINDS.length)] : kind;
+    state.realKind = real;
+    let poly, name = '', meta = {}, note = SHAPE_NOTE[real] || '';
+    let needPlace = true;
+
+    if (real === 'circle') {
+      /* 圆心取格点，半径取整数 → 左右上下四个点也在格点上 */
+      const r = Math.random() < 0.5 ? 2 : 3;
+      const ccx = I(6, 7), ccy = I(4, 5);
+      poly = G.circlePoints(ccx, ccy, r, 360);
+      meta = { circle: { cx: ccx, cy: ccy, r } };
+      name = '圆形';
+      needPlace = false;
+    } else if (real === 'concave') {
+      if (Math.random() < 0.55) {
+        const n = Math.random() < 0.55 ? 5 : 6;
+        poly = intStarPoly(n) || G.starPolygon(n, 0, 0, 3, 1.15, -Math.PI / 2);
+        name = (CN[n] || n) + '角星';
+      } else {
+        const w = I(5, 6), h = I(4, 5), a = I(2, 3), b = I(2, 3);
+        poly = G.lShape(0, 0, w, h, a, b, Math.random() < 0.5);
+        name = 'L 形';
+      }
+    } else if (real === 'regular') {
+      const n = clamp(state.ngon, 3, 12);
+      state.ngon = n;
+      const ccx = I(6, 7), ccy = I(4, 5);
+      /* 正四边形取整数半径，四个顶点正好在格点上；其它正多边形只能保证中心在格点 */
+      const R = n === 4 ? I(2, 3) : rnd(2.75, 3.15);
+      poly = G.regularPolygon(n, ccx, ccy, R, -Math.PI / 2, 0);
+      name = n === 3 ? '正三角形' : n === 4 ? '正方形' : '正' + (CN[n] || n) + '边形';
+      needPlace = false;
+    } else if (real === 'star') {
+      const n = clamp(state.ngon, 5, 12);
+      state.ngon = n;
+      const R = rnd(2.9, 3.2);
+      const rin = (R * Math.cos((2 * Math.PI) / n)) / Math.cos(Math.PI / n);
+      poly = G.starPolygon(n, I(6, 7), I(4, 5), R, rin, -Math.PI / 2);
+      name = '正' + (CN[n] || n) + '角星';
+      needPlace = false;
+    } else if (real === 'polygon') {
+      const n = clamp(state.ngon, 3, 12);
+      state.ngon = n;
+      poly = intPolygon(n) || G.regularPolygon(n, 0, 0, rnd(2.6, 3.1), Math.random() * Math.PI * 2, 0.09);
+      name = n === 3 ? '三角形' : (CN[n] || n) + '边形';
+    } else {
+      poly = BUILDERS[real]();
+      name = SHAPE_NAME[real];
+    }
+    if (needPlace) poly = placeOnGrid(poly);
+    if (real !== 'circle') poly = poly.map((q) => Object.assign({}, q, { corner: true }));
+
+    state.name = name;
+    state.note = note;
+    state.meta = meta;
+    state.poly0 = poly;
+    state.pieces = [{
+      pts: poly, m: idM(), fromCircle: real === 'circle', circle: meta.circle || null,
+      lp: null, seams: [], fresh: false,
+      desc: real === 'circle' ? '圆形' : G.classifyShape(poly)
+    }];
+    state.cuts = [];
+    state.history = [];
+    state.confirmed = false;
+    state.mode = 'cut';
+    state.sel = -1;
+    state.cutStart = null;
+    state.hoverBoundary = null;
+    state.cursorWorld = null;
+    state.tdrag = null;
+    state.corners = cornersOf(state.pieces);
+    const nInput = $('#shapeN');
+    const isStar = real === 'star';
+    nInput.value = state.ngon;
+    nInput.min = isStar ? 5 : 3;
+    $('#shapeCountRow').hidden = !['regular', 'star', 'polygon'].includes(real);
+    $('#shapeCountLabel').textContent = isStar ? '角数' : '边数';
+    $('#shapeCountRange').textContent = isStar ? '5–12 角' : '3–12 边';
+    const sel = document.getElementById('shapeSelect');
+    if (sel) sel.value = kind;
+    renderAll();
+  }
+
+  /* ---------------- 数据 ---------------- */
+  function origStats() {
+    const p = state.poly0;
+    if (state.meta.circle) {
+      const r = state.meta.circle.r;
+      return { isCircle: true, r, d: r * 2, area: Math.PI * r * r, perim: 2 * Math.PI * r, n: 0, angles: 0 };
+    }
+    return {
+      isCircle: false,
+      n: p.length,
+      area: Math.abs(G.polyArea(p)),
+      perim: G.polyPerim(p),
+      angles: (p.length - 2) * 180
+    };
+  }
+
+  function pieceArea(pc) { return Math.abs(G.polyArea(pc.pts)); }
+  function pieceInfos() {
+    return state.pieces.map((pc, i) => ({
+      i, area: pieceArea(pc), perim: G.polyPerim(pc.pts),
+      color: COLORS[i % COLORS.length], desc: pc.desc
+    }));
+  }
+
+  function arcEdge(a, b) {
+    if (!a.arcEdges || !b.arcEdges) return undefined;
+    return a.arcEdges.find((edge) => b.arcEdges.includes(edge));
+  }
+
+  function worldCircle(pc) {
+    if (!pc.circle) return null;
+    const { cx, cy, r } = pc.circle;
+    const center = G.applyM(pc.m, { x: cx, y: cy });
+    return { cx: center.x, cy: center.y, r };
+  }
+
+  function describeRing(pts, circle) {
+    if (!circle) return G.classifyShape(pts);
+    const n = pts.length;
+    const isArc = pts.map((p, i) => arcEdge(p, pts[(i + 1) % n]) !== undefined);
+    if (isArc.every(Boolean)) return '圆形';
+    if (!isArc.some(Boolean)) return G.classifyShape(pts);
+    const arcs = isArc.filter((arc, i) => arc && !isArc[(i + n - 1) % n]).length;
+    const straights = isArc.filter((arc) => !arc).length;
+    if (arcs === 1 && straights === 1) {
+      const i = isArc.indexOf(false);
+      const a = pts[i], b = pts[(i + 1) % n];
+      const midpoint = { x: (a.x + b.x) / 2, y: (a.y + b.y) / 2 };
+      const center = { x: circle.cx, y: circle.cy };
+      const isDiameter = G.dist(midpoint, center) < circle.r * 0.001
+        && Math.abs(G.dist(a, b) - 2 * circle.r) < circle.r * 0.002;
+      return isDiameter ? '半圆' : '弓形';
+    }
+    if (arcs === 1) return '弧 + ' + straights + ' 条直边';
+    return arcs + ' 段弧 + ' + straights + ' 条直边';
+  }
+
+  function seamTotal() { return state.cuts.reduce((s, c) => s + c.seamLen, 0); }
+
+  function cornersOf(pieces) {
+    const out = [];
+    for (const pc of pieces) {
+      const pts = worldPts(pc), n = pts.length;
+      for (let i = 0; i < n; i++) {
+        const a = pts[(i - 1 + n) % n], b = pts[i], c = pts[(i + 1) % n];
+        const ux = a.x - b.x, uy = a.y - b.y, vx = c.x - b.x, vy = c.y - b.y;
+        const lu = Math.hypot(ux, uy) || 1, lv = Math.hypot(vx, vy) || 1;
+        const ang = Math.acos(Math.max(-1, Math.min(1, (ux * vx + uy * vy) / (lu * lv))));
+        if (ang > 0.35) out.push({ x: b.x, y: b.y });
+      }
+    }
+    return out;
+  }
+
+  /* ---------------- 渲染 ---------------- */
+  function renderAll() {
+    renderPieces();
+    renderFace();
+    renderMarks();
+    renderSelection();
+    renderPreview();
+    updateHead();
+    renderPanel();
+    state.pieces.forEach((p) => { p.fresh = false; });
+  }
+
+  function renderPieces() {
+    const layer = $('#piecesLayer');
+    layer.innerHTML = '';
+    const order = state.pieces.map((_, i) => i);
+    if (state.sel >= 0 && state.mode === 'move') {
+      const k = order.indexOf(state.sel);
+      if (k >= 0) { order.splice(k, 1); order.push(state.sel); }
+    }
+    for (const i of order) {
+      const pc = state.pieces[i];
+      const g = mk('g', { 'data-i': i, transform: matStr(pc.m) }, layer);
+      const p = mk('path', {
+        d: pathD(pc.pts),
+        fill: COLORS[i % COLORS.length],
+        stroke: '#22324F',
+        'stroke-width': '0.055',
+        'stroke-linejoin': 'round',
+        filter: 'url(#pieceShadow)'
+      }, g);
+      p.setAttribute('class', 'piece' + (pc.fresh ? ' pop' : ''));
+      if (pc.fresh) p.style.animationDelay = (i * 0.035) + 's';
+      for (const seg of pc.seams || []) {
+        mk('line', {
+          x1: seg[0].x.toFixed(3), y1: seg[0].y.toFixed(3),
+          x2: seg[1].x.toFixed(3), y2: seg[1].y.toFixed(3),
+          stroke: '#B07A17', 'stroke-width': '0.05', 'stroke-dasharray': '0.17 0.13',
+          'stroke-linecap': 'round', opacity: '0.95', class: 'seamline'
+        }, g);
+      }
+      if (state.showAngles) drawAngleMarks(g, pc);
+    }
+  }
+
+  /* 原图的角还完整保留时，画一个角符号（直角用直角符号） */
+  function drawAngleMarks(g, pc) {
+    if (pieceArea(pc) < 0.5) return;
+    const pts = pc.pts;
+    const n = pts.length;
+    for (let i = 0; i < n; i++) {
+      const p = pts[i];
+      if (!p.corner) continue;
+      const prev = pts[(i - 1 + n) % n], next = pts[(i + 1) % n];
+      const l1 = G.dist(prev, p), l2 = G.dist(next, p);
+      if (l1 < 0.12 || l2 < 0.12) continue;
+      const a1 = Math.atan2(prev.y - p.y, prev.x - p.x);
+      const a2 = Math.atan2(next.y - p.y, next.x - p.x);
+      let d = a2 - a1;
+      while (d > Math.PI) d -= 2 * Math.PI;
+      while (d < -Math.PI) d += 2 * Math.PI;
+      const r = Math.max(0.1, Math.min(0.3, 0.22 * Math.min(l1, l2)));
+      const deg = (Math.abs(d) * 180) / Math.PI;
+      let path;
+      if (Math.abs(deg - 90) < 1.5) {
+        const x1 = p.x + Math.cos(a1) * r, y1 = p.y + Math.sin(a1) * r;
+        const x2 = p.x + Math.cos(a2) * r, y2 = p.y + Math.sin(a2) * r;
+        path = 'M' + x1.toFixed(3) + ' ' + y1.toFixed(3) + 'L' + (x1 + x2 - p.x).toFixed(3) + ' ' + (y1 + y2 - p.y).toFixed(3) + 'L' + x2.toFixed(3) + ' ' + y2.toFixed(3);
+      } else {
+        const inside = (dd) => {
+          const mid = a1 + dd / 2;
+          return G.pointInPoly(pts, { x: p.x + Math.cos(mid) * r * 0.55, y: p.y + Math.sin(mid) * r * 0.55 });
+        };
+        let dd = d;
+        if (!inside(dd)) dd = d > 0 ? d - 2 * Math.PI : d + 2 * Math.PI;
+        const x1 = p.x + Math.cos(a1) * r, y1 = p.y + Math.sin(a1) * r;
+        const x2 = p.x + Math.cos(a1 + dd) * r, y2 = p.y + Math.sin(a1 + dd) * r;
+        const large = Math.abs(dd) > Math.PI ? 1 : 0;
+        const sweep = dd > 0 ? 1 : 0;
+        path = 'M' + x1.toFixed(3) + ' ' + y1.toFixed(3) + 'A' + r.toFixed(3) + ' ' + r.toFixed(3) + ' 0 ' + large + ' ' + sweep + ' ' + x2.toFixed(3) + ' ' + y2.toFixed(3);
+      }
+      mk('path', {
+        d: path, fill: 'none', stroke: '#22324F', 'stroke-width': '0.03',
+        'stroke-linecap': 'round', 'stroke-linejoin': 'round', opacity: '0.72', class: 'amark'
+      }, g);
+    }
+  }
+
+  function renderFace() {
+    const layer = $('#faceLayer');
+    layer.innerHTML = '';
+    if (state.cuts.length > 0 || state.pieces.length !== 1) return;
+    const pc = state.pieces[0];
+    const pts = pc.pts;
+    const c = pc.fromCircle ? G.polyCentroid(pts) : G.innerPoint(pts);
+    const bb = G.bbox(pts);
+    const s = Math.max(0.6, Math.min(1.2, Math.min(bb.w, bb.h) / 5));
+    const g = mk('g', { id: 'faceG', class: 'face', transform: matStr(pc.m) }, layer);
+    for (const dx of [-0.56, 0.56]) {
+      mk('ellipse', {
+        cx: (c.x + dx * s).toFixed(3), cy: (c.y - 0.06 * s).toFixed(3),
+        rx: (0.13 * s).toFixed(3), ry: (0.17 * s).toFixed(3),
+        fill: '#22324F', class: 'eye'
+      }, g);
+    }
+    mk('path', {
+      d: `M${(c.x - 0.42 * s).toFixed(3)} ${(c.y + 0.2 * s).toFixed(3)} q${(0.42 * s).toFixed(3)} ${(0.38 * s).toFixed(3)} ${(0.84 * s).toFixed(3)} 0`,
+      fill: 'none', stroke: '#22324F', 'stroke-width': (0.075 * s).toFixed(3), 'stroke-linecap': 'round'
+    }, g);
+  }
+
+  function renderMarks() {
+    const layer = $('#labelLayer');
+    layer.innerHTML = '';
+    const many = state.pieces.length > 6;
+    const showNum = state.pieces.length > 1;
+    state.pieces.forEach((pc, i) => {
+      if (!showNum) return;
+      const area = pieceArea(pc);
+      if (area < 0.7) return;
+      if (!pc.lp) pc.lp = G.innerPoint(pc.pts);
+      const p = G.applyM(pc.m, pc.lp);
+      const tiny = area < 2.2;
+      const ny = state.confirmed ? (tiny ? -0.1 : -0.13) : 0;
+      const t = mk('text', {
+        id: 'num-' + i,
+        x: p.x.toFixed(3), y: (p.y + ny).toFixed(3),
+        'text-anchor': 'middle', 'dominant-baseline': 'central',
+        'font-size': tiny ? '0.25' : many ? '0.28' : '0.36',
+        'font-weight': '800', fill: '#22324F', stroke: '#FFFCF3',
+        'stroke-width': '0.085', 'paint-order': 'stroke', class: 'mark'
+      }, layer);
+      t.textContent = numChar(i);
+      pc._off = { ny, ay: tiny ? 0.2 : 0.26, af: tiny ? '0.15' : many ? '0.17' : '0.19' };
+      if (state.confirmed) {
+        const s = mk('text', {
+          id: 'area-' + i,
+          x: p.x.toFixed(3), y: (p.y + pc._off.ay).toFixed(3),
+          'text-anchor': 'middle', 'dominant-baseline': 'central',
+          'font-size': pc._off.af, 'font-weight': '700', fill: '#3B4A66',
+          stroke: '#FFFCF3', 'stroke-width': '0.06', 'paint-order': 'stroke', class: 'mark'
+        }, layer);
+        s.textContent = measured(area, pc.fromCircle) + ' cm²';
+      }
+    });
+  }
+
+  function handlePos(pc) {
+    const b = G.bbox(worldPts(pc));
+    const hx = (b.x0 + b.x1) / 2;
+    const hy = b.y0 - 0.46 < 0.3 ? b.y1 + 0.46 : b.y0 - 0.46;
+    return { x: hx, y: hy };
+  }
+
+  function renderSelection() {
+    const layer = $('#selLayer');
+    layer.innerHTML = '';
+    if (state.mode === 'resize') {
+      const pc0 = state.pieces[0];
+      if (!pc0) return;
+      mk('path', {
+        d: pathD(worldPts(pc0)), fill: 'none', stroke: '#D9A537', 'stroke-width': '0.045',
+        'stroke-dasharray': '0.13 0.12', 'stroke-linejoin': 'round'
+      }, layer);
+      if (state.hoverV) {
+        mk('circle', {
+          cx: state.hoverV.x.toFixed(3), cy: state.hoverV.y.toFixed(3), r: '0.2',
+          fill: '#FFFCF3', stroke: '#22324F', 'stroke-width': '0.05', class: 'vhandle'
+        }, layer);
+        mk('circle', {
+          cx: state.hoverV.x.toFixed(3), cy: state.hoverV.y.toFixed(3), r: '0.075',
+          fill: '#D9A537'
+        }, layer);
+      }
+      return;
+    }
+    const i = state.sel;
+    if (i < 0 || state.mode !== 'move' || !state.pieces[i]) return;
+    const pc = state.pieces[i];
+    const wp = worldPts(pc);
+    mk('path', {
+      d: pathD(wp), fill: 'none', stroke: '#D9A537', 'stroke-width': '0.055',
+      'stroke-dasharray': '0.16 0.12', 'stroke-linejoin': 'round'
+    }, layer);
+    if (state.snapSegs) {
+      for (const sg of state.snapSegs) {
+        mk('line', {
+          x1: sg[0].x.toFixed(3), y1: sg[0].y.toFixed(3),
+          x2: sg[1].x.toFixed(3), y2: sg[1].y.toFixed(3),
+          stroke: '#E8B23F', 'stroke-width': '0.11', 'stroke-linecap': 'round', opacity: '0.95'
+        }, layer);
+      }
+    }
+    const h = handlePos(pc);
+    const c = G.polyCentroid(wp);
+    mk('line', {
+      x1: c.x.toFixed(3), y1: c.y.toFixed(3), x2: h.x.toFixed(3), y2: h.y.toFixed(3),
+      stroke: '#D9A537', 'stroke-width': '0.03', 'stroke-dasharray': '0.07 0.09', opacity: '0.85'
+    }, layer);
+    mk('circle', { cx: h.x.toFixed(3), cy: h.y.toFixed(3), r: '0.19', fill: '#FFFCF3', stroke: '#22324F', 'stroke-width': '0.05' }, layer);
+    const t = mk('text', {
+      x: h.x.toFixed(3), y: h.y.toFixed(3), 'text-anchor': 'middle', 'dominant-baseline': 'central',
+      'font-size': '0.21', fill: '#22324F', 'font-weight': '700'
+    }, layer);
+    t.textContent = '↻';
+  }
+
+  function renderPreview() {
+    const layer = $('#previewLayer');
+    layer.innerHTML = '';
+    $('#stageWrap').classList.toggle('cutting', state.mode === 'cut');
+    const a = state.cutStart;
+    const hb = state.hoverBoundary;
+    const previewHint = $('#previewHint');
+    const preview = a && hb && G.dist(a, hb) >= 0.3 ? cutPlan(a, hb) : null;
+    const message = preview?.message || '';
+    if (previewHint.textContent !== message) previewHint.textContent = message;
+    previewHint.hidden = !message;
+    if (!a) {
+      /* 还没选起点：在边界上给候选空心点，不在边界上给实心红点跟随鼠标 */
+      if (hb) {
+        mk('circle', {
+          cx: hb.x.toFixed(3), cy: hb.y.toFixed(3), r: '0.11',
+          fill: 'none', stroke: '#B07A17', 'stroke-width': '0.035', 'stroke-dasharray': '0.05 0.05'
+        }, layer);
+      } else if (state.cursorWorld) {
+        mk('circle', {
+          cx: state.cursorWorld.x.toFixed(3), cy: state.cursorWorld.y.toFixed(3), r: '0.075',
+          fill: '#C25B4E', opacity: '0.9'
+        }, layer);
+      }
+      return;
+    }
+    const b = hb || state.cursorWorld || a;
+    const hasGap = Boolean(preview?.gaps?.length);
+    const ok = Boolean(preview?.next);
+    if (G.dist(a, b) > 1e-6) {
+      mk('line', {
+        x1: a.x.toFixed(3), y1: a.y.toFixed(3),
+        x2: b.x.toFixed(3), y2: b.y.toFixed(3),
+        stroke: ok || hasGap ? '#B07A17' : '#C25B4E',
+        'stroke-width': '0.055', 'stroke-dasharray': '0.18 0.14', 'stroke-linecap': 'round', opacity: '0.95'
+      }, layer);
+    }
+    if (hasGap) {
+      for (const { start, end } of preview.gaps) {
+        mk('line', {
+          x1: start.x, y1: start.y, x2: end.x, y2: end.y,
+          stroke: '#B64038', 'stroke-width': '0.08', 'stroke-linecap': 'round',
+          class: 'preview-outside'
+        }, layer);
+      }
+    }
+    /* 起点、终点都用点表示 */
+    mk('circle', { cx: a.x.toFixed(3), cy: a.y.toFixed(3), r: '0.09', fill: '#E8B23F', stroke: '#22324F', 'stroke-width': '0.035' }, layer);
+    if (G.dist(a, b) > 1e-6) {
+      mk('circle', {
+        cx: b.x.toFixed(3), cy: b.y.toFixed(3), r: '0.09',
+        fill: ok ? '#E8B23F' : '#C25B4E', stroke: ok ? '#22324F' : '#C25B4E', 'stroke-width': '0.03'
+      }, layer);
+    }
+  }
+
+  function updateHead() {
+    $('#shapeName').textContent = state.name;
+    const nP = state.pieces.length, nC = state.cuts.length;
+    $('#stageMeta').textContent = nC === 0 ? '还没下刀' : `切成 ${nP} 块`;
+    $('#pieceBadge').textContent = nP;
+    $('#cutBadge').textContent = nC;
+
+    const hint = $('#stageHint');
+    if (state.confirmed) hint.textContent = '已展示数据 · 可拖开小块对比形状';
+    else if (state.mode === 'resize') hint.textContent = state.showGrid ? '拖顶点改边长 · 已开启网格吸附' : '拖顶点改边长 · 网格吸附已关闭';
+    else if (state.mode === 'move') hint.textContent = state.sel >= 0 ? '拖动小块移动 · 拖 ↻ 圆点旋转' : '点一下小块选中它';
+    else if (state.cutStart) hint.textContent = '再点边界上的另一点，自动连线切开';
+    else if (nC === 0) hint.textContent = '先点图形边上的一点，作为起点';
+    else hint.textContent = '还可以再点两下再切一刀 · 或确认展示数据';
+
+    $('#undoBtn').disabled = state.history.length === 0;
+    const cb = $('#confirmBtn');
+    if (state.confirmed) {
+      cb.textContent = '↩ 继续划刀';
+      cb.classList.remove('primary');
+      cb.classList.add('ghost');
+    } else {
+      cb.textContent = '✓ 确认并展示数据';
+      cb.classList.add('primary');
+      cb.classList.remove('ghost');
+    }
+    $('#tipBubble').textContent = tipText();
+    $$('#modeSwitch .mode-btn').forEach((b) => b.classList.toggle('active', b.dataset.mode === state.mode));
+    $('#stageWrap').classList.toggle('move', state.mode === 'move');
+    $('#stageWrap').classList.toggle('resize', state.mode === 'resize');
+    updateMoveBar();
+  }
+
+  function updateMoveBar() {
+    const bar = $('#moveBar');
+    const isMove = state.mode === 'move', isResize = state.mode === 'resize';
+    bar.hidden = !(isMove || isResize);
+    if (bar.hidden) return;
+    $('#mbTools').hidden = !isMove;
+    if (isResize) {
+      $('#selTag').innerHTML = '<span class="dim">改边长</span>';
+      $('#moveBar .mb-hint').textContent = '鼠标移到顶点或圆周附近，出现小圆点后拖动';
+      return;
+    }
+    $('#moveBar .mb-hint').textContent = '拖动小块移动 · 拖 ↻ 旋转';
+    const i = state.sel;
+    $('#selTag').innerHTML = i >= 0
+      ? `<i class="swatch" style="background:${COLORS[i % COLORS.length]}"></i><b>${numChar(i)}</b><span class="mb-name">${state.pieces[i].desc}</span> · 面积 ${measured(pieceArea(state.pieces[i]), state.pieces[i].fromCircle)} cm²`
+      : '<span class="dim">未选中</span>';
+    $$('#mbTools .tbtn').forEach((b) => {
+      if (b.dataset.act !== 'resetall') b.disabled = i < 0;
+    });
+  }
+
+  function tipText() {
+    if (state.mode === 'resize') return '拖动顶点可以改它两边长短，图形类型不变；圆就改半径。';
+    if (state.mode === 'move') return state.sel >= 0 ? '转一转、翻个面，形状和面积都没变哦。' : '点一下小块，就能移动、旋转、翻面。';
+    if (state.confirmed) return '每一块的面积加起来，正好等于原来的面积哦！';
+    if (state.cuts.length === 0) return '先点图形边上的一点作为起点，再点边界另一点作为终点，就会切开这两点之间的线段。';
+    if (state.pieces.length >= 4) return '切得越多，块越小；每一块的周长都会单独重新计算。';
+    if (state.cuts.length === 1) return '总面积不变。各块周长加起来，多出了刀痕两侧的长度。';
+    return '再划一刀试试，或者点「✓ 确认并展示数据」。';
+  }
+
+  /* ---------------- 面板 ---------------- */
+  function renderPanel() {
+    const st = origStats();
+    $('#origBody').innerHTML = origHTML(st);
+    $('#resultBody').innerHTML = resultHTML(st);
+  }
+
+  function origHTML(st) {
+    const noteLine = state.note ? `<div class="note">${state.note}</div>` : '';
+    if (st.isCircle) {
+      return `
+        <div class="stats">
+          <div class="stat"><span>面积 πr²</span><b>${measured(st.area)}<em>cm²</em></b></div>
+          <div class="stat"><span>周长 2πr</span><b>${measured(st.perim)}<em>cm</em></b></div>
+        </div>
+        <div class="kv"><span>形状</span><b>圆形</b></div>
+        <div class="kv"><span>半径 r</span><b>${measured(st.r)} cm</b></div>
+        <div class="kv"><span>直径 d</span><b>${measured(st.d)} cm</b></div>
+        <div class="note">原图读数按圆的公式计算。分割后的圆弧用短线段近似。</div>`;
+    }
+    return `
+      <div class="stats">
+        <div class="stat"><span>面积</span><b>${measured(st.area)}<em>cm²</em></b></div>
+        <div class="stat"><span>周长</span><b>${measured(st.perim)}<em>cm</em></b></div>
+      </div>
+      <div class="kv"><span>形状</span><b>${state.name}</b></div>
+      <div class="kv"><span>边数 / 顶点数</span><b>${st.n} 个</b></div>
+      <div class="kv"><span>内角和</span><b>${st.angles}° <span style="color:#9AA6BB;font-weight:600">= (${st.n}−2)×180°</span></b></div>
+      ${noteLine}`;
+  }
+
+  function resultHTML(st) {
+    if (state.pieces.length < 2) {
+      return `<div class="empty"><span class="big">✂️</span>还没切开呢<br>在画布上按住拖一条线，划出第一刀吧</div>`;
+    }
+    if (!state.confirmed) {
+      return `<div class="teaser"><span class="emoji">🍰</span><div>已经切成 <b>${state.pieces.length} 块</b>，一共 <b>${state.cuts.length} 刀</b>。<br>点「✓ 确认并展示数据」，看看每块的面积和周长。</div></div>`;
+    }
+
+    const infos = pieceInfos();
+    const totalA = infos.reduce((s, x) => s + x.area, 0);
+    const totalP = infos.reduce((s, x) => s + x.perim, 0);
+    const seam = seamTotal();
+
+    const rows = infos.map((x) => `
+      <div class="prow">
+        <span class="pname"><i class="swatch" style="background:${x.color}"></i><b>${numChar(x.i)}</b><em>${x.desc}</em></span>
+        <span class="num">${measured(x.area, st.isCircle)}</span>
+        <span class="num">${measured(x.perim, st.isCircle)}</span>
+        <span class="num">${pct(x.area, totalA)}</span>
+      </div>`).join('');
+
+    const bar = infos.map((x) => `<i style="width:${((x.area / totalA) * 100).toFixed(3)}%;background:${x.color}"></i>`).join('');
+    const deltaA = Math.abs(totalA - st.area);
+    const deltaP = Math.abs(totalP - (st.perim + 2 * seam));
+    const matchesArea = deltaA < 1e-8;
+    const matchesPerim = deltaP < 1e-8;
+    const modeledArea = matchesArea
+      ? '✓ 与原面积相等'
+      : st.isCircle ? '圆弧用短线段模拟，面积有近似误差。' : '和原面积相差 ' + measured(deltaA) + ' cm²';
+    const modeledPerim = matchesPerim
+      ? '✓ 与原周长加两倍刀痕总长相等'
+      : st.isCircle ? '圆弧用短线段模拟，周长有近似误差。' : '和原周长加两倍刀痕总长相差 ' + measured(deltaP) + ' cm';
+
+    return `
+      <div class="ptable">
+        <div class="prow head"><span>块</span><span class="num">面积/cm²</span><span class="num">周长/cm</span><span class="num">占比</span></div>
+        ${rows}
+        <div class="prow total"><span>合计</span><span class="num">${measured(totalA, st.isCircle)}</span><span class="num">${measured(totalP, st.isCircle)}</span><span class="num">100%</span></div>
+      </div>
+      <div class="share">${bar}</div>
+      <div class="share-legend"><span>面积占比</span><span>共 ${infos.length} 块 · ${state.cuts.length} 刀</span></div>
+
+      <div class="check">
+        <b>总面积</b>
+        <div>各块相加 <span class="val">${measured(totalA, st.isCircle)}</span> cm²<br>
+        <span class="${matchesArea ? 'ok' : 'approx'}">${modeledArea}</span>
+        <span style="color:#7C8A9E">（原面积 ${measured(st.area)} cm²）</span></div>
+      </div>
+      <div class="check">
+        <b>各块周长之和</b>
+        <div>各块相加 <span class="val">${measured(totalP, st.isCircle)}</span> cm<br>
+        <span class="${matchesPerim ? 'ok' : 'approx'}">${modeledPerim}</span>
+        <span style="color:#7C8A9E">（原周长 ${measured(st.perim)} cm · 刀痕总长 ${measured(seam, st.isCircle)} cm）</span></div>
+      </div>
+      <p class="takeaway">总计使用各块未舍入的数值。刀痕的两侧都计入各块周长之和。</p>
+      ${$('#perimeterDemo').innerHTML}`;
+  }
+
+  /* ---------------- 切一刀（沿起终点之间的线段） ---------------- */
+  function cutPlan(A, B) {
+    if (state.cuts.length >= MAX_CUTS) {
+      return { message: '已经切了 6 刀，可以先看看结果。' };
+    }
+    if (G.dist(A, B) < 0.3) return { message: '起点和终点要分开一点。' };
+
+    const next = [];
+    const gaps = [];
+    let splits = 0, seamLen = 0;
+    for (const pc of state.pieces) {
+      const ring = worldPts(pc);
+      const hits = segHits(ring, A, B);
+      if (hits.length > 2) {
+        const intervals = hits.slice(1).map((end, i) => ({
+          start: hits[i], end, inside: insideInterval(ring, hits[i], end)
+        }));
+        const inside = intervals.filter((interval) => interval.inside);
+        if (inside.length >= 2) {
+          const first = inside[0].start.t, last = inside[inside.length - 1].end.t;
+          gaps.push(...intervals.filter(({ start, end, inside }) => !inside && start.t >= first && end.t <= last));
+        }
+      }
+      if (hits.length !== 2) { next.push(pc); continue; }
+
+      const [P0, P1] = hits;
+      const length = G.dist(P0, P1);
+      const rings = length >= 0.25 && insideInterval(ring, P0, P1) ? splitRingAt(ring, P0, P1) : null;
+      if (!rings) { next.push(pc); continue; }
+
+      const circle = worldCircle(pc);
+      splits++;
+      seamLen += length;
+      for (const pts of rings) {
+        next.push({
+          pts, m: idM(), fromCircle: pc.fromCircle, circle, lp: null,
+          seams: [[P0, P1]], fresh: true, desc: describeRing(pts, circle)
+        });
+      }
+    }
+
+    if (gaps.length) return { gaps, message: '红色段经过图形外部。请在凹口两侧分别划刀。' };
+    if (!splits) return { message: '这一刀切不开。请选择同一块边界上的两点，让刀线穿过图形内部。' };
+    if (next.length > MAX_PIECES) return { message: '最多保留 12 块，可以先看看分割数据。' };
+    return { next, seamLen };
+  }
+
+  function doCut(A, B) {
+    if (state.confirmed) { toast('展示模式下先点「继续划刀」哦'); return; }
+    const plan = cutPlan(A, B);
+    if (!plan.next) { toast(plan.message); return; }
+
+    state.cutStart = null;
+    state.hoverBoundary = null;
+    state.cursorWorld = null;
+    state.history.push(snapshot());
+    state.pieces = plan.next;
+    state.cuts.push({ seams: [], seamLen: plan.seamLen, A, B });
+    state.confirmed = false;
+    state.sel = -1;
+    state.corners = cornersOf(state.pieces);
+    renderAll();
+    flashSeams();
+    if (state.pieces.length === 2) {
+      toast('总面积不变，各块周长之和增加 ' + measured(2 * plan.seamLen, Boolean(state.meta.circle)) + ' cm');
+    }
+  }
+
+  function snapshot() {
+    return {
+      pieces: state.pieces.map((p) => ({
+        pts: p.pts, m: Object.assign({}, p.m), fromCircle: p.fromCircle, circle: p.circle,
+        lp: p.lp, seams: p.seams, desc: p.desc
+      })),
+      cuts: state.cuts.map((c) => ({ seams: c.seams, seamLen: c.seamLen, A: c.A, B: c.B }))
+    };
+  }
+
+  function flashSeams() {
+    const layer = $('#piecesLayer');
+    layer.classList.add('seam-flash');
+    setTimeout(() => layer.classList.remove('seam-flash'), 820);
+  }
+
+  /* ---------------- 变换 ---------------- */
+  function setMode(mode) {
+    if (mode === 'resize' && (state.cuts.length > 0 || state.pieces.length > 1)) {
+      toast('已经切开啦，想调整原图大小请先点「重来」');
+      return;
+    }
+    if (mode === 'cut' && state.confirmed) state.confirmed = false;
+    state.mode = mode;
+    state.cutStart = null;
+    state.hoverBoundary = null;
+    state.cursorWorld = null;
+    state.tdrag = null;
+    state.snapSegs = null;
+    state.hoverV = null;
+    state.hoverKey = '';
+    svg.style.cursor = '';
+    if (mode !== 'move') state.sel = -1;
+    renderAll();
+  }
+
+  function selectPiece(i) {
+    state.sel = i;
+    updateHead();
+    renderPieces();
+    renderSelection();
+  }
+
+  /* ---------- 顶点编辑：只改边长，不改图形类型 ---------- */
+  function worldToLocal(pc, p) {
+    const m = pc.m || idM();
+    const det = m.a * m.d - m.b * m.c || 1;
+    const dx = p.x - m.e, dy = p.y - m.f;
+    return { x: (m.d * dx - m.c * dy) / det, y: (-m.b * dx + m.a * dy) / det };
+  }
+
+  function angleAt(a, b, c) {
+    const ux = a.x - b.x, uy = a.y - b.y, vx = c.x - b.x, vy = c.y - b.y;
+    const lu = Math.hypot(ux, uy) || 1, lv = Math.hypot(vx, vy) || 1;
+    return (Math.acos(Math.max(-1, Math.min(1, (ux * vx + uy * vy) / (lu * lv)))) * 180) / Math.PI;
+  }
+
+  /* ---------- 网格吸附（1cm 一格） ---------- */
+  const GRID = 1;
+  function snapGridVal(v) {
+    const r = Math.round(v / GRID) * GRID;
+    return Math.abs(v - r) < 0.24 ? r : v;
+  }
+  function snapGridPoint(p) {
+    return { x: snapGridVal(p.x), y: snapGridVal(p.y) };
+  }
+  /* 把接近水平 / 竖直的边拉到网格线上 */
+  function snapAxisEdges(pts) {
+    const out = pts.map((q) => ({ x: q.x, y: q.y }));
+    const n = out.length;
+    for (let i = 0; i < n; i++) {
+      const a = out[i], b = out[(i + 1) % n];
+      if (Math.abs(b.y - a.y) < 0.2) {
+        const ny = snapGridVal((a.y + b.y) / 2);
+        a.y = ny; b.y = ny;
+      } else if (Math.abs(b.x - a.x) < 0.2) {
+        const nx = snapGridVal((a.x + b.x) / 2);
+        a.x = nx; b.x = nx;
+      }
+    }
+    return out.map((q) => ({ x: q.x, y: q.y, corner: true }));
+  }
+
+  /* 鼠标附近的顶点 / 圆周点 */
+  function nearestVertex(pc, worldP) {
+    const wp = worldPts(pc);
+    if (pc.fromCircle) {
+      const b = G.bbox(wp);
+      const c = { x: (b.x0 + b.x1) / 2, y: (b.y0 + b.y1) / 2 };
+      const r = Math.min(b.w, b.h) / 2;
+      const d = G.dist(worldP, c);
+      if (Math.abs(d - r) < 0.5) {
+        const ux = (worldP.x - c.x) / (d || 1), uy = (worldP.y - c.y) / (d || 1);
+        return { i: -1, p: { x: c.x + ux * r, y: c.y + uy * r }, circle: true };
+      }
+      return null;
+    }
+    let best = null, bd = 0.45;
+    for (let i = 0; i < wp.length; i++) {
+      const d = G.dist(wp[i], worldP);
+      if (d < bd) { bd = d; best = { i, p: { x: wp[i].x, y: wp[i].y } }; }
+    }
+    return best;
+  }
+
+  /* 按类型改形：目标点 t（局部坐标） */
+  function editVertex(kind, pts, i, t, isCircle) {
+    const n = pts.length;
+    const c = G.polyCentroid(pts);
+    const out = (arr) => arr.map((q) => ({ x: q.x, y: q.y, corner: true }));
+
+    if (isCircle || kind === 'circle') {
+      const r = Math.max(0.6, Math.min(5.2, G.dist(t, c)));
+      return G.circlePoints(c.x, c.y, r, 360);
+    }
+
+    const uniform = () => {
+      const v = pts[i] || c;
+      const d0 = Math.max(0.08, G.dist(v, c));
+      const k = Math.max(0.3, Math.min(2.6, G.dist(t, c) / d0));
+      return out(pts.map((q) => ({ x: c.x + (q.x - c.x) * k, y: c.y + (q.y - c.y) * k })));
+    };
+
+    if (kind === 'rect') {
+      const b = G.bbox(pts);
+      const opp = { x: b.x0 + b.x1 - pts[i].x, y: b.y0 + b.y1 - pts[i].y };
+      const x0 = Math.min(opp.x, t.x), x1 = Math.max(opp.x, t.x);
+      const y0 = Math.min(opp.y, t.y), y1 = Math.max(opp.y, t.y);
+      if (x1 - x0 < 0.5 || y1 - y0 < 0.5) return null;
+      return out([{ x: x0, y: y0 }, { x: x1, y: y0 }, { x: x1, y: y1 }, { x: x0, y: y1 }]);
+    }
+
+    if (kind === 'isosceles') {
+      let apex = 0;
+      for (let k = 1; k < n; k++) if (pts[k].y < pts[apex].y) apex = k;
+      const others = [0, 1, 2].filter((k) => k !== apex);
+      const axisX = pts[apex].x;
+      const baseY = (pts[others[0]].y + pts[others[1]].y) / 2;
+      let half = Math.abs(pts[others[0]].x - axisX);
+      let apexY = pts[apex].y;
+      if (i === apex) apexY = Math.min(t.y, baseY - 0.5);
+      else half = Math.max(0.35, Math.abs(t.x - axisX));
+      return out([{ x: axisX, y: apexY }, { x: axisX + half, y: baseY }, { x: axisX - half, y: baseY }]);
+    }
+
+    if (kind === 'right') {
+      let ri = 0;
+      for (let k = 1; k < n; k++) {
+        if (Math.abs(angleAt(pts[(k - 1 + n) % n], pts[k], pts[(k + 1) % n]) - 90) <
+            Math.abs(angleAt(pts[(ri - 1 + n) % n], pts[ri], pts[(ri + 1) % n]) - 90)) ri = k;
+      }
+      if (i === ri) {
+        const dx = t.x - pts[i].x, dy = t.y - pts[i].y;
+        return out(pts.map((q) => ({ x: q.x + dx, y: q.y + dy })));
+      }
+      const p0 = pts[ri], v = pts[i];
+      const ux = v.x - p0.x, uy = v.y - p0.y;
+      const L = Math.hypot(ux, uy) || 1;
+      const proj = Math.max(0.4, ((t.x - p0.x) * ux + (t.y - p0.y) * uy) / L);
+      const np = { x: p0.x + (ux / L) * proj, y: p0.y + (uy / L) * proj };
+      return out(pts.map((q, k) => (k === i ? np : { x: q.x, y: q.y })));
+    }
+
+    if (kind === 'parallelogram') {
+      const opp = (i + 2) % n;
+      const dx = t.x - pts[i].x, dy = t.y - pts[i].y;
+      return out(pts.map((q, k) => {
+        if (k === i) return { x: q.x + dx, y: q.y + dy };
+        if (k === opp) return { x: q.x - dx, y: q.y - dy };
+        return { x: q.x, y: q.y };
+      }));
+    }
+
+    if (kind === 'rhombus') {
+      const v = pts[i];
+      const ux = v.x - c.x, uy = v.y - c.y;
+      const L = Math.hypot(ux, uy) || 1;
+      const proj = Math.max(0.35, ((t.x - c.x) * ux + (t.y - c.y) * uy) / L);
+      const np = { x: c.x + (ux / L) * proj, y: c.y + (uy / L) * proj };
+      const opp = (i + 2) % n;
+      return out(pts.map((q, k) => {
+        if (k === i) return np;
+        if (k === opp) return { x: 2 * c.x - np.x, y: 2 * c.y - np.y };
+        return { x: q.x, y: q.y };
+      }));
+    }
+
+    if (kind === 'trapezoid') {
+      /* 同一条底上的另一个点（用来保持两底水平、限制底长） */
+      let partner = -1;
+      for (let k = 0; k < n; k++) {
+        if (k === i) continue;
+        if (Math.abs(pts[k].y - pts[i].y) < 0.3) { partner = k; break; }
+      }
+      /* 另一条底边的 y */
+      let otherY = null;
+      for (let k = 0; k < n; k++) {
+        if (Math.abs(pts[k].y - pts[i].y) > 0.3) { otherY = pts[k].y; break; }
+      }
+      /* 竖直：整条底边一起上下移动 → 改变高 */
+      let dy = t.y - pts[i].y;
+      if (otherY !== null) {
+        if (otherY > pts[i].y) dy = Math.min(dy, otherY - pts[i].y - 0.6); /* 当前是上底 */
+        else dy = Math.max(dy, otherY - pts[i].y + 0.6); /* 当前是下底 */
+      }
+      /* 水平：只动这个点 → 改变底长，且不越过同一个底上的另一个点 */
+      let nx = t.x;
+      if (partner >= 0) {
+        if (pts[partner].x < pts[i].x) nx = Math.max(nx, pts[partner].x + 0.3);
+        else nx = Math.min(nx, pts[partner].x - 0.3);
+      }
+      return out(pts.map((q, k) => {
+        if (k === i) return { x: nx, y: q.y + dy };
+        if (k === partner) return { x: q.x, y: q.y + dy };
+        return { x: q.x, y: q.y };
+      }));
+    }
+
+    if (kind === 'isoTrapezoid') {
+      const b = G.bbox(pts);
+      const axisX = c.x;
+      let halfTop = 0, halfBot = 0;
+      for (const q of pts) {
+        if (Math.abs(q.y - b.y0) < 0.2) halfTop = Math.max(halfTop, Math.abs(q.x - axisX));
+        if (Math.abs(q.y - b.y1) < 0.2) halfBot = Math.max(halfBot, Math.abs(q.x - axisX));
+      }
+      const isTop = Math.abs(pts[i].y - b.y0) < 0.3;
+      const half = Math.max(0.4, Math.abs(t.x - axisX));
+      let topY = b.y0, botY = b.y1;
+      if (isTop) { topY = Math.min(t.y, botY - 0.6); halfTop = half; }
+      else { botY = Math.max(t.y, topY + 0.6); halfBot = half; }
+      return out([
+        { x: axisX - halfTop, y: topY }, { x: axisX + halfTop, y: topY },
+        { x: axisX + halfBot, y: botY }, { x: axisX - halfBot, y: botY }
+      ]);
+    }
+
+    if (kind === 'rightTrapezoid') {
+      const b = G.bbox(pts);
+      const leftX = b.x0, topY = b.y0, botY = b.y1;
+      const isTop = Math.abs(pts[i].y - topY) < 0.25;
+      /* 竖直：整条横边一起移动 → 改高 */
+      let dy = t.y - pts[i].y;
+      if (isTop) dy = Math.min(dy, botY - topY - 0.6);
+      else dy = Math.max(dy, topY - botY + 0.6);
+      /* 水平：右边两个点可以改底长，左边的点保持竖直不动 */
+      let nx = pts[i].x;
+      if (Math.abs(pts[i].x - leftX) > 0.25) nx = Math.max(leftX + 0.4, t.x);
+      const moved = pts.map((q) => (Math.abs(q.y - (isTop ? topY : botY)) < 0.25 ? { x: q.x, y: q.y + dy } : { x: q.x, y: q.y }));
+      return out(moved.map((q, k) => (k === i ? { x: nx, y: q.y } : q)));
+    }
+
+    if (kind === 'polygon') {
+      return out(pts.map((q, k) => (k === i ? { x: t.x, y: t.y } : { x: q.x, y: q.y })));
+    }
+
+    if (kind === 'concave') {
+      /* 凹形（L 形 / 星形）：横竖分别缩放 → 可以改长宽，形状特征不变 */
+      const v = pts[i] || c;
+      const b = G.bbox(pts);
+      const halfW = Math.max(0.3, (b.x1 - b.x0) / 2);
+      const halfH = Math.max(0.3, (b.y1 - b.y0) / 2);
+      let kx = Math.abs(v.x - c.x) > 0.25 ? (t.x - c.x) / (v.x - c.x) : 1 + (t.x - v.x) / halfW;
+      let ky = Math.abs(v.y - c.y) > 0.25 ? (t.y - c.y) / (v.y - c.y) : 1 + (t.y - v.y) / halfH;
+      kx = Math.max(0.25, Math.min(3, kx));
+      ky = Math.max(0.25, Math.min(3, ky));
+      return out(pts.map((q) => ({ x: c.x + (q.x - c.x) * kx, y: c.y + (q.y - c.y) * ky })));
+    }
+
+    return uniform();
+  }
+
+  function onDownVertex(evt) {
+    const pc = state.pieces[0];
+    if (!pc) return;
+    const p = toWorld(evt);
+    const h = nearestVertex(pc, p);
+    if (!h) { toast('把鼠标移到顶点（或圆周）附近再拖'); return; }
+    state.tdrag = { type: 'vertex', i: h.i, circle: !!h.circle, base: pc.pts };
+    state.hoverV = h.p;
+    svg.style.cursor = 'grabbing';
+    evt.preventDefault();
+  }
+
+  /* ---------- 边吸附 / 角吸附 ---------- */
+  function edgesOf(pts, minLen) {
+    const out = [];
+    const n = pts.length;
+    const lim = minLen === undefined ? 0.35 : minLen;
+    for (let i = 0; i < n; i++) {
+      const a = pts[i], b = pts[(i + 1) % n];
+      const dx = b.x - a.x, dy = b.y - a.y;
+      const d = Math.hypot(dx, dy);
+      if (d < lim) continue;
+      out.push({ i, a, b, d, ux: dx / d, uy: dy / d });
+    }
+    return out;
+  }
+
+  /* 真正的“角点”：内角明显不是 180° */
+  function cornersOfPts(pts) {
+    const n = pts.length;
+    const out = [];
+    for (let i = 0; i < n; i++) {
+      const a = pts[(i - 1 + n) % n], b = pts[i], c = pts[(i + 1) % n];
+      const ux = a.x - b.x, uy = a.y - b.y, vx = c.x - b.x, vy = c.y - b.y;
+      const lu = Math.hypot(ux, uy), lv = Math.hypot(vx, vy);
+      if (lu < 0.08 || lv < 0.08) continue;
+      const ang = Math.acos(Math.max(-1, Math.min(1, (ux * vx + uy * vy) / (lu * lv))));
+      if (Math.abs(ang - Math.PI) < 0.21) continue;
+      out.push({ i, x: b.x, y: b.y, ang, ux: ux / lu, uy: uy / lu, vx: vx / lv, vy: vy / lv });
+    }
+    return out;
+  }
+
+  /* 试探性检查：这个位置会不会和某块重叠（贴边不算） */
+  function overlapsPts(wp, targetPts) {
+    for (let i = 0; i < wp.length; i += 1) {
+      const p = wp[i];
+      if (G.distToBoundary(targetPts, p) < 0.02) continue;
+      if (G.pointInPoly(targetPts, p)) return true;
+    }
+    return false;
+  }
+
+  /* 单边磁吸：只纠正“垂直距离 + 角度”，沿着边走的位置保留 → 可以贴着边滑 */
+  function findEdgeSnap(pc, idx, m) {
+    const wp = G.transformPts(pc.pts, m);
+    const cw = G.polyCentroid(wp);
+    const E0 = edgesOf(wp);
+    if (!E0.length) return null;
+    const b0 = G.bbox(wp);
+    let best = null;
+    for (let j = 0; j < state.pieces.length; j++) {
+      if (j === idx) continue;
+      const op = state.pieces[j];
+      const ow = G.transformPts(op.pts, op.m);
+      const b1 = G.bbox(ow);
+      if (b0.x1 < b1.x0 - 0.8 || b0.x0 > b1.x1 + 0.8 || b0.y1 < b1.y0 - 0.8 || b0.y0 > b1.y1 + 0.8) continue;
+      const E1 = edgesOf(ow);
+      for (const ea of E0) {
+        const mx0 = (ea.a.x + ea.b.x) / 2, my0 = (ea.a.y + ea.b.y) / 2;
+        for (const eb of E1) {
+          const cross = ea.ux * eb.uy - ea.uy * eb.ux;
+          const dot = ea.ux * eb.ux + ea.uy * eb.uy;
+          let ang = Math.atan2(cross, dot);
+          if (ang > Math.PI / 2) ang -= Math.PI;
+          if (ang < -Math.PI / 2) ang += Math.PI;
+          if (Math.abs(ang) > 0.2) continue;
+          const cos = Math.cos(ang), sin = Math.sin(ang);
+          const dx = mx0 - cw.x, dy = my0 - cw.y;
+          const mx = cw.x + dx * cos - dy * sin;
+          const my = cw.y + dx * sin + dy * cos;
+          const nx = -eb.uy, ny = eb.ux;
+          const s = (mx - eb.a.x) * nx + (my - eb.a.y) * ny;
+          if (Math.abs(s) > 0.42) continue;
+          const p0 = (ea.a.x - eb.a.x) * eb.ux + (ea.a.y - eb.a.y) * eb.uy;
+          const p1 = (ea.b.x - eb.a.x) * eb.ux + (ea.b.y - eb.a.y) * eb.uy;
+          const lo = Math.min(p0, p1), hi = Math.max(p0, p1);
+          const ov = Math.min(hi, eb.d) - Math.max(lo, 0);
+          if (ov < Math.min(0.45, 0.35 * Math.min(ea.d, eb.d))) continue;
+          const oc = G.polyCentroid(ow);
+          const sTarget = (oc.x - eb.a.x) * nx + (oc.y - eb.a.y) * ny;
+          const sDrag = (cw.x - eb.a.x) * nx + (cw.y - eb.a.y) * ny;
+          if (sTarget * sDrag > 0) continue; /* 两块重心同侧 → 贴上去会重叠 */
+          const score = Math.abs(s) + Math.abs(ang) * 0.5;
+          if (!best || score < best.score) {
+            best = {
+              score,
+              m: mulM(transM(-s * nx, -s * ny), mulM(rotAbout(cw.x, cw.y, ang), m)),
+              segs: [[eb.a, eb.b]],
+              other: ow
+            };
+          }
+        }
+      }
+    }
+    if (!best) return null;
+    if (overlapsPts(G.transformPts(pc.pts, best.m), best.other)) return null;
+    return best;
+  }
+
+  /* 角吸附：两条邻边同时对齐，直接坐进那个角 */
+  function findCornerSnap(pc, idx, m) {
+    const wp = G.transformPts(pc.pts, m);
+    const cw = G.polyCentroid(wp);
+    const CA = cornersOfPts(wp);
+    if (!CA.length) return null;
+    const b0 = G.bbox(wp);
+    let best = null;
+    for (let j = 0; j < state.pieces.length; j++) {
+      if (j === idx) continue;
+      const op = state.pieces[j];
+      const ow = G.transformPts(op.pts, op.m);
+      const b1 = G.bbox(ow);
+      if (b0.x1 < b1.x0 - 0.8 || b0.x0 > b1.x1 + 0.8 || b0.y1 < b1.y0 - 0.8 || b0.y0 > b1.y1 + 0.8) continue;
+      const CB = cornersOfPts(ow);
+      if (!CB.length) continue;
+      const n = wp.length;
+      for (const ca of CA) {
+        for (const cb of CB) {
+          /* 两角相等（同一扇形）或互补（两扇形合成平角）都可能拼合 */
+          const dEq = Math.abs(ca.ang - cb.ang);
+          const dSup = Math.abs(ca.ang + cb.ang - Math.PI);
+          if (Math.min(dEq, dSup) > 0.16) continue;
+          for (const swap of [false, true]) {
+            const bx = swap ? cb.vx : cb.ux, by = swap ? cb.vy : cb.uy;
+            const ang = Math.atan2(ca.ux * by - ca.uy * bx, ca.ux * bx + ca.uy * by);
+            if (Math.abs(ang) > 0.26) continue;
+            const cos = Math.cos(ang), sin = Math.sin(ang);
+            const dx = ca.x - cw.x, dy = ca.y - cw.y;
+            const vx = cw.x + dx * cos - dy * sin;
+            const vy = cw.y + dx * sin + dy * cos;
+            const tx = cb.x - vx, ty = cb.y - vy;
+            const dist = Math.hypot(tx, ty);
+            if (dist > 0.5) continue;
+            const m2 = mulM(transM(tx, ty), mulM(rotAbout(cw.x, cw.y, ang), m));
+            const wp2 = G.transformPts(pc.pts, m2);
+            const e1x = wp2[(ca.i + 1) % n].x - wp2[ca.i].x, e1y = wp2[(ca.i + 1) % n].y - wp2[ca.i].y;
+            const e2x = wp2[(ca.i - 1 + n) % n].x - wp2[ca.i].x, e2y = wp2[(ca.i - 1 + n) % n].y - wp2[ca.i].y;
+            const l1 = Math.hypot(e1x, e1y), l2 = Math.hypot(e2x, e2y);
+            if (l1 < 0.08 || l2 < 0.08) continue;
+            const par = (ex, ey, fx, fy, len) => Math.abs(ex * fy - ey * fx) / ((len * Math.hypot(fx, fy)) || 1);
+            const p1 = Math.min(par(e1x, e1y, cb.ux, cb.uy, l1), par(e1x, e1y, cb.vx, cb.vy, l1));
+            const p2 = Math.min(par(e2x, e2y, cb.ux, cb.uy, l2), par(e2x, e2y, cb.vx, cb.vy, l2));
+            if (p1 > 0.16 || p2 > 0.16) continue;
+            if (overlapsPts(wp2, ow)) continue;
+            const score = dist + Math.abs(ang) * 0.6;
+            if (!best || score < best.score) {
+              best = {
+                score, m: m2,
+                segs: [
+                  [ow[cb.i], ow[(cb.i + 1) % ow.length]],
+                  [ow[cb.i], ow[(cb.i - 1 + ow.length) % ow.length]]
+                ]
+              };
+            }
+          }
+        }
+      }
+    }
+    return best;
+  }
+
+  function findSnap(pc, idx, m) {
+    const corner = findCornerSnap(pc, idx, m);
+    if (corner) return corner;
+    return findEdgeSnap(pc, idx, m);
+  }
+
+  function transformSel(act) {
+    if (act === 'resetall') {
+      state.pieces.forEach((p) => { p.m = idM(); });
+      state.corners = cornersOf(state.pieces);
+      renderAll();
+      toast('所有小块都回到了原来的位置');
+      return;
+    }
+    const i = state.sel;
+    if (i < 0) { toast('先点一下要变换的小块'); return; }
+    const pc = state.pieces[i];
+    if (act === 'resett') {
+      pc.m = idM();
+      renderAll();
+      toast('这一块回到了原位');
+      return;
+    }
+    const c = G.polyCentroid(worldPts(pc));
+    if (act === 'rotl') pc.m = mulM(rotAbout(c.x, c.y, -15 * Math.PI / 180), pc.m);
+    else if (act === 'rotr') pc.m = mulM(rotAbout(c.x, c.y, 15 * Math.PI / 180), pc.m);
+    else if (act === 'flipx') pc.m = mulM(scaleAbout(c.x, c.y, -1, 1), pc.m);
+    else if (act === 'flipy') pc.m = mulM(scaleAbout(c.x, c.y, 1, -1), pc.m);
+    state.corners = cornersOf(state.pieces);
+    renderAll();
+  }
+
+  /* ---------------- 指针 ---------------- */
+  const svg = $('#stage');
+  let touchEnabled = false;
+
+  $('#touchModeBtn').addEventListener('click', (event) => {
+    touchEnabled = !touchEnabled;
+    $('#stageWrap').classList.toggle('touch-enabled', touchEnabled);
+    event.currentTarget.setAttribute('aria-pressed', String(touchEnabled));
+    event.currentTarget.textContent = touchEnabled ? '完成操作' : '操作画布';
+    $('#touchHelp').textContent = touchEnabled
+      ? '已开启触摸编辑，可在画布里点选或拖动。'
+      : '默认可从画布上滑动页面。';
+  });
+
+  const compactLayout = matchMedia('(max-width: 900px)');
+  function placeShapeCard() {
+    const parent = compactLayout.matches ? $('.layout') : $('#dataPanel');
+    parent.prepend($('#shapeCard'));
+  }
+  compactLayout.addEventListener('change', placeShapeCard);
+  placeShapeCard();
+
+  function toWorld(evt) {
+    const rect = svg.getBoundingClientRect();
+    const vb = svg.viewBox.baseVal;
+    const scale = Math.min(rect.width / vb.width, rect.height / vb.height);
+    const ox = (rect.width - vb.width * scale) / 2;
+    const oy = (rect.height - vb.height * scale) / 2;
+    return { x: (evt.clientX - rect.left - ox) / scale, y: (evt.clientY - rect.top - oy) / scale };
+  }
+
+  function pieceAt(p) {
+    if (state.sel >= 0) {
+      const pc = state.pieces[state.sel];
+      if (pc && G.pointInPoly(worldPts(pc), p)) return state.sel;
+    }
+    for (let i = state.pieces.length - 1; i >= 0; i--) {
+      if (G.pointInPoly(worldPts(state.pieces[i]), p)) return i;
+    }
+    return -1;
+  }
+
+  /* ---------- 边界吸附 & 线段切割 ---------- */
+  function nearestBoundary(p, maxD) {
+    let best = null, bd = maxD;
+    for (const pc of state.pieces) {
+      const pts = worldPts(pc);
+      const n = pts.length;
+      for (let i = 0; i < n; i++) {
+        const a = pts[i], b = pts[(i + 1) % n];
+        const dx = b.x - a.x, dy = b.y - a.y;
+        const l2 = dx * dx + dy * dy;
+        if (l2 < 1e-12) continue;
+        let t = ((p.x - a.x) * dx + (p.y - a.y) * dy) / l2;
+        t = Math.max(0, Math.min(1, t));
+        const qx = a.x + t * dx, qy = a.y + t * dy;
+        const d = Math.hypot(p.x - qx, p.y - qy);
+        if (d < bd) { bd = d; best = { x: qx, y: qy }; }
+      }
+    }
+    return best;
+  }
+
+  /* 线段与多边形边界的交点，按沿线段位置排序去重 */
+  function segHits(pts, A, B) {
+    const n = pts.length;
+    const rx = B.x - A.x, ry = B.y - A.y;
+    const out = [];
+    for (let i = 0; i < n; i++) {
+      const p0 = pts[i], p1 = pts[(i + 1) % n];
+      const sx = p1.x - p0.x, sy = p1.y - p0.y;
+      const den = rx * sy - ry * sx;
+      if (Math.abs(den) < 1e-12) continue;
+      const t = ((p0.x - A.x) * sy - (p0.y - A.y) * sx) / den;
+      const u = ((p0.x - A.x) * ry - (p0.y - A.y) * rx) / den;
+      if (t < -1e-9 || t > 1 + 1e-9) continue;
+      if (u < -1e-9 || u > 1 + 1e-9) continue;
+      const endpoint = u <= 1e-8 ? p0 : u >= 1 - 1e-8 ? p1 : null;
+      const arc = arcEdge(p0, p1);
+      const arcEdges = endpoint ? endpoint.arcEdges : arc === undefined ? null : [arc];
+      const metadata = arcEdges ? { onCircle: true, arcEdges } : {};
+      out.push({
+        ...metadata,
+        t: Math.max(0, Math.min(1, t)),
+        x: A.x + t * rx, y: A.y + t * ry
+      });
+    }
+    out.sort((a, b) => a.t - b.t);
+    const ded = [];
+    for (const h of out) {
+      if (!ded.length || Math.abs(h.t - ded[ded.length - 1].t) > 1e-6) ded.push(h);
+    }
+    return ded;
+  }
+
+  // 相邻交点之间没有新的交点，取中点即可区分内部与外部。
+  function insideInterval(pts, A, B) {
+    const midpoint = { x: (A.x + B.x) / 2, y: (A.y + B.y) / 2 };
+    return G.distToBoundary(pts, midpoint) > 1e-7 && G.pointInPoly(pts, midpoint);
+  }
+
+  function locateOnRing(pts, p) {
+    const n = pts.length;
+    let best = null, bd = 1e-5;
+    for (let i = 0; i < n; i++) {
+      const a = pts[i], b = pts[(i + 1) % n];
+      const dx = b.x - a.x, dy = b.y - a.y;
+      const l2 = dx * dx + dy * dy;
+      if (l2 < 1e-12) continue;
+      let t = ((p.x - a.x) * dx + (p.y - a.y) * dy) / l2;
+      t = Math.max(0, Math.min(1, t));
+      const qx = a.x + t * dx, qy = a.y + t * dy;
+      const d = Math.hypot(p.x - qx, p.y - qy);
+      if (d < bd) { bd = d; best = { e: i, t }; }
+    }
+    return best;
+  }
+
+  function walkRing(pts, fromE, toE, toT) {
+    const n = pts.length;
+    const out = [];
+    let k = (fromE + 1) % n;
+    let guard = 0;
+    while (k !== toE && guard++ <= n + 1) {
+      out.push(pts[k]);
+      k = (k + 1) % n;
+    }
+    if (k !== toE) return null;
+    if (toT > 1e-9) out.push(pts[toE]);
+    return out;
+  }
+
+  function dedupeRing(arr) {
+    const out = [];
+    for (const q of arr) {
+      const p = out[out.length - 1];
+      if (!p || Math.hypot(q.x - p.x, q.y - p.y) > 1e-9) out.push(q);
+    }
+    if (out.length > 2) {
+      const a = out[0], b = out[out.length - 1];
+      if (Math.hypot(a.x - b.x, a.y - b.y) < 1e-9) out.pop();
+    }
+    return out;
+  }
+
+  /* 用弦 A—B 把多边形切成两块 */
+  function splitRingAt(pts, A, B) {
+    const la = locateOnRing(pts, A), lb = locateOnRing(pts, B);
+    if (!la || !lb) return null;
+    if (la.e === lb.e) return null;
+    const chainAB = walkRing(pts, la.e, lb.e, lb.t);
+    const chainBA = walkRing(pts, lb.e, la.e, la.t);
+    if (!chainAB || !chainBA) return null;
+    const r1 = dedupeRing([A].concat(chainAB, [B]));
+    const r2 = dedupeRing([B].concat(chainBA, [A]));
+    if (r1.length < 3 || r2.length < 3) return null;
+    if (Math.abs(G.polyArea(r1)) < 0.01 || Math.abs(G.polyArea(r2)) < 0.01) return null;
+    return [r1, r2];
+  }
+
+  function onDown(evt) {
+    if (evt.pointerType === 'touch' && !touchEnabled) return;
+    if (evt.button !== undefined && evt.button !== 0) return;
+    try { svg.setPointerCapture(evt.pointerId); } catch (err) { /* 合成事件忽略 */ }
+    if (state.mode === 'resize') { onDownVertex(evt); return; }
+    if (state.mode === 'move') { onDownMove(evt); return; }
+    if (state.confirmed) { toast('展示模式下先点「继续划刀」哦'); return; }
+    const p = toWorld(evt);
+    const bp = nearestBoundary(p, 0.9);
+    evt.preventDefault();
+    if (!state.cutStart) {
+      if (!bp) { toast('请点在图形边界上，作为起点'); return; }
+      state.cutStart = { x: bp.x, y: bp.y };
+      state.hoverBoundary = bp;
+      state.cursorWorld = p;
+      updateHead();
+      renderPreview();
+      return;
+    }
+    if (!bp) { toast('终点也要落在图形边界上'); return; }
+    if (G.dist(state.cutStart, bp) < 0.3) { toast('起点和终点要分开一点'); return; }
+    state.hoverBoundary = bp;
+    state.cursorWorld = p;
+    doCut(state.cutStart, bp);
+    if (state.cutStart) renderPreview();
+  }
+
+  function onDownMove(evt) {
+    const p = toWorld(evt);
+    const i0 = state.sel;
+    if (i0 >= 0 && state.pieces[i0]) {
+      const h = handlePos(state.pieces[i0]);
+      if (G.dist(h, p) < 0.34) {
+        const pc = state.pieces[i0];
+        const c = G.polyCentroid(worldPts(pc));
+        state.tdrag = {
+          type: 'rotate', i: i0, center: c, m0: Object.assign({}, pc.m),
+          a0: Math.atan2(p.y - c.y, p.x - c.x)
+        };
+        return;
+      }
+    }
+    const i = pieceAt(p);
+    if (i < 0) {
+      state.sel = -1;
+      updateHead();
+      renderPieces();
+      renderSelection();
+      return;
+    }
+    state.sel = i;
+    state.tdrag = { type: 'move', i, start: p, m0: Object.assign({}, state.pieces[i].m) };
+    updateHead();
+    renderPieces();
+    renderSelection();
+    renderMarks();
+    evt.preventDefault();
+  }
+
+  function syncPieceDOM(i) {
+    const pc = state.pieces[i];
+    if (!pc) return;
+    const g = $('#piecesLayer g[data-i="' + i + '"]');
+    if (g) g.setAttribute('transform', matStr(pc.m));
+    const fg = document.getElementById('faceG');
+    if (fg && state.pieces.length === 1) fg.setAttribute('transform', matStr(pc.m));
+    if (!pc.lp || !pc._off) return;
+    const p = G.applyM(pc.m, pc.lp);
+    const num = document.getElementById('num-' + i);
+    if (num) {
+      num.setAttribute('x', p.x.toFixed(3));
+      num.setAttribute('y', (p.y + pc._off.ny).toFixed(3));
+    }
+    const ar = document.getElementById('area-' + i);
+    if (ar) {
+      ar.setAttribute('x', p.x.toFixed(3));
+      ar.setAttribute('y', (p.y + pc._off.ay).toFixed(3));
+    }
+  }
+
+  function onMove(evt) {
+    if (evt.pointerType === 'touch' && !touchEnabled) return;
+    if (state.tdrag) {
+      const td = state.tdrag;
+      const pi = td.type === 'vertex' ? 0 : td.i;
+      const pc = state.pieces[pi];
+      const p = toWorld(evt);
+      if (td.type === 'move') {
+        let dx = p.x - td.start.x, dy = p.y - td.start.y;
+        let m = mulM(transM(dx, dy), td.m0);
+        const b = G.bbox(G.transformPts(pc.pts, m));
+        const cx = (b.x0 + b.x1) / 2, cy = (b.y0 + b.y1) / 2;
+        if (cx < 0.4) dx += 0.4 - cx; else if (cx > W - 0.4) dx -= cx - (W - 0.4);
+        if (cy < 0.4) dy += 0.4 - cy; else if (cy > H - 0.4) dy -= cy - (H - 0.4);
+        m = mulM(transM(dx, dy), td.m0);
+        const sn = findSnap(pc, td.i, m);
+        state.snapSegs = sn ? sn.segs : null;
+        pc.m = sn ? sn.m : m;
+      } else if (td.type === 'vertex') {
+        let lp = worldToLocal(pc, p);
+        if (state.showGrid) lp = snapGridPoint(lp);
+        let next = editVertex(state.realKind, td.base, td.i, lp, td.circle);
+        if (next && state.showGrid && state.realKind !== 'circle' && !td.circle) next = snapAxisEdges(next);
+        if (next) {
+          pc.pts = next;
+          pc.lp = null;
+          state.poly0 = next;
+          if (pc.fromCircle) {
+            const b = G.bbox(next);
+            pc.circle = { cx: (b.x0 + b.x1) / 2, cy: (b.y0 + b.y1) / 2, r: b.w / 2 };
+            state.meta.circle = pc.circle;
+          }
+          state.corners = cornersOf(state.pieces);
+          state.hoverV = null;
+          state.hoverKey = '';
+          renderAll();
+          svg.style.cursor = 'grabbing';
+          evt.preventDefault();
+          return;
+        }
+      } else {
+        const ang = Math.atan2(p.y - td.center.y, p.x - td.center.x);
+        let delta = ang - td.a0;
+        const step = Math.PI / 12;
+        const snapped = Math.round(delta / step) * step;
+        if (Math.abs(delta - snapped) < 0.04) delta = snapped;
+        pc.m = mulM(rotAbout(td.center.x, td.center.y, delta), td.m0);
+      }
+      syncPieceDOM(td.i);
+      renderSelection();
+      evt.preventDefault();
+      return;
+    }
+    if (state.mode === 'resize') {
+      const pc0 = state.pieces[0];
+      if (pc0) {
+        const h = nearestVertex(pc0, toWorld(evt));
+        const key = h ? h.i + '@' + h.p.x.toFixed(2) + ',' + h.p.y.toFixed(2) : '';
+        if (key !== state.hoverKey) {
+          state.hoverKey = key;
+          state.hoverV = h ? h.p : null;
+          svg.style.cursor = h ? 'grab' : '';
+          renderSelection();
+        }
+      }
+      return;
+    }
+    if (state.mode === 'cut') {
+      const p = toWorld(evt);
+      const bp = nearestBoundary(p, 0.9);
+      state.cursorWorld = p;
+      state.hoverBoundary = bp;
+      renderPreview();
+      return;
+    }
+  }
+
+  function onUp() {
+    if (state.tdrag) {
+      const td = state.tdrag;
+      state.tdrag = null;
+      state.snapSegs = null;
+      if (td.type === 'vertex') {
+        const pc0 = state.pieces[0];
+        if (pc0) {
+          pc0.lp = null;
+          state.poly0 = pc0.pts;
+          pc0.desc = pc0.fromCircle ? '圆形' : G.classifyShape(pc0.pts);
+        }
+      }
+      state.corners = cornersOf(state.pieces);
+      state.hoverV = null;
+      state.hoverKey = '';
+      renderAll();
+      svg.style.cursor = '';
+      return;
+    }
+  }
+
+  svg.addEventListener('pointerdown', onDown);
+  svg.addEventListener('pointermove', onMove);
+  window.addEventListener('pointerup', onUp);
+  window.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && state.cutStart) {
+      state.cutStart = null;
+      state.hoverBoundary = null;
+      state.cursorWorld = null;
+      updateHead();
+      renderPreview();
+    }
+  });
+  window.addEventListener('pointercancel', () => {
+    state.tdrag = null; renderPreview();
+  });
+
+  /* ---------------- 按钮 ---------------- */
+  function undo() {
+    if (!state.history.length) { toast('还没有可以撤销的刀哦'); return; }
+    const prev = state.history.pop();
+    state.pieces = prev.pieces.map((p) => Object.assign({}, p, { m: Object.assign({}, p.m) }));
+    state.cuts = prev.cuts;
+    state.confirmed = false;
+    state.sel = -1;
+    state.corners = cornersOf(state.pieces);
+    renderAll();
+    toast('撤掉了一刀');
+  }
+
+  function resetAll() {
+    state.pieces = [{
+      pts: state.poly0, m: idM(), fromCircle: state.realKind === 'circle', circle: state.meta.circle || null,
+      lp: null, seams: [], desc: state.meta.circle ? '圆形' : G.classifyShape(state.poly0)
+    }];
+    state.cuts = [];
+    state.history = [];
+    state.confirmed = false;
+    state.sel = -1;
+    state.corners = cornersOf(state.pieces);
+    renderAll();
+    toast('重新开始，试试新的刀法～');
+  }
+
+  function onConfirm() {
+    if (state.confirmed) {
+      state.confirmed = false;
+      setMode('cut');
+      toast('可以接着划刀啦');
+      return;
+    }
+    if (state.pieces.length < 2) {
+      toast('先划一刀，把图形切开才能看数据');
+      pulseStage();
+      return;
+    }
+    state.confirmed = true;
+    setMode('move');
+    toast('数据算好啦，可以拖开小块、转一转、翻个面');
+  }
+
+  function pulseStage() {
+    const el = $('#stageWrap');
+    el.animate([{ transform: 'scale(1)' }, { transform: 'scale(1.012)' }, { transform: 'scale(1)' }], { duration: 420, easing: 'ease-out' });
+  }
+
+  /* ---------------- 提示 ---------------- */
+  let toastTimer = 0;
+  function toast(msg) {
+    const t = $('#toast');
+    t.textContent = msg;
+    t.classList.add('show');
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => t.classList.remove('show'), 2400);
+  }
+
+  /* ---------------- 绑定 ---------------- */
+  $('#shapeSelect').addEventListener('change', (e) => {
+    buildShape(e.target.value);
+  });
+  $('#shapeN').addEventListener('change', (e) => {
+    const lower = Number(e.target.min), upper = Number(e.target.max);
+    const value = parseInt(e.target.value, 10) || 6;
+    state.ngon = clamp(value, lower, upper);
+    if (value !== state.ngon) toast('可输入 ' + lower + '–' + upper + ($('#shapeCountLabel').textContent === '角数' ? ' 角' : ' 边'));
+    e.target.value = state.ngon;
+    if (['regular', 'star', 'polygon'].indexOf(state.realKind) >= 0) {
+      buildShape(state.realKind);
+    }
+  });
+  $('#angleToggle').addEventListener('change', (e) => {
+    state.showAngles = e.target.checked;
+    renderPieces();
+    if (state.showAngles) toast('只标出还完整保留的原图形的角');
+  });
+  $('#rerollBtn').addEventListener('click', () => buildShape(state.kind));
+  $('#resetBtn').addEventListener('click', resetAll);
+  $('#undoBtn').addEventListener('click', undo);
+  $('#confirmBtn').addEventListener('click', onConfirm);
+  $('#gridToggle').addEventListener('change', (e) => {
+    state.showGrid = e.target.checked;
+    $('#gridRect').style.display = state.showGrid ? '' : 'none';
+    updateHead();
+  });
+  $('#modeSwitch').addEventListener('click', (e) => {
+    const b = e.target.closest('.mode-btn');
+    if (!b || b.dataset.mode === state.mode) return;
+    setMode(b.dataset.mode);
+    if (b.dataset.mode === 'move' && state.pieces.length < 2) toast('先划一刀，再来拼摆小块');
+  });
+  $('#mbTools').addEventListener('click', (e) => {
+    const b = e.target.closest('.tbtn');
+    if (!b) return;
+    transformSel(b.dataset.act);
+  });
+
+  /* ---------------- 启动 ---------------- */
+  buildShape('random');
+})();
+</script>
+</body>
+</html>
